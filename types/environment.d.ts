@@ -1,7 +1,8 @@
 declare global {
   namespace NodeJS {
     interface ProcessEnv {
-      propertyOnProcessEnv: string
+      ENGWALES_DEF_DIR: string
+      SCOTLAND_DEF_DIR: string
     }
   }
 }

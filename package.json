@@ -1,5 +1,5 @@
 {
-  "name": "node-template-ts",
+  "name": "node-hmcts-helpers",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -11,6 +11,7 @@
   "license": "ISC",
   "devDependencies": {
     "@types/chai": "^4.3.1",
+    "@types/inquirer": "^8.2.1",
     "@types/mocha": "^9.1.1",
     "@types/node": "^18.0.0",
     "chai": "^4.3.6",
@@ -20,6 +21,7 @@
   },
   "dependencies": {
     "dotenv": "^16.0.1",
+    "inquirer": "^8.2.4",
     "source-map-support": "^0.5.21"
   }
 }
