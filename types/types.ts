@@ -36,3 +36,16 @@ export interface CaseEventToField {
     ShowSummaryContentOption?: number | null
     RetriesTimeoutURLMidEvent?: string | null
 }
+
+export interface Scrubbed {
+    ID: string
+    ListElementCode: string
+    ListElement: string
+    DisplayOrder: number
+}
+
+export enum SaveMode {
+    ENGLANDWALES = 1,
+    SCOTLAND = 2,
+    BOTH = 0
+}

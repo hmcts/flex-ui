@@ -1,7 +1,7 @@
 import 'source-map-support/register'
 import { config as envConfig } from 'dotenv'
 import { prompt } from 'inquirer'
-import { AuthorisationCaseField, CaseEventToField, CaseField } from './types/types'
+import { AuthorisationCaseField, CaseEventToField, CaseField, SaveMode, Scrubbed } from './types/types'
 import { readFileSync, writeFileSync } from 'fs'
 import { sep } from 'path'
 envConfig()
@@ -17,14 +17,19 @@ function checkEnvVars() {
 let englandwales: {
   CaseField: CaseField[],
   AuthorisationCaseField: AuthorisationCaseField[],
-  CaseEventToFields: CaseEventToField[]
+  CaseEventToFields: CaseEventToField[],
+  Scrubbed: Scrubbed[],
 }
 
 let scotland: {
   CaseField: CaseField[],
   AuthorisationCaseField: AuthorisationCaseField[],
-  CaseEventToFields: CaseEventToField[]
+  CaseEventToFields: CaseEventToField[],
+  Scrubbed: Scrubbed[],
 }
+
+let saveMode: SaveMode = SaveMode.BOTH
+let lastAnswers: Partial<Record<keyof (CaseField) | keyof (CaseEventToField), any>> = {}
 
 function createNewCaseFieldType(): CaseField {
   return {
@@ -53,7 +58,7 @@ function createNewCaseEventToField(): CaseEventToField {
     FieldShowCondition: '',
     PageShowCondition: '',
     RetainHiddenValue: 'Yes',
-    ShowSummaryChangeOption: 'Y',
+    ShowSummaryChangeOption: 'N',
     CallBackURLMidEvent: '',
     PageLabel: 'Page Title',
     PageColumnNumber: 1,
@@ -133,12 +138,14 @@ function readInCurrentConfig() {
     AuthorisationCaseField: getJson(process.env.ENGWALES_DEF_DIR, "AuthorisationCaseField"),
     CaseEventToFields: getJson(process.env.ENGWALES_DEF_DIR, "CaseEventToFields"),
     CaseField: getJson(process.env.ENGWALES_DEF_DIR, "CaseField"),
+    Scrubbed: getJson(process.env.ENGWALES_DEF_DIR, "EnglandWales Scrubbed"),
   }
 
   scotland = {
     AuthorisationCaseField: getJson(process.env.SCOTLAND_DEF_DIR, "AuthorisationCaseField"),
     CaseEventToFields: getJson(process.env.SCOTLAND_DEF_DIR, "CaseEventToFields"),
     CaseField: getJson(process.env.SCOTLAND_DEF_DIR, "CaseField"),
+    Scrubbed: getJson(process.env.SCOTLAND_DEF_DIR, "Scotland Scrubbed"),
   }
 }
 
@@ -210,13 +217,58 @@ function addToInMemoryConfig(caseFields: CaseField[], caseEventToFields: CaseEve
 
 function saveBackToProject() {
   // return JSON.parse(readFileSync(`${envvar}${sep}definitions${sep}json${sep}${name}.json`).toString())
-  writeFileSync(`${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}json${sep}CaseField.json`, JSON.stringify(englandwales.CaseField, null, 2))
-  writeFileSync(`${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}json${sep}AuthorisationCaseField.json`, JSON.stringify(englandwales.AuthorisationCaseField, null, 2))
-  writeFileSync(`${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}json${sep}CaseEventToFields.json`, JSON.stringify(englandwales.CaseEventToFields, null, 2))
+  if (saveMode === SaveMode.ENGLANDWALES || saveMode === SaveMode.BOTH) {
+    writeFileSync(`${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}json${sep}CaseField.json`, JSON.stringify(englandwales.CaseField, null, 2))
+    writeFileSync(`${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}json${sep}AuthorisationCaseField.json`, JSON.stringify(englandwales.AuthorisationCaseField, null, 2))
+    writeFileSync(`${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}json${sep}CaseEventToFields.json`, JSON.stringify(englandwales.CaseEventToFields, null, 2))
+    writeFileSync(`${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}json${sep}EnglandWales Scrubbed.json`, JSON.stringify(englandwales.Scrubbed, null, 2))
+  }
+
+  if (saveMode === SaveMode.ENGLANDWALES) return
 
   writeFileSync(`${process.env.SCOTLAND_DEF_DIR}${sep}definitions${sep}json${sep}CaseField.json`, JSON.stringify(scotland.CaseField, null, 2))
   writeFileSync(`${process.env.SCOTLAND_DEF_DIR}${sep}definitions${sep}json${sep}AuthorisationCaseField.json`, JSON.stringify(scotland.AuthorisationCaseField, null, 2))
   writeFileSync(`${process.env.SCOTLAND_DEF_DIR}${sep}definitions${sep}json${sep}CaseEventToFields.json`, JSON.stringify(scotland.CaseEventToFields, null, 2))
+  writeFileSync(`${process.env.SCOTLAND_DEF_DIR}${sep}definitions${sep}json${sep}Scotland Scrubbed.json`, JSON.stringify(scotland.Scrubbed, null, 2))
+}
+
+function executeYarnGenerate() {
+  const { exec } = require("child_process");
+
+  exec("yarn generate-excel-local", { cwd: process.env.ENGWALES_DEF_DIR },
+    function (error: any, stdout: any, stderr: any) {
+      console.log(`${error}\r\n${stdout}\r\n${stderr}`)
+      if (error) {
+        throw new Error('Failed to generate spreadsheet for engwales')
+      }
+      exec(`${process.env.ECM_DOCKER_DIR}/bin/ccd-import-definition.sh ${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}xlsx${sep}et-englandwales-ccd-config-local.xlsx`,
+        { cwd: process.env.ECM_DOCKER_DIR }
+        , function (error: any, stdout: any, stderr: any) {
+          console.log(`${error}\r\n${stdout}\r\n${stderr}`)
+          if (error) {
+            throw new error(`Failed to import EnglandWales defs`)
+          }
+
+          exec("yarn generate-excel-local", { cwd: process.env.SCOTLAND_DEF_DIR },
+            function (error: any, stdout: any, stderr: any) {
+              console.log(`${error}\r\n${stdout}\r\n${stderr}`)
+              if (error) {
+                throw new Error('Failed to generate spreadsheet for scotland')
+              }
+              exec(`${process.env.ECM_DOCKER_DIR}/bin/ccd-import-definition.sh ${process.env.SCOTLAND_DEF_DIR}${sep}definitions${sep}xlsx${sep}et-scotland-ccd-config-local.xlsx`,
+                { cwd: process.env.ECM_DOCKER_DIR }
+                , function (error: any, stdout: any, stderr: any) {
+                  console.log(`${error}\r\n${stdout}\r\n${stderr}`)
+                  if (error) {
+                    throw new error(`Failed to import scotland defs`)
+                  }
+                }
+              );
+            });
+
+        }
+      );
+    });
 }
 
 async function start() {
@@ -232,6 +284,7 @@ async function start() {
         choices: [
           'Create a single field',
           'Create a Callback populated Label',
+          `Change save mode (currently: ${SaveMode[saveMode]})`,
           'Save JSONs and Exit'
         ]
       }
@@ -243,43 +296,158 @@ async function start() {
       await journeyCreateNewField()
     } else if (answers.Journey === "Create a Callback populated Label") {
       await journeyCreateCallbackPopulatedTextField()
+    } else if (answers.Journey.startsWith("Change save mode")) {
+      await journeySaveMode()
     } else if (answers.Journey === "Save JSONs and Exit") {
+      break
+    }
+
+  }
+
+  saveBackToProject()
+  executeYarnGenerate()
+}
+
+async function journeySaveMode() {
+  const answers = await prompt([
+    { name: 'SaveMode', message: "Which ones would you like to generate/save for?", type: 'list', choices: ['Both', 'EnglandWales', 'Scotland'] }
+  ])
+
+  saveMode = answers.SaveMode === "Both" ? SaveMode.BOTH
+    : answers.SaveMode === "EnglandWales" ? SaveMode.ENGLANDWALES
+      : SaveMode.SCOTLAND
+}
+
+async function journeyCreateNewScrubbed() {
+  const answers = await prompt([
+    { name: 'Name', message: "What's the name of the new Scrubbed list?" }
+  ])
+
+  let createdItems: Scrubbed[] = []
+
+  let x = 0
+  while (true) {
+    x++
+    const followup = await prompt([
+      { name: 'ListElement', message: `What should be displayed to the user when selecting this option?` },
+    ])
+
+    const more = await prompt([
+      { name: 'ListElementCode', message: `Give a ListElementCode for this item`, default: followup.ListElement },
+      { name: 'DisplayOrder', message: `Whats the DisplayOrder for this item?`, default: x },
+      { name: 'More', message: `Add another?`, type: 'list', choices: ['Yes', 'No'] }
+    ])
+
+    if (!more.ListElementCode) {
+      more.ListElementCode = followup.ListElement
+    }
+
+    if (!more.DisplayOrder) {
+      more.DisplayOrder = x
+    }
+
+    createdItems.push({
+      ID: answers.Name,
+      ListElement: followup.ListElement,
+      ListElementCode: more.ListElementCode,
+      DisplayOrder: more.DisplayOrder
+    })
+
+    if (more.More === "No") {
       break
     }
   }
 
-  saveBackToProject()
+  englandwales.Scrubbed.splice(englandwales.Scrubbed.length, 0, ...createdItems)
+  scotland.Scrubbed.splice(scotland.Scrubbed.length, 0, ...createdItems)
 
+  return answers.Name
 }
 
 async function journeyCreateNewField() {
   const optsFieldType = [
     'FixedList',
     'FixedRadioList',
+    'MultiSelectList',
     'Label',
     'TextArea',
     'YesOrNo',
+    'Text',
     'Other'
   ]
 
   const caseField = createNewCaseFieldType()
   const caseEventToField = createNewCaseEventToField()
 
-  const answers = await prompt(
+  let answers = await prompt(
     [
-      { name: 'CaseEventID', message: "Whats the CaseEvent that this field belongs to?" },
-      { name: 'ID', message: "What's the ID for this field?", type: 'input' },
+      { name: 'CaseEventID', message: `Whats the CaseEvent that this field belongs to?`, default: lastAnswers.CaseEventID },
+      { name: 'ID', message: `What's the ID for this field?`, type: 'input' },
       { name: 'Label', message: 'What text should this field have (Label)?', type: 'input' },
-      { name: 'HintText', message: 'What HintText should this field have? (enter for nothing)', type: 'input' },
       { name: 'FieldType', message: 'What FieldType should this be?', type: 'list', choices: optsFieldType },
-      { name: 'DisplayContext', message: 'Is this field READONLY, OPTIONAL or MANDATORY?', type: 'list', choices: ['READONLY', 'OPTIONAL', 'MANDATORY'] },
-      { name: 'PageID', message: 'What page will this field appear on?', type: 'number' },
-      { name: 'PageFieldDisplayOrder', message: 'Whats the PageFieldDisplayOrder for this field?', type: 'number' },
-      { name: 'PageLabel', message: 'Does this page have a custom title? (leave blank if this is not the first field on that page)', type: 'input' },
-      { name: 'PageShowCondition', message: 'Enter a page show condition string (leave blank if not needed)', type: 'input' },
+      { name: 'PageID', message: `What page will this field appear on?`, type: 'number', default: lastAnswers.PageID || 1 },
+      { name: 'PageFieldDisplayOrder', message: `Whats the PageFieldDisplayOrder for this field?`, type: 'number', default: lastAnswers.PageFieldDisplayOrder + 1 || 1 },
       { name: 'FieldShowCondition', message: 'Enter a field show condition string (leave blank if not needed)', type: 'input' }
     ]
   )
+
+  lastAnswers.CaseEventID = answers.CaseEventID
+  lastAnswers.PageID = answers.PageID
+  lastAnswers.PageFieldDisplayOrder = answers.PageFieldDisplayOrder
+
+  if (answers.FieldType === "Label") {
+    answers.DisplayContext = "READONLY"
+  } else {
+    answers = {
+      ...answers, ...await prompt([
+        { name: 'DisplayContext', message: 'Is this field READONLY, OPTIONAL or MANDATORY?', type: 'list', choices: ['READONLY', 'OPTIONAL', 'MANDATORY'], default: 'OPTIONAL' },
+      ])
+    }
+  }
+
+  if (!['Text', 'Label'].includes(answers.FieldType)) {
+    answers = {
+      ...answers, ...await prompt([
+        { name: 'HintText', message: 'What HintText should this field have? (enter for nothing)', type: 'input' }
+      ])
+    }
+
+  }
+
+  if (answers.PageFieldDisplayOrder === 1) {
+    answers = {
+      ...answers, ...await prompt([
+        { name: 'PageLabel', message: 'Does this page have a custom title?', type: 'input' },
+        { name: 'PageShowCondition', message: 'Enter a page show condition string (leave blank if not needed)', type: 'input' },
+      ])
+    }
+  }
+
+  if (['FixedList', 'FixedRadioList', 'MultiSelectList'].includes(answers.FieldType)) {
+    const NEW = "New..."
+    const fieldTypeOpts = englandwales.Scrubbed.reduce((acc: Record<string, any>, obj: Scrubbed) => {
+      if (!acc[obj.ID]) {
+        acc[obj.ID] = true
+      }
+      return acc
+    }, { [NEW]: true })
+
+    const followup = await prompt([
+      { name: 'FieldTypeParameter', message: "What's the FieldTypeParameter?", type: 'list', choices: Object.keys(fieldTypeOpts).sort(), default: NEW }
+    ])
+
+    if (followup.FieldTypeParameter === NEW) {
+      caseField.FieldTypeParameter = await journeyCreateNewScrubbed()
+    }
+
+    answers.FieldTypeParameter = followup.FieldTypeParameter
+  } else if (answers.FieldType === "Other") {
+    const followup = await prompt([
+      { name: 'Other', message: `Enter the name of the ComplexType for ${answers.ID}` }
+    ])
+
+    answers.FieldType = followup.Other
+  }
 
   caseField.CaseTypeID = "ET_EnglandWales"
 
@@ -298,6 +466,10 @@ async function journeyCreateNewField() {
   caseEventToField.PageLabel = answers.PageLabel
   caseEventToField.PageShowCondition = answers.PageShowCondition
   caseEventToField.FieldShowCondition = answers.FieldShowCondition
+
+  if (answers.FieldTypeParameter) {
+    caseField.FieldTypeParameter
+  }
 
   const fieldAuthorisations = createAuthorisationCaseFields("ET_EnglandWales", answers.ID)
   const output = duplicateFieldsForScotland([trimCaseField(caseField)], [trimCaseEventToField(caseEventToField)], fieldAuthorisations)
@@ -342,7 +514,7 @@ async function journeyCreateCallbackPopulatedTextField() {
   caseEventToFieldLabel.CaseEventID = answers.CaseEventID
 
   caseEventToField.CaseFieldID = answers.ID
-  caseEventToField.CaseFieldID = `${answers.ID}Label`
+  caseEventToFieldLabel.CaseFieldID = `${answers.ID}Label`
 
   caseEventToField.DisplayContext = "READONLY"
   caseEventToFieldLabel.DisplayContext = "READONLY"
@@ -358,11 +530,11 @@ async function journeyCreateCallbackPopulatedTextField() {
 
   caseEventToField.PageLabel = answers.PageLabel
 
-  caseEventToFieldLabel.FieldShowCondition = `${answers.ID}Label=\\"dummy\\"`
+  caseEventToField.FieldShowCondition = `${answers.ID}Label=\"dummy\"`
 
   caseEventToField.PageShowCondition = answers.PageShowCondition
 
-  const fieldAuthorisations = createAuthorisationCaseFields("ET_EnglandWales", answers.ID)
+  const fieldAuthorisations = [...createAuthorisationCaseFields("ET_EnglandWales", answers.ID), ...createAuthorisationCaseFields("ET_EnglandWales", `${answers.ID}Label`)]
   const output = duplicateFieldsForScotland(
     [trimCaseField(caseField), trimCaseField(caseFieldLabel)],
     [trimCaseEventToField(caseEventToField), trimCaseEventToField(caseEventToFieldLabel)],
