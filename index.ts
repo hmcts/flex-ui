@@ -4,11 +4,11 @@ import { prompt } from 'inquirer'
 import { AuthorisationCaseField, CaseEventToField, CaseField, SaveMode, Scrubbed, Session } from './types/types'
 import { readFileSync, writeFileSync } from 'fs'
 import { sep } from 'path'
-import { createAuthorisationCaseFields, createNewCaseEventToField, createNewCaseFieldType, createNewSession, trimCaseEventToField, trimCaseField } from './objects'
-import { addNewScrubbed, addToInMemoryConfig, executeYarnGenerate, getCounts, getScrubbedOpts, readInCurrentConfig, saveBackToProject } from './configs'
+import { createAuthorisationCaseEvent, createAuthorisationCaseFields, createNewCaseEvent, createNewCaseEventToField, createNewCaseFieldType, createNewSession, duplicateFieldsForScotland, trimCaseEventToField, trimCaseField } from './objects'
+import { addNewScrubbed, addToInMemoryConfig, executeYarnGenerate, getCounts, getScrubbedOpts, insertNewCaseEvent, readInCurrentConfig, saveBackToProject } from './configs'
 import { ensurePathExists } from './helpers'
 import { readdir } from 'fs/promises'
-import { findPreviousSessions, getCurrentSessionName, restorePreviousSession, saveSession, session, SESSION_DIR, SESSION_EXT, setCurrentSessionName } from './session'
+import { findPreviousSessions, getCurrentSessionName, lastAnswers, restorePreviousSession, saveSession, session, SESSION_DIR, SESSION_EXT, setCurrentSessionName } from './session'
 envConfig()
 
 function checkEnvVars() {
@@ -20,44 +20,6 @@ function checkEnvVars() {
 }
 
 let saveMode: SaveMode = SaveMode.BOTH
-let lastAnswers: Partial<Record<keyof (CaseField) | keyof (CaseEventToField), any>> = {}
-
-export function duplicateFieldsForScotland(caseFields: CaseField[], caseEventToFields: CaseEventToField[], authorisationCaseFields: AuthorisationCaseField[]) {
-  const newCaseFields = []
-  const newAuthorisations = []
-  const newCaseEventToFields = []
-
-  for (const caseField of caseFields) {
-    const newObj = Object.assign({}, caseField)
-    newObj.CaseTypeID = "ET_Scotland"
-    newCaseFields.push(newObj)
-  }
-
-  for (const caseEventToField of caseEventToFields) {
-    const newObj = Object.assign({}, caseEventToField)
-    newObj.CaseTypeID = "ET_Scotland"
-    newCaseEventToFields.push(newObj)
-  }
-
-  for (const auth of authorisationCaseFields) {
-    const newObj = Object.assign({}, auth)
-    newObj.CaseTypeId = "ET_Scotland"
-    if (newObj.UserRole.endsWith("englandwales")) {
-      newObj.UserRole = newObj.UserRole.replace("englandwales", "scotland")
-    }
-    newAuthorisations.push(newObj)
-  }
-
-  caseFields = caseFields.concat(newCaseFields)
-  caseEventToFields = caseEventToFields.concat(newCaseEventToFields)
-  authorisationCaseFields = authorisationCaseFields.concat(newAuthorisations)
-
-  return {
-    caseFields,
-    caseEventToFields,
-    authorisationCaseFields
-  }
-}
 
 async function start() {
   ensurePathExists(SESSION_DIR)
@@ -81,6 +43,7 @@ async function start() {
         choices: [
           journeySetName,
           journeyRestore,
+          journeyCreatePage,
           journeySingle,
           journeyCallbackLabel,
           `Change save mode (currently: ${SaveMode[saveMode]})`,
@@ -96,6 +59,8 @@ async function start() {
       await journeySessionName()
     } else if (answers.Journey === journeyRestore) {
       await journeyRestoreSession()
+    } else if (answers.Journey === journeyCreatePage) {
+      await journeyCreateCaseEvent()
     } else if (answers.Journey === journeySingle) {
       await journeyCreateNewField()
     } else if (answers.Journey === journeyCallbackLabel) {
@@ -307,10 +272,72 @@ async function journeyCreateNewField() {
   }
 
   const fieldAuthorisations = createAuthorisationCaseFields("ET_EnglandWales", answers.ID)
-  const output = duplicateFieldsForScotland([trimCaseField(caseField)], [trimCaseEventToField(caseEventToField)], fieldAuthorisations)
+  const output = duplicateFieldsForScotland([trimCaseField(caseField)], [trimCaseEventToField(caseEventToField)], fieldAuthorisations, [])
 
-  addToInMemoryConfig(output.caseFields, output.caseEventToFields, output.authorisationCaseFields)
+  addToInMemoryConfig({
+    AuthorisationCaseField: output.authorisationCaseFields,
+    CaseField: output.caseFields,
+    CaseEventToFields: output.caseEventToFields,
+    Scrubbed: [],
+    CaseEvent: [],
+    AuthorisationCaseEvent: []
+  })
+
   console.log(`Added ${output.caseFields.length} caseFields, ${output.caseEventToFields.length} caseEventToFields and ${output.authorisationCaseFields.length} authorisationCaseFields`)
+}
+
+async function journeyCreateCaseEvent() {
+  const caseEvent = createNewCaseEvent()
+
+  let answers = await prompt(
+    [
+      { name: 'ID', message: `What's the page ID?`, type: 'input' },
+      { name: 'Name', message: 'Give the new page a name', type: 'input' },
+      { name: 'Description', message: 'Give the new page a description', type: 'input' },
+      { name: 'DisplayOrder', message: 'Where should this page appear in the caseEvent dropdown (DisplayOrder)?', type: 'number' },
+      { name: 'PreConditionState(s)', message: 'What state should the case be in to see this page? (PreConditionState(s))', type: 'input' },
+      { name: 'PostConditionState', message: 'What state should the case be set to after completing this journey? (PostConditionState)', type: 'input' },
+      { name: 'EventEnablingCondition', message: 'Provide an EventEnablingCondition (leave blank if not needed)', type: 'input' },
+      { name: 'ShowEventNotes', message: `Provide a value for ShowEventNotes`, type: 'list', choices: ['Y', 'N'], default: 'N' },
+      { name: 'ShowSummary', message: 'Should there be a Check Your Answers page after this?', type: 'list', choices: ['Y', 'N'], default: 'Y' },
+      { name: 'CallBackURLAboutToStartEvent', message: 'Do we need a callback before we start? (leave blank if not)', type: 'input' },
+      { name: 'CallBackURLAboutToSubmitEvent', message: 'Do we need a callback before we submit? (leave blank if not)', type: 'input' },
+      { name: 'CallBackURLSubmittedEvent', message: 'Do we need a callback after we submit? (leave blank if not)', type: 'input' },
+    ]
+  )
+
+  caseEvent.CallBackURLAboutToStartEvent = answers.CallBackURLAboutToStartEvent
+  caseEvent.CallBackURLAboutToSubmitEvent = answers.CallBackURLAboutToSubmitEvent
+  caseEvent.CallBackURLSubmittedEvent = answers.CallBackURLSubmittedEvent
+
+  caseEvent.CaseTypeID = "ET_EnglandWales"
+  caseEvent.ID = answers.ID
+  caseEvent.Name = answers.Name
+  caseEvent.Description = answers.Description
+  caseEvent.DisplayOrder = answers.DisplayOrder
+  caseEvent['PreConditionState(s)'] = answers['PreConditionState(s)']
+  caseEvent.PostConditionState = answers.PostConditionState
+  caseEvent.EventEnablingCondition = answers.EventEnablingCondition
+  caseEvent.ShowEventNotes = answers.ShowEventNotes
+  caseEvent.ShowSummary = answers.ShowSummary
+
+  const scotlandCaseEvent = { ...caseEvent, CaseTypeID: caseEvent.CaseTypeID.replace("ET_EnglandWales", "ET_Scotland") }
+  insertNewCaseEvent(caseEvent)
+  insertNewCaseEvent(scotlandCaseEvent)
+
+  const caseAuthorisations = createAuthorisationCaseEvent("ET_EnglandWales", answers.ID)
+  console.log(`created ${caseAuthorisations.length} auths for case event`)
+  const output = duplicateFieldsForScotland([], [], [], caseAuthorisations)
+  console.log(`after duplication had ${output.authorisationCaseEvents.length} auths for case event`)
+
+  addToInMemoryConfig({
+    AuthorisationCaseField: [],
+    CaseField: [],
+    CaseEventToFields: [],
+    Scrubbed: [],
+    CaseEvent: [],
+    AuthorisationCaseEvent: output.authorisationCaseEvents
+  })
 }
 
 async function journeyCreateCallbackPopulatedTextField() {
@@ -350,6 +377,7 @@ async function journeyCreateCallbackPopulatedTextField() {
 
   caseEventToField.CaseEventID = answers.CaseEventID
   caseEventToFieldLabel.CaseEventID = answers.CaseEventID
+  lastAnswers.CaseEventID = answers.CaseEventID
 
   caseEventToField.CaseFieldID = answers.ID
   caseEventToFieldLabel.CaseFieldID = `${answers.ID}Label`
@@ -359,26 +387,40 @@ async function journeyCreateCallbackPopulatedTextField() {
 
   caseEventToField.PageID = answers.PageID || 1
   caseEventToFieldLabel.PageID = caseEventToField.PageID
+  lastAnswers.PageID = answers.PageID + 1
 
   caseEventToField.PageDisplayOrder = caseEventToField.PageID
   caseEventToFieldLabel.PageDisplayOrder = caseEventToField.PageID
 
   caseEventToField.PageFieldDisplayOrder = answers.PageFieldDisplayOrder || 1
   caseEventToFieldLabel.PageFieldDisplayOrder = caseEventToField.PageFieldDisplayOrder + 1
+  lastAnswers.PageID = caseEventToFieldLabel.PageFieldDisplayOrder
 
-  caseEventToField.PageLabel = answers.PageLabel
+  caseEventToField.PageLabel = answers.PageTitle
 
   caseEventToField.FieldShowCondition = `${answers.ID}Label=\"dummy\"`
 
   caseEventToField.PageShowCondition = answers.PageShowCondition
 
+  caseEventToField.RetainHiddenValue = "No"
+
   const fieldAuthorisations = [...createAuthorisationCaseFields("ET_EnglandWales", answers.ID), ...createAuthorisationCaseFields("ET_EnglandWales", `${answers.ID}Label`)]
   const output = duplicateFieldsForScotland(
     [trimCaseField(caseField), trimCaseField(caseFieldLabel)],
     [trimCaseEventToField(caseEventToField), trimCaseEventToField(caseEventToFieldLabel)],
-    fieldAuthorisations
+    fieldAuthorisations,
+    []
   )
-  addToInMemoryConfig(output.caseFields, output.caseEventToFields, output.authorisationCaseFields)
+
+  addToInMemoryConfig({
+    AuthorisationCaseField: output.authorisationCaseFields,
+    CaseField: output.caseFields,
+    CaseEventToFields: output.caseEventToFields,
+    Scrubbed: [],
+    CaseEvent: [],
+    AuthorisationCaseEvent: [],
+  })
+
   console.log(output)
   console.log(`Added ${output.caseFields.length} caseFields, ${output.caseEventToFields.length} caseEventToFields and ${output.authorisationCaseFields.length} authorisationCaseFields`)
 }

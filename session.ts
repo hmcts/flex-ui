@@ -1,14 +1,17 @@
 import { readFileSync, writeFileSync } from "fs"
 import { readdir } from "fs/promises"
 import { sep } from "path"
-import { addNewScrubbed, addToInMemoryConfig } from "./configs"
-import { createNewSession } from "./objects"
-import { AuthorisationCaseField, CaseEventToField, CaseField, ConfigSheets, Scrubbed, Session } from "./types/types"
+import { addNewScrubbed, addToInMemoryConfig, doesEventExist, insertNewCaseEvent } from "./configs"
+import { deduplicateAddFields } from "./helpers"
+import { createNewSession, trimCaseEventToField, trimCaseField } from "./objects"
+import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, ConfigSheets, Scrubbed, Session } from "./types/types"
 
 export const SESSION_DIR = 'sessions'
 export const SESSION_EXT = '.session.json'
 
 export const session: Session = createNewSession(`sesssion_${Date.now()}`)
+
+export const lastAnswers: Partial<Record<keyof (CaseField) | keyof (CaseEventToField), any>> = {}
 
 export function setCurrentSessionName(name: string) {
   session.name = name
@@ -19,19 +22,47 @@ export function getCurrentSessionName() {
 }
 
 export function saveSession() {
+  session.lastAnswers = lastAnswers
   writeFileSync(`${SESSION_DIR}${sep}${getCurrentSessionName()}${SESSION_EXT}`, JSON.stringify(session, null, 2))
 }
 
 export function restorePreviousSession(sessionName: string) {
   const read = readFileSync(`${SESSION_DIR}${sep}${sessionName}`)
-  const json = JSON.parse(read.toString())
+  const json: Session = JSON.parse(read.toString())
 
-  session.added = json.added
+  session.added = {
+    AuthorisationCaseField: json.added.AuthorisationCaseField || [],
+    CaseEvent: json.added.CaseEvent || [],
+    CaseEventToFields: json.added.CaseEventToFields.map(o => trimCaseEventToField(o)) || [],
+    CaseField: json.added.CaseField.map(o => trimCaseField(o)) || [],
+    Scrubbed: json.added.Scrubbed || [],
+    AuthorisationCaseEvent: json.added.AuthorisationCaseEvent || []
+  }
   session.date = json.date
   session.name = json.name
 
-  addToInMemoryConfig(session.added.CaseField, session.added.CaseEventToFields, session.added.AuthorisationCaseField)
+  addToInMemoryConfig({
+    AuthorisationCaseField: session.added.AuthorisationCaseField,
+    CaseField: session.added.CaseField,
+    CaseEventToFields: session.added.CaseEventToFields,
+    Scrubbed: [],
+    CaseEvent: [],
+    AuthorisationCaseEvent: session.added.AuthorisationCaseEvent
+  })
   addNewScrubbed(session.added.Scrubbed)
+
+  for (const event of session.added.CaseEvent) {
+    if (doesEventExist(event)) continue
+    insertNewCaseEvent(event)
+  }
+
+  if (!json.lastAnswers) return
+
+  for (const key in json.lastAnswers) {
+    //@ts-ignore
+    lastAnswers[key] = json.lastAnswers[key]
+  }
+
 }
 
 export async function findPreviousSessions() {
@@ -55,21 +86,12 @@ export function addToConfig(fields: ConfigSheets) {
   if (fields.Scrubbed.length) {
     deduplicateAddFields<Scrubbed>(session.added.Scrubbed, fields.Scrubbed, ['ID', 'ListElementCode'])
   }
-}
 
-function deduplicateAddFields<T>(arr1: T[], arr2: T[], keys: (keyof (T))[]) {
-  for (const obj of arr2) {
-    const existing = arr1.find(o => matcher(o, obj, keys))
-    if (existing) continue
-    arr1.push(obj)
+  if (fields.CaseEvent.length) {
+    deduplicateAddFields<CaseEvent>(session.added.CaseEvent, fields.CaseEvent, ['ID', 'CaseTypeID'])
   }
-}
 
-function matcher<T>(item1: T, item2: T, keys: (keyof (T))[]) {
-  for (const key of keys) {
-    if (item1[key] !== item2[key]) {
-      return false
-    }
+  if (fields.AuthorisationCaseEvent.length) {
+    deduplicateAddFields<AuthorisationCaseEvent>(session.added.AuthorisationCaseEvent, fields.AuthorisationCaseEvent, ['CaseEventID', 'CaseTypeId', 'UserRole'])
   }
-  return true
 }

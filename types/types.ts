@@ -37,6 +37,29 @@ export interface CaseEventToField {
   RetriesTimeoutURLMidEvent?: string | null
 }
 
+export interface CaseEvent {
+  CaseTypeID: string
+  ID: string
+  Name: string
+  Description: string
+  DisplayOrder: number
+  'PreConditionState(s)': string
+  PostConditionState: string
+  SecurityClassification: 'Public'
+  EventEnablingCondition?: string
+  ShowEventNotes?: 'Y' | 'N'
+  ShowSummary?: 'Y' | 'N'
+  CallBackURLAboutToStartEvent?: string
+  CallBackURLAboutToSubmitEvent?: string
+  CallBackURLSubmittedEvent?: string
+}
+
+export interface AuthorisationCaseEvent {
+  CaseTypeId: string
+  CaseEventID: string
+  UserRole: string
+  CRUD: string
+}
 
 export interface Scrubbed {
   ID: string
@@ -54,12 +77,15 @@ export enum SaveMode {
 export type ConfigSheets = {
   CaseField: CaseField[],
   AuthorisationCaseField: AuthorisationCaseField[],
+  CaseEvent: CaseEvent[],
   CaseEventToFields: CaseEventToField[],
   Scrubbed: Scrubbed[],
+  AuthorisationCaseEvent: AuthorisationCaseEvent[]
 }
 
 export type Session = {
   name: string
   date: Date | string
   added: ConfigSheets
+  lastAnswers: Partial<Record<keyof (CaseField) | keyof (CaseEventToField), any>>
 }

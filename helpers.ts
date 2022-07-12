@@ -6,7 +6,7 @@ import { resolve } from "path"
  * Ensures a path exists by creating its parent directories and then itself
  * @param {String} dir Path to a folder that may or may not exist
  */
- export function ensurePathExists(dir: string) {
+export function ensurePathExists(dir: string) {
   const normalized = dir.replace(/\\/g, '/')
   const parts = normalized.split('/')
   let builder = ''
@@ -26,4 +26,31 @@ export async function getFiles(dir: string) {
     return dirent.isDirectory() ? getFiles(res) : res;
   }));
   return Array.prototype.concat(...files);
+}
+
+export function deduplicateAddFields<T>(to: T[], from: T[], keys: (keyof (T))[]) {
+  for (const obj of from) {
+    const existing = to.find(o => matcher(o, obj, keys))
+    if (existing) continue
+    to.push(obj)
+  }
+}
+
+export function findMissingItems<T>(superlist: T[], list: T[], keys: (keyof (T))[]) {
+  const missing = []
+  for (const obj of list) {
+    const existing = superlist.find(o => matcher(o, obj, keys))
+    if (existing) continue
+    missing.push(obj)
+  }
+  return missing
+}
+
+export function matcher<T>(item1: T, item2: T, keys: (keyof (T))[]) {
+  for (const key of keys) {
+    if (item1[key] !== item2[key]) {
+      return false
+    }
+  }
+  return true
 }
