@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync } from "fs"
 import { sep } from "path"
-import { findMissingItems } from "./helpers"
+import { findMissingItems, upsertFields } from "./helpers"
 import { trimCaseField } from "./objects"
 import { addToConfig } from "./session"
 import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, ConfigSheets, SaveMode, Scrubbed } from "./types/types"
@@ -11,6 +11,14 @@ let scotland: ConfigSheets
 
 function getJson(envvar: string, name: string) {
   return JSON.parse(readFileSync(`${envvar}${sep}definitions${sep}json${sep}${name}.json`).toString())
+}
+
+export function getEnglandWales() {
+  return englandwales
+}
+
+export function getScotland() {
+  return scotland
 }
 
 export function getScrubbedOpts(defaultOption: string) {
@@ -48,22 +56,22 @@ export function readInCurrentConfig() {
   }
 }
 
-export function doesEventExist(caseEvent: CaseEvent) {
+export function upsertNewCaseEvent(caseEvent: CaseEvent) {
   const configSheets = caseEvent.CaseTypeID.startsWith("ET_England") ? englandwales : scotland
 
-  return !!configSheets.CaseEvent.find(o => o.ID === caseEvent.ID)
-}
+  const existIndex = configSheets.CaseEvent.findIndex(o => o.ID === caseEvent.ID)
 
-export function insertNewCaseEvent(caseEvent: CaseEvent) {
-  const configSheets = caseEvent.CaseTypeID.startsWith("ET_England") ? englandwales : scotland
+  if (existIndex === -1) {
+    const ewInsertIndex = configSheets.CaseEvent.findIndex(o => o.DisplayOrder === caseEvent.DisplayOrder)
+    configSheets.CaseEvent.splice(ewInsertIndex, 0, caseEvent)
 
-  const ewInsertIndex = configSheets.CaseEvent.findIndex(o => o.DisplayOrder === caseEvent.DisplayOrder)
-  configSheets.CaseEvent.splice(ewInsertIndex, 0, caseEvent)
-
-  for (let i = ewInsertIndex + 1; i < configSheets.CaseEvent.length; i++) {
-    const event = configSheets.CaseEvent[i];
-    if (event.CaseTypeID !== caseEvent.CaseTypeID) continue
-    event.DisplayOrder++
+    for (let i = ewInsertIndex + 1; i < configSheets.CaseEvent.length; i++) {
+      const event = configSheets.CaseEvent[i];
+      if (event.CaseTypeID !== caseEvent.CaseTypeID) continue
+      event.DisplayOrder++
+    }
+  } else {
+    configSheets.CaseEvent.splice(existIndex, 1, caseEvent)
   }
 
   addToConfig({
@@ -77,8 +85,23 @@ export function insertNewCaseEvent(caseEvent: CaseEvent) {
 }
 
 export function addNewScrubbed(opts: Scrubbed[]) {
-  englandwales.Scrubbed.splice(englandwales.Scrubbed.length, 0, ...opts)
-  scotland.Scrubbed.splice(scotland.Scrubbed.length, 0, ...opts)
+  for (const item of opts) {
+    const ewExistIndex = englandwales.Scrubbed.findIndex(o => o.ID === item.ID && o.ListElementCode === item.ListElementCode)
+
+    if (ewExistIndex > -1) {
+      englandwales.Scrubbed.splice(ewExistIndex, 1, item)
+    } else {
+      englandwales.Scrubbed.push(item)
+    }
+
+    const scExistIndex = scotland.Scrubbed.findIndex(o => o.ID === item.ID && o.ListElementCode === item.ListElementCode)
+
+    if (scExistIndex > -1) {
+      scotland.Scrubbed.splice(scExistIndex, 1, item)
+    } else {
+      scotland.Scrubbed.push(item)
+    }
+  }
 
   addToConfig({
     AuthorisationCaseEvent: [],
@@ -91,6 +114,46 @@ export function addNewScrubbed(opts: Scrubbed[]) {
 }
 
 export function addToInMemoryConfig(fields: ConfigSheets) {
+  const ewCaseFields = fields.CaseField.filter(o => o.CaseTypeID === "ET_EnglandWales")
+  const ewCaseEventToFields = fields.CaseEventToFields.filter(o => o.CaseTypeID === "ET_EnglandWales")
+  const ewAuthorsationCaseFields = fields.AuthorisationCaseField.filter(o => o.CaseTypeId === "ET_EnglandWales")
+  const ewAuthorsationCaseEvents = fields.AuthorisationCaseEvent.filter(o => o.CaseTypeId === "ET_EnglandWales")
+
+  const scCaseFields = fields.CaseField.filter(o => o.CaseTypeID === "ET_Scotland")
+  const scCaseEventToFields = fields.CaseEventToFields.filter(o => o.CaseTypeID === "ET_Scotland")
+  const scAuthorsationCaseFields = fields.AuthorisationCaseField.filter(o => o.CaseTypeId === "ET_Scotland")
+  const scAuthorsationCaseEvents = fields.AuthorisationCaseEvent.filter(o => o.CaseTypeId === "ET_Scotland")
+
+  upsertFields<CaseField>(englandwales.CaseField, ewCaseFields, ['ID', 'CaseTypeID'], () => englandwales.CaseField.findIndex(o => o.CaseTypeID.endsWith("_Listings")))
+  upsertFields<CaseEventToField>(englandwales.CaseEventToFields, ewCaseEventToFields, ['CaseEventID', 'CaseFieldID', 'CaseTypeID'], () => englandwales.CaseEventToFields.findIndex(o => o.CaseTypeID.endsWith("_Listings")))
+  upsertFields<AuthorisationCaseEvent>(englandwales.AuthorisationCaseEvent, ewAuthorsationCaseEvents, ['CaseEventID', 'CaseTypeId', 'UserRole'], () => englandwales.AuthorisationCaseEvent.findIndex(o => o.CaseTypeId.endsWith("_Listings")))
+  upsertFields<AuthorisationCaseField>(englandwales.AuthorisationCaseField, ewAuthorsationCaseFields, ['CaseFieldID', 'CaseTypeId', 'UserRole'], () => englandwales.AuthorisationCaseField.findIndex(o => o.CaseTypeId.endsWith("_Listings")))
+
+  upsertFields<CaseField>(scotland.CaseField, scCaseFields, ['ID', 'CaseTypeID'], () => scotland.CaseField.findIndex(o => o.CaseTypeID.endsWith("_Listings")))
+  upsertFields<CaseEventToField>(scotland.CaseEventToFields, scCaseEventToFields, ['CaseEventID', 'CaseFieldID', 'CaseTypeID'], () => scotland.CaseEventToFields.findIndex(o => o.CaseTypeID.endsWith("_Listings")))
+  upsertFields<AuthorisationCaseEvent>(scotland.AuthorisationCaseEvent, scAuthorsationCaseEvents, ['CaseEventID', 'CaseTypeId', 'UserRole'], () => scotland.AuthorisationCaseEvent.findIndex(o => o.CaseTypeId.endsWith("_Listings")))
+  upsertFields<AuthorisationCaseField>(scotland.AuthorisationCaseField, scAuthorsationCaseFields, ['CaseFieldID', 'CaseTypeId', 'UserRole'], () => scotland.AuthorisationCaseField.findIndex(o => o.CaseTypeId.endsWith("_Listings")))
+
+  addToConfig({
+    AuthorisationCaseField: ewAuthorsationCaseFields,
+    CaseField: ewCaseFields,
+    CaseEventToFields: ewCaseEventToFields,
+    Scrubbed: [],
+    CaseEvent: [], //scCaseEvents
+    AuthorisationCaseEvent: ewAuthorsationCaseEvents
+  })
+
+  addToConfig({
+    AuthorisationCaseField: scAuthorsationCaseFields,
+    CaseField: scCaseFields,
+    CaseEventToFields: scCaseEventToFields,
+    Scrubbed: [],
+    CaseEvent: [], //scCaseEvents,
+    AuthorisationCaseEvent: scAuthorsationCaseEvents
+  })
+}
+
+export function addToInMemoryConfigOld(fields: ConfigSheets) {
   // We add these in just above _Listing
 
   const ewCaseFields = findMissingItems<CaseField>(englandwales.CaseField, fields.CaseField.filter(o => o.CaseTypeID === "ET_EnglandWales"), ['ID', 'CaseTypeID'])
@@ -180,32 +243,33 @@ export function executeYarnGenerate() {
       if (error) {
         throw new Error('Failed to generate spreadsheet for engwales')
       }
-      exec(`${process.env.ECM_DOCKER_DIR}/bin/ccd-import-definition.sh ${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}xlsx${sep}et-englandwales-ccd-config-local.xlsx`,
-        { cwd: process.env.ECM_DOCKER_DIR }
-        , function (error: any, stdout: any, stderr: any) {
+
+      exec("yarn generate-excel-local", { cwd: process.env.SCOTLAND_DEF_DIR },
+        function (error: any, stdout: any, stderr: any) {
           console.log(`${error}\r\n${stdout}\r\n${stderr}`)
           if (error) {
-            throw new error(`Failed to import EnglandWales defs`)
+            throw new Error('Failed to generate spreadsheet for scotland')
           }
 
-          exec("yarn generate-excel-local", { cwd: process.env.SCOTLAND_DEF_DIR },
-            function (error: any, stdout: any, stderr: any) {
+          exec(`${process.env.ECM_DOCKER_DIR}/bin/ccd-import-definition.sh ${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}xlsx${sep}et-englandwales-ccd-config-local.xlsx`,
+            { cwd: process.env.ECM_DOCKER_DIR }
+            , function (error: any, stdout: any, stderr: any) {
               console.log(`${error}\r\n${stdout}\r\n${stderr}`)
               if (error) {
-                throw new Error('Failed to generate spreadsheet for scotland')
+                throw new Error(`Failed to import EnglandWales defs`)
               }
+
               exec(`${process.env.ECM_DOCKER_DIR}/bin/ccd-import-definition.sh ${process.env.SCOTLAND_DEF_DIR}${sep}definitions${sep}xlsx${sep}et-scotland-ccd-config-local.xlsx`,
                 { cwd: process.env.ECM_DOCKER_DIR }
                 , function (error: any, stdout: any, stderr: any) {
                   console.log(`${error}\r\n${stdout}\r\n${stderr}`)
                   if (error) {
-                    throw new error(`Failed to import scotland defs`)
+                    throw new Error(`Failed to import scotland defs`)
                   }
                 }
               );
-            });
-
-        }
-      );
+            }
+          );
+        });
     });
 }

@@ -5,10 +5,10 @@ import { AuthorisationCaseField, CaseEventToField, CaseField, SaveMode, Scrubbed
 import { readFileSync, writeFileSync } from 'fs'
 import { sep } from 'path'
 import { createAuthorisationCaseEvent, createAuthorisationCaseFields, createNewCaseEvent, createNewCaseEventToField, createNewCaseFieldType, createNewSession, duplicateFieldsForScotland, trimCaseEventToField, trimCaseField } from './objects'
-import { addNewScrubbed, addToInMemoryConfig, executeYarnGenerate, getCounts, getScrubbedOpts, insertNewCaseEvent, readInCurrentConfig, saveBackToProject } from './configs'
+import { addNewScrubbed, addToInMemoryConfig, executeYarnGenerate, getCounts, getScrubbedOpts, upsertNewCaseEvent, readInCurrentConfig, saveBackToProject } from './configs'
 import { ensurePathExists } from './helpers'
 import { readdir } from 'fs/promises'
-import { findPreviousSessions, getCurrentSessionName, lastAnswers, restorePreviousSession, saveSession, session, SESSION_DIR, SESSION_EXT, setCurrentSessionName } from './session'
+import { findPreviousSessions, getFieldCount, getFieldsPerPage, getPageCount, restorePreviousSession, saveSession, session, SESSION_DIR, SESSION_EXT } from './session'
 envConfig()
 
 function checkEnvVars() {
@@ -34,7 +34,9 @@ async function start() {
   const journeyCreatePage = 'Create new page/event'
   const journeyDebugListChanges = "DEBUG: List in-memory configs"
 
+
   while (true) {
+    const journeySplitSessionOpt = `Split current session (${getFieldCount()} fields across ${getPageCount().length} pages)`
     const answers = await prompt([
       {
         name: 'Journey',
@@ -46,6 +48,7 @@ async function start() {
           journeyCreatePage,
           journeySingle,
           journeyCallbackLabel,
+          journeySplitSessionOpt,
           `Change save mode (currently: ${SaveMode[saveMode]})`,
           journeyDebugListChanges,
           journeySaveAndExit
@@ -67,13 +70,15 @@ async function start() {
       await journeyCreateCallbackPopulatedTextField()
     } else if (answers.Journey.startsWith("Change save mode")) {
       await journeySaveMode()
+    } else if (answers.Journey === journeySplitSessionOpt) {
+      await journeySplitSession()
     } else if (answers.Journey === journeyDebugListChanges) {
       journeyDebugList()
     } else if (answers.Journey === journeySaveAndExit) {
       break
     }
 
-    saveSession()
+    saveSession(session)
   }
 
   saveBackToProject(saveMode)
@@ -99,7 +104,7 @@ async function journeySessionName() {
     { name: 'name', message: "What should we called this session?" }
   ])
 
-  setCurrentSessionName(answers.name)
+  session.name = answers.name
 }
 
 async function journeyRestoreSession() {
@@ -118,8 +123,7 @@ async function journeyRestoreSession() {
     return
   }
 
-  setCurrentSessionName(answers.name)
-  restorePreviousSession(getCurrentSessionName())
+  restorePreviousSession(answers.name)
 }
 
 async function journeyCreateNewScrubbed() {
@@ -168,6 +172,7 @@ async function journeyCreateNewScrubbed() {
 }
 
 async function journeyCreateNewField() {
+  const Number = 'Number (Text with RegularExpression field)'
   const optsFieldType = [
     'FixedList',
     'FixedRadioList',
@@ -176,6 +181,7 @@ async function journeyCreateNewField() {
     'TextArea',
     'YesOrNo',
     'Text',
+    Number,
     'Other'
   ]
 
@@ -184,19 +190,19 @@ async function journeyCreateNewField() {
 
   let answers = await prompt(
     [
-      { name: 'CaseEventID', message: `Whats the CaseEvent that this field belongs to?`, default: lastAnswers.CaseEventID },
+      { name: 'CaseEventID', message: `Whats the CaseEvent that this field belongs to?`, default: session.lastAnswers.CaseEventID },
       { name: 'ID', message: `What's the ID for this field?`, type: 'input' },
       { name: 'Label', message: 'What text should this field have (Label)?', type: 'input' },
       { name: 'FieldType', message: 'What FieldType should this be?', type: 'list', choices: optsFieldType },
-      { name: 'PageID', message: `What page will this field appear on?`, type: 'number', default: lastAnswers.PageID || 1 },
-      { name: 'PageFieldDisplayOrder', message: `Whats the PageFieldDisplayOrder for this field?`, type: 'number', default: lastAnswers.PageFieldDisplayOrder + 1 || 1 },
+      { name: 'PageID', message: `What page will this field appear on?`, type: 'number', default: session.lastAnswers.PageID || 1 },
+      { name: 'PageFieldDisplayOrder', message: `Whats the PageFieldDisplayOrder for this field?`, type: 'number', default: session.lastAnswers.PageFieldDisplayOrder + 1 || 1 },
       { name: 'FieldShowCondition', message: 'Enter a field show condition string (leave blank if not needed)', type: 'input' }
     ]
   )
 
-  lastAnswers.CaseEventID = answers.CaseEventID
-  lastAnswers.PageID = answers.PageID
-  lastAnswers.PageFieldDisplayOrder = answers.PageFieldDisplayOrder
+  session.lastAnswers.CaseEventID = answers.CaseEventID
+  session.lastAnswers.PageID = answers.PageID
+  session.lastAnswers.PageFieldDisplayOrder = answers.PageFieldDisplayOrder
 
   if (answers.FieldType === "Label") {
     answers.DisplayContext = "READONLY"
@@ -209,7 +215,7 @@ async function journeyCreateNewField() {
     }
   }
 
-  if (!['Text', 'Label'].includes(answers.FieldType)) {
+  if (!['Label'].includes(answers.FieldType)) {
     answers = {
       ...answers, ...await prompt([
         { name: 'HintText', message: 'What HintText should this field have? (enter for nothing)', type: 'input' }
@@ -235,11 +241,14 @@ async function journeyCreateNewField() {
       { name: 'FieldTypeParameter', message: "What's the FieldTypeParameter?", type: 'list', choices: Object.keys(fieldTypeOpts).sort(), default: NEW }
     ])
 
+    console.log(`Chosen ${followup.FieldTypeParameter} FieldTypeParameter`)
+
     if (followup.FieldTypeParameter === NEW) {
       caseField.FieldTypeParameter = await journeyCreateNewScrubbed()
+    } else {
+      caseField.FieldTypeParameter = followup.FieldTypeParameter
     }
 
-    answers.FieldTypeParameter = followup.FieldTypeParameter
   } else if (answers.FieldType === "Other") {
     const followup = await prompt([
       { name: 'Other', message: `Enter the name of the ComplexType for ${answers.ID}` }
@@ -247,6 +256,12 @@ async function journeyCreateNewField() {
 
     answers.FieldType = followup.Other
   }
+
+  // if (answers.FieldType === "Text") {
+  //   const followup = await prompt([
+  //     { name: 'RegularExpression', message: "Do we need a RegularExpression for the field?", type: 'list', choices: [], default:  }
+  //   ])
+  // }
 
   caseField.CaseTypeID = "ET_EnglandWales"
 
@@ -267,8 +282,9 @@ async function journeyCreateNewField() {
   caseEventToField.FieldShowCondition = answers.FieldShowCondition
   caseEventToField.ShowSummaryChangeOption = answers.ShowSummaryChangeOption === 'Yes' ? 'Y' : 'N'
 
-  if (answers.FieldTypeParameter) {
-    caseField.FieldTypeParameter
+  if (answers.FieldType === Number) {
+    answers.FieldType = "Text"
+    caseField.RegularExpression = "^[0-9]+$"
   }
 
   const fieldAuthorisations = createAuthorisationCaseFields("ET_EnglandWales", answers.ID)
@@ -322,8 +338,8 @@ async function journeyCreateCaseEvent() {
   caseEvent.ShowSummary = answers.ShowSummary
 
   const scotlandCaseEvent = { ...caseEvent, CaseTypeID: caseEvent.CaseTypeID.replace("ET_EnglandWales", "ET_Scotland") }
-  insertNewCaseEvent(caseEvent)
-  insertNewCaseEvent(scotlandCaseEvent)
+  upsertNewCaseEvent(caseEvent)
+  upsertNewCaseEvent(scotlandCaseEvent)
 
   const caseAuthorisations = createAuthorisationCaseEvent("ET_EnglandWales", answers.ID)
   console.log(`created ${caseAuthorisations.length} auths for case event`)
@@ -377,7 +393,7 @@ async function journeyCreateCallbackPopulatedTextField() {
 
   caseEventToField.CaseEventID = answers.CaseEventID
   caseEventToFieldLabel.CaseEventID = answers.CaseEventID
-  lastAnswers.CaseEventID = answers.CaseEventID
+  session.lastAnswers.CaseEventID = answers.CaseEventID
 
   caseEventToField.CaseFieldID = answers.ID
   caseEventToFieldLabel.CaseFieldID = `${answers.ID}Label`
@@ -387,14 +403,14 @@ async function journeyCreateCallbackPopulatedTextField() {
 
   caseEventToField.PageID = answers.PageID || 1
   caseEventToFieldLabel.PageID = caseEventToField.PageID
-  lastAnswers.PageID = answers.PageID + 1
+  session.lastAnswers.PageID = answers.PageID + 1
 
   caseEventToField.PageDisplayOrder = caseEventToField.PageID
   caseEventToFieldLabel.PageDisplayOrder = caseEventToField.PageID
 
   caseEventToField.PageFieldDisplayOrder = answers.PageFieldDisplayOrder || 1
   caseEventToFieldLabel.PageFieldDisplayOrder = caseEventToField.PageFieldDisplayOrder + 1
-  lastAnswers.PageID = caseEventToFieldLabel.PageFieldDisplayOrder
+  session.lastAnswers.PageID = caseEventToFieldLabel.PageFieldDisplayOrder
 
   caseEventToField.PageLabel = answers.PageTitle
 
@@ -423,6 +439,58 @@ async function journeyCreateCallbackPopulatedTextField() {
 
   console.log(output)
   console.log(`Added ${output.caseFields.length} caseFields, ${output.caseEventToFields.length} caseEventToFields and ${output.authorisationCaseFields.length} authorisationCaseFields`)
+}
+
+async function journeySplitSession() {
+  const ALL = "ALL"
+  const validPages = getFieldsPerPage()
+
+  const answers = await prompt(
+    [
+      { name: 'PageID', message: `Export fields from what page?`, type: 'input', choices: [...Object.keys(validPages).sort(), ALL] },
+    ]
+  )
+
+  if (answers.PageID === ALL) {
+    const totalPages = Object.keys(validPages).length
+    
+    for (let i = 1; i < totalPages + 1; i++) {
+      const fieldCountOnPage = validPages[i]
+
+      const followup = await prompt([
+        { name: 'sessionName', message: `What's the name of the session to export page ${i} (${fieldCountOnPage} fields) to?`, type: 'input' },
+      ])
+
+      createSessionFromPage(i, followup.sessionName)
+    }
+    return
+  }
+
+  const fieldCountOnPage = validPages[answers.PageID]
+
+  const followup = await prompt([
+    { name: 'sessionName', message: `What's the name of the session to export ${fieldCountOnPage} fields to?`, type: 'input' },
+  ])
+
+  createSessionFromPage(answers.PageID, followup.sessionName)
+}
+
+function createSessionFromPage(pageId: number, sessionName: string) {
+  const full: Session['added'] = JSON.parse(JSON.stringify(session.added))
+
+  const fieldsOnPage = full.CaseEventToFields.filter(o => o.PageID === pageId)
+  const newSession = createNewSession(sessionName)
+
+  newSession.added.CaseEventToFields = fieldsOnPage
+  newSession.added.CaseField = full.CaseField.filter(o => fieldsOnPage.find(x => x.CaseFieldID === o.ID))
+  newSession.added.AuthorisationCaseField = full.AuthorisationCaseField.filter(o => fieldsOnPage.find(x => x.CaseFieldID === o.CaseFieldID))
+  newSession.added.Scrubbed = full.Scrubbed.filter(o => newSession.added.CaseField.find(x => x.FieldTypeParameter === o.ID))
+  newSession.added.CaseEvent = full.CaseEvent.filter(o => fieldsOnPage.find(x => x.CaseEventID === o.ID))
+  newSession.added.AuthorisationCaseEvent = full.AuthorisationCaseEvent.filter(o => newSession.added.CaseEvent.find(x => x.ID === o.CaseEventID))
+
+  newSession.date = new Date()
+
+  saveSession(newSession)
 }
 
 start()

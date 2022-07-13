@@ -1,0 +1,3447 @@
+{
+  "name": "10-11-12-RET-1903",
+  "date": "2022-07-11T13:54:57.524Z",
+  "lastAnswers": {
+    "CaseEventID": "et3Response",
+    "PageID": 12,
+    "PageFieldDisplayOrder": 1
+  },
+  "added": {
+    "AuthorisationCaseField": [
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseShowInset",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseShowInset",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseShowInset",
+        "UserRole": "caseworker-employment-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseShowInset",
+        "UserRole": "caseworker-employment-etjudge-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseShowInset",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3StartPagePreamble",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3StartPagePreamble",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3StartPagePreamble",
+        "UserRole": "caseworker-employment-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3StartPagePreamble",
+        "UserRole": "caseworker-employment-etjudge-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3StartPagePreamble",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseShowInset",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseShowInset",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseShowInset",
+        "UserRole": "caseworker-employment-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseShowInset",
+        "UserRole": "caseworker-employment-etjudge-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseShowInset",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3StartPagePreamble",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3StartPagePreamble",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3StartPagePreamble",
+        "UserRole": "caseworker-employment-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3StartPagePreamble",
+        "UserRole": "caseworker-employment-etjudge-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3StartPagePreamble",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3StartPageInset",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3StartPageInset",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3StartPageInset",
+        "UserRole": "caseworker-employment-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3StartPageInset",
+        "UserRole": "caseworker-employment-etjudge-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3StartPageInset",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3StartPageInset",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3StartPageInset",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3StartPageInset",
+        "UserRole": "caseworker-employment-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3StartPageInset",
+        "UserRole": "caseworker-employment-etjudge-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3StartPageInset",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3StartPageMainBody",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3StartPageMainBody",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3StartPageMainBody",
+        "UserRole": "caseworker-employment-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3StartPageMainBody",
+        "UserRole": "caseworker-employment-etjudge-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3StartPageMainBody",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3StartPageMainBody",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3StartPageMainBody",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3StartPageMainBody",
+        "UserRole": "caseworker-employment-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3StartPageMainBody",
+        "UserRole": "caseworker-employment-etjudge-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3StartPageMainBody",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseClaimantName",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseClaimantName",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseClaimantName",
+        "UserRole": "caseworker-employment-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseClaimantName",
+        "UserRole": "caseworker-employment-etjudge-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseClaimantName",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseClaimantNameLabel",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseClaimantNameLabel",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseClaimantNameLabel",
+        "UserRole": "caseworker-employment-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseClaimantNameLabel",
+        "UserRole": "caseworker-employment-etjudge-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseClaimantNameLabel",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseClaimantName",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseClaimantName",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseClaimantName",
+        "UserRole": "caseworker-employment-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseClaimantName",
+        "UserRole": "caseworker-employment-etjudge-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseClaimantName",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseClaimantNameLabel",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseClaimantNameLabel",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseClaimantNameLabel",
+        "UserRole": "caseworker-employment-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseClaimantNameLabel",
+        "UserRole": "caseworker-employment-etjudge-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseClaimantNameLabel",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseIsClaimantNameCorrect",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseIsClaimantNameCorrect",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseIsClaimantNameCorrect",
+        "UserRole": "caseworker-employment-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseIsClaimantNameCorrect",
+        "UserRole": "caseworker-employment-etjudge-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseIsClaimantNameCorrect",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseIsClaimantNameCorrect",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseIsClaimantNameCorrect",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseIsClaimantNameCorrect",
+        "UserRole": "caseworker-employment-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseIsClaimantNameCorrect",
+        "UserRole": "caseworker-employment-etjudge-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseIsClaimantNameCorrect",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseClaimantNameCorrection",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseClaimantNameCorrection",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseClaimantNameCorrection",
+        "UserRole": "caseworker-employment-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseClaimantNameCorrection",
+        "UserRole": "caseworker-employment-etjudge-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseClaimantNameCorrection",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseClaimantNameCorrection",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseClaimantNameCorrection",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseClaimantNameCorrection",
+        "UserRole": "caseworker-employment-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseClaimantNameCorrection",
+        "UserRole": "caseworker-employment-etjudge-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseClaimantNameCorrection",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseNamePreamble",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseNamePreamble",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseNamePreamble",
+        "UserRole": "caseworker-employment-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseNamePreamble",
+        "UserRole": "caseworker-employment-etjudge-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseNamePreamble",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseNamePreamble",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseNamePreamble",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseNamePreamble",
+        "UserRole": "caseworker-employment-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseNamePreamble",
+        "UserRole": "caseworker-employment-etjudge-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseNamePreamble",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseNameInset",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseNameInset",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseNameInset",
+        "UserRole": "caseworker-employment-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseNameInset",
+        "UserRole": "caseworker-employment-etjudge-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseNameInset",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseNameInset",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseNameInset",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseNameInset",
+        "UserRole": "caseworker-employment-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseNameInset",
+        "UserRole": "caseworker-employment-etjudge-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseNameInset",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseRespondentLegalName",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseRespondentLegalName",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseRespondentLegalName",
+        "UserRole": "caseworker-employment-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseRespondentLegalName",
+        "UserRole": "caseworker-employment-etjudge-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseRespondentLegalName",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseRespondentLegalName",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseRespondentLegalName",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseRespondentLegalName",
+        "UserRole": "caseworker-employment-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseRespondentLegalName",
+        "UserRole": "caseworker-employment-etjudge-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseRespondentLegalName",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseRespondentCompanyNumber",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseRespondentCompanyNumber",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseRespondentCompanyNumber",
+        "UserRole": "caseworker-employment-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseRespondentCompanyNumber",
+        "UserRole": "caseworker-employment-etjudge-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseRespondentCompanyNumber",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseRespondentCompanyNumber",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseRespondentCompanyNumber",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseRespondentCompanyNumber",
+        "UserRole": "caseworker-employment-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseRespondentCompanyNumber",
+        "UserRole": "caseworker-employment-etjudge-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseRespondentCompanyNumber",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseRespondentEmployerType",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseRespondentEmployerType",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseRespondentEmployerType",
+        "UserRole": "caseworker-employment-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseRespondentEmployerType",
+        "UserRole": "caseworker-employment-etjudge-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseRespondentEmployerType",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseRespondentEmployerType",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseRespondentEmployerType",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseRespondentEmployerType",
+        "UserRole": "caseworker-employment-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseRespondentEmployerType",
+        "UserRole": "caseworker-employment-etjudge-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseRespondentEmployerType",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseRespondentPreferredTitle",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseRespondentPreferredTitle",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseRespondentPreferredTitle",
+        "UserRole": "caseworker-employment-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseRespondentPreferredTitle",
+        "UserRole": "caseworker-employment-etjudge-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseRespondentPreferredTitle",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseRespondentPreferredTitle",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseRespondentPreferredTitle",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseRespondentPreferredTitle",
+        "UserRole": "caseworker-employment-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseRespondentPreferredTitle",
+        "UserRole": "caseworker-employment-etjudge-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseRespondentPreferredTitle",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseRespondentContactName",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseRespondentContactName",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseRespondentContactName",
+        "UserRole": "caseworker-employment-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseRespondentContactName",
+        "UserRole": "caseworker-employment-etjudge-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseRespondentContactName",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseRespondentContactName",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseRespondentContactName",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseRespondentContactName",
+        "UserRole": "caseworker-employment-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseRespondentContactName",
+        "UserRole": "caseworker-employment-etjudge-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseRespondentContactName",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseNameShowInset",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseNameShowInset",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseNameShowInset",
+        "UserRole": "caseworker-employment-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseNameShowInset",
+        "UserRole": "caseworker-employment-etjudge-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseNameShowInset",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseNameShowInset",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseNameShowInset",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseNameShowInset",
+        "UserRole": "caseworker-employment-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseNameShowInset",
+        "UserRole": "caseworker-employment-etjudge-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseNameShowInset",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3RespondentAddress",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3RespondentAddress",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3RespondentAddress",
+        "UserRole": "caseworker-employment-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3RespondentAddress",
+        "UserRole": "caseworker-employment-etjudge-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3RespondentAddress",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3RespondentAddress",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3RespondentAddress",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3RespondentAddress",
+        "UserRole": "caseworker-employment-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3RespondentAddress",
+        "UserRole": "caseworker-employment-etjudge-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3RespondentAddress",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseDXAddress",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseDXAddress",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseDXAddress",
+        "UserRole": "caseworker-employment-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseDXAddress",
+        "UserRole": "caseworker-employment-etjudge-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseDXAddress",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseDXAddress",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseDXAddress",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseDXAddress",
+        "UserRole": "caseworker-employment-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseDXAddress",
+        "UserRole": "caseworker-employment-etjudge-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseDXAddress",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponsePhone",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponsePhone",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponsePhone",
+        "UserRole": "caseworker-employment-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponsePhone",
+        "UserRole": "caseworker-employment-etjudge-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponsePhone",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponsePhone",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponsePhone",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponsePhone",
+        "UserRole": "caseworker-employment-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponsePhone",
+        "UserRole": "caseworker-employment-etjudge-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponsePhone",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseContactPreference",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseContactPreference",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseContactPreference",
+        "UserRole": "caseworker-employment-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseContactPreference",
+        "UserRole": "caseworker-employment-etjudge-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseContactPreference",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseContactPreference",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseContactPreference",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseContactPreference",
+        "UserRole": "caseworker-employment-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseContactPreference",
+        "UserRole": "caseworker-employment-etjudge-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseContactPreference",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseContactReason",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseContactReason",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseContactReason",
+        "UserRole": "caseworker-employment-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseContactReason",
+        "UserRole": "caseworker-employment-etjudge-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseContactReason",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseContactReason",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseContactReason",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseContactReason",
+        "UserRole": "caseworker-employment-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseContactReason",
+        "UserRole": "caseworker-employment-etjudge-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseContactReason",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseHearingPreamble",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseHearingPreamble",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseHearingPreamble",
+        "UserRole": "caseworker-employment-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseHearingPreamble",
+        "UserRole": "caseworker-employment-etjudge-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseHearingPreamble",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseHearingPreamble",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseHearingPreamble",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseHearingPreamble",
+        "UserRole": "caseworker-employment-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseHearingPreamble",
+        "UserRole": "caseworker-employment-etjudge-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseHearingPreamble",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseHearingRepresentative",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseHearingRepresentative",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseHearingRepresentative",
+        "UserRole": "caseworker-employment-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseHearingRepresentative",
+        "UserRole": "caseworker-employment-etjudge-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseHearingRepresentative",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseHearingRepresentative",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseHearingRepresentative",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseHearingRepresentative",
+        "UserRole": "caseworker-employment-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseHearingRepresentative",
+        "UserRole": "caseworker-employment-etjudge-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseHearingRepresentative",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseHearingRespondent",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseHearingRespondent",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseHearingRespondent",
+        "UserRole": "caseworker-employment-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseHearingRespondent",
+        "UserRole": "caseworker-employment-etjudge-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseHearingRespondent",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseHearingRespondent",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseHearingRespondent",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseHearingRespondent",
+        "UserRole": "caseworker-employment-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseHearingRespondent",
+        "UserRole": "caseworker-employment-etjudge-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseHearingRespondent",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseEmploymentCount",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseEmploymentCount",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseEmploymentCount",
+        "UserRole": "caseworker-employment-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseEmploymentCount",
+        "UserRole": "caseworker-employment-etjudge-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseEmploymentCount",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseEmploymentCount",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseEmploymentCount",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseEmploymentCount",
+        "UserRole": "caseworker-employment-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseEmploymentCount",
+        "UserRole": "caseworker-employment-etjudge-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseEmploymentCount",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseMultipleSites",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseMultipleSites",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseMultipleSites",
+        "UserRole": "caseworker-employment-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseMultipleSites",
+        "UserRole": "caseworker-employment-etjudge-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseMultipleSites",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseMultipleSites",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseMultipleSites",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseMultipleSites",
+        "UserRole": "caseworker-employment-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseMultipleSites",
+        "UserRole": "caseworker-employment-etjudge-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseMultipleSites",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseSiteEmploymentCount",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseSiteEmploymentCount",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseSiteEmploymentCount",
+        "UserRole": "caseworker-employment-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseSiteEmploymentCount",
+        "UserRole": "caseworker-employment-etjudge-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseSiteEmploymentCount",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseSiteEmploymentCount",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseSiteEmploymentCount",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseSiteEmploymentCount",
+        "UserRole": "caseworker-employment-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseSiteEmploymentCount",
+        "UserRole": "caseworker-employment-etjudge-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseSiteEmploymentCount",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseAcasAgree",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseAcasAgree",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseAcasAgree",
+        "UserRole": "caseworker-employment-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseAcasAgree",
+        "UserRole": "caseworker-employment-etjudge-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseAcasAgree",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseAcasAgree",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseAcasAgree",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseAcasAgree",
+        "UserRole": "caseworker-employment-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseAcasAgree",
+        "UserRole": "caseworker-employment-etjudge-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseAcasAgree",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseAcasAgreeReason",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseAcasAgreeReason",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseAcasAgreeReason",
+        "UserRole": "caseworker-employment-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseAcasAgreeReason",
+        "UserRole": "caseworker-employment-etjudge-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseAcasAgreeReason",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseAcasAgreeReason",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseAcasAgreeReason",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseAcasAgreeReason",
+        "UserRole": "caseworker-employment-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseAcasAgreeReason",
+        "UserRole": "caseworker-employment-etjudge-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseAcasAgreeReason",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseAreDatesCorrect",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseAreDatesCorrect",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseAreDatesCorrect",
+        "UserRole": "caseworker-employment-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseAreDatesCorrect",
+        "UserRole": "caseworker-employment-etjudge-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseAreDatesCorrect",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseAreDatesCorrect",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseAreDatesCorrect",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseAreDatesCorrect",
+        "UserRole": "caseworker-employment-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseAreDatesCorrect",
+        "UserRole": "caseworker-employment-etjudge-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseAreDatesCorrect",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseEmploymentStartDate",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseEmploymentStartDate",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseEmploymentStartDate",
+        "UserRole": "caseworker-employment-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseEmploymentStartDate",
+        "UserRole": "caseworker-employment-etjudge-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseEmploymentStartDate",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseEmploymentStartDate",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseEmploymentStartDate",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseEmploymentStartDate",
+        "UserRole": "caseworker-employment-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseEmploymentStartDate",
+        "UserRole": "caseworker-employment-etjudge-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseEmploymentStartDate",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseEmploymentEndDate",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseEmploymentEndDate",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseEmploymentEndDate",
+        "UserRole": "caseworker-employment-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseEmploymentEndDate",
+        "UserRole": "caseworker-employment-etjudge-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseEmploymentEndDate",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseEmploymentEndDate",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseEmploymentEndDate",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseEmploymentEndDate",
+        "UserRole": "caseworker-employment-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseEmploymentEndDate",
+        "UserRole": "caseworker-employment-etjudge-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseEmploymentEndDate",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseEmploymentInformation",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseEmploymentInformation",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseEmploymentInformation",
+        "UserRole": "caseworker-employment-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseEmploymentInformation",
+        "UserRole": "caseworker-employment-etjudge-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseEmploymentInformation",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseEmploymentInformation",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseEmploymentInformation",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseEmploymentInformation",
+        "UserRole": "caseworker-employment-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseEmploymentInformation",
+        "UserRole": "caseworker-employment-etjudge-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseEmploymentInformation",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseContinuingEmployment",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseContinuingEmployment",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseContinuingEmployment",
+        "UserRole": "caseworker-employment-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseContinuingEmployment",
+        "UserRole": "caseworker-employment-etjudge-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseContinuingEmployment",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseContinuingEmployment",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseContinuingEmployment",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseContinuingEmployment",
+        "UserRole": "caseworker-employment-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseContinuingEmployment",
+        "UserRole": "caseworker-employment-etjudge-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseContinuingEmployment",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      }
+    ],
+    "CaseEvent": [
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "ID": "et3Response",
+        "Name": "ET3 response form",
+        "Description": "ET3 response form",
+        "DisplayOrder": 8,
+        "PreConditionState(s)": "Accepted",
+        "PostConditionState": "*",
+        "SecurityClassification": "Public",
+        "ShowEventNotes": "N",
+        "ShowSummary": "Y",
+        "CallBackURLAboutToStartEvent": "${ET_COS_URL}/et3Response/aboutToStart",
+        "CallBackURLAboutToSubmitEvent": "",
+        "CallBackURLSubmittedEvent": "${ET_COS_URL}/et3Response/processingComplete",
+        "EventEnablingCondition": ""
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "ID": "et3Response",
+        "Name": "ET3 response form",
+        "Description": "ET3 response form",
+        "DisplayOrder": 8,
+        "PreConditionState(s)": "Accepted",
+        "PostConditionState": "*",
+        "SecurityClassification": "Public",
+        "ShowEventNotes": "N",
+        "ShowSummary": "Y",
+        "CallBackURLAboutToStartEvent": "${ET_COS_URL}/et3Response/aboutToStart",
+        "CallBackURLAboutToSubmitEvent": "",
+        "CallBackURLSubmittedEvent": "${ET_COS_URL}/et3Response/processingComplete",
+        "EventEnablingCondition": ""
+      }
+    ],
+    "CaseEventToFields": [
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseShowInset",
+        "DisplayContext": "OPTIONAL",
+        "PageID": 1,
+        "PageDisplayOrder": 1,
+        "PageFieldDisplayOrder": 1,
+        "FieldShowCondition": "et3StartPagePreamble=\"dummy\"",
+        "PageLabel": "ET3 - Response to Employment tribunal claim (ET1)"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseShowInset",
+        "DisplayContext": "OPTIONAL",
+        "PageID": 1,
+        "PageDisplayOrder": 1,
+        "PageFieldDisplayOrder": 1,
+        "FieldShowCondition": "et3StartPagePreamble=\"dummy\"",
+        "PageLabel": "ET3 - Response to Employment tribunal claim (ET1)"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3StartPagePreamble",
+        "DisplayContext": "READONLY",
+        "PageID": 1,
+        "PageDisplayOrder": 1,
+        "PageFieldDisplayOrder": 2
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3StartPagePreamble",
+        "DisplayContext": "READONLY",
+        "PageID": 1,
+        "PageDisplayOrder": 1,
+        "PageFieldDisplayOrder": 2
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3StartPageInset",
+        "DisplayContext": "READONLY",
+        "PageID": 1,
+        "PageDisplayOrder": 1,
+        "PageFieldDisplayOrder": 3,
+        "FieldShowCondition": "et3ResponseShowInset=\"Yes\""
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3StartPageInset",
+        "DisplayContext": "READONLY",
+        "PageID": 1,
+        "PageDisplayOrder": 1,
+        "PageFieldDisplayOrder": 3,
+        "FieldShowCondition": "et3ResponseShowInset=\"Yes\""
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3StartPageMainBody",
+        "DisplayContext": "READONLY",
+        "PageID": 1,
+        "PageDisplayOrder": 1,
+        "PageFieldDisplayOrder": 4
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3StartPageMainBody",
+        "DisplayContext": "READONLY",
+        "PageID": 1,
+        "PageDisplayOrder": 1,
+        "PageFieldDisplayOrder": 4
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseClaimantName",
+        "DisplayContext": "READONLY",
+        "PageID": 2,
+        "PageDisplayOrder": 2,
+        "PageFieldDisplayOrder": 1,
+        "FieldShowCondition": "et3ResponseClaimantNameLabel=\"dummy\"",
+        "RetainHiddenValue": "Yes",
+        "PageLabel": "Is this the correct claimant for the claim you're responding to?"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseClaimantNameLabel",
+        "DisplayContext": "READONLY",
+        "PageID": 2,
+        "PageDisplayOrder": 2,
+        "PageFieldDisplayOrder": 2
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseClaimantName",
+        "DisplayContext": "READONLY",
+        "PageID": 2,
+        "PageDisplayOrder": 2,
+        "PageFieldDisplayOrder": 1,
+        "FieldShowCondition": "et3ResponseClaimantNameLabel=\"dummy\"",
+        "RetainHiddenValue": "Yes",
+        "PageLabel": "Is this the correct claimant for the claim you're responding to?"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseClaimantNameLabel",
+        "DisplayContext": "READONLY",
+        "PageID": 2,
+        "PageDisplayOrder": 2,
+        "PageFieldDisplayOrder": 2
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseIsClaimantNameCorrect",
+        "DisplayContext": "MANDATORY",
+        "PageID": 2,
+        "PageDisplayOrder": 2,
+        "PageFieldDisplayOrder": 3,
+        "ShowSummaryChangeOption": "Y"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseIsClaimantNameCorrect",
+        "DisplayContext": "MANDATORY",
+        "PageID": 2,
+        "PageDisplayOrder": 2,
+        "PageFieldDisplayOrder": 3,
+        "ShowSummaryChangeOption": "Y"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseClaimantNameCorrection",
+        "DisplayContext": "MANDATORY",
+        "PageID": 2,
+        "PageDisplayOrder": 2,
+        "PageFieldDisplayOrder": 4,
+        "FieldShowCondition": "et3ResponseIsClaimantNameCorrect=\"No\"",
+        "RetainHiddenValue": "Yes",
+        "ShowSummaryChangeOption": "Y"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseClaimantNameCorrection",
+        "DisplayContext": "MANDATORY",
+        "PageID": 2,
+        "PageDisplayOrder": 2,
+        "PageFieldDisplayOrder": 4,
+        "FieldShowCondition": "et3ResponseIsClaimantNameCorrect=\"No\"",
+        "RetainHiddenValue": "Yes",
+        "ShowSummaryChangeOption": "Y"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseNamePreamble",
+        "DisplayContext": "READONLY",
+        "PageID": 3,
+        "PageDisplayOrder": 3,
+        "PageFieldDisplayOrder": 1,
+        "PageLabel": "What is the respondent's name?"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseNamePreamble",
+        "DisplayContext": "READONLY",
+        "PageID": 3,
+        "PageDisplayOrder": 3,
+        "PageFieldDisplayOrder": 1,
+        "PageLabel": "What is the respondent's name?"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseNameInset",
+        "DisplayContext": "READONLY",
+        "PageID": 3,
+        "PageDisplayOrder": 3,
+        "PageFieldDisplayOrder": 2,
+        "FieldShowCondition": "et3ResponseNameShowInset=\"Yes\"",
+        "RetainHiddenValue": "Yes"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseNameInset",
+        "DisplayContext": "READONLY",
+        "PageID": 3,
+        "PageDisplayOrder": 3,
+        "PageFieldDisplayOrder": 2,
+        "FieldShowCondition": "et3ResponseNameShowInset=\"Yes\"",
+        "RetainHiddenValue": "Yes"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseRespondentLegalName",
+        "DisplayContext": "MANDATORY",
+        "PageID": 3,
+        "PageDisplayOrder": 3,
+        "PageFieldDisplayOrder": 3,
+        "ShowSummaryChangeOption": "Y"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseRespondentLegalName",
+        "DisplayContext": "MANDATORY",
+        "PageID": 3,
+        "PageDisplayOrder": 3,
+        "PageFieldDisplayOrder": 3,
+        "ShowSummaryChangeOption": "Y"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseRespondentCompanyNumber",
+        "DisplayContext": "OPTIONAL",
+        "PageID": 3,
+        "PageDisplayOrder": 3,
+        "PageFieldDisplayOrder": 4,
+        "ShowSummaryChangeOption": "Y"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseRespondentCompanyNumber",
+        "DisplayContext": "OPTIONAL",
+        "PageID": 3,
+        "PageDisplayOrder": 3,
+        "PageFieldDisplayOrder": 4,
+        "ShowSummaryChangeOption": "Y"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseRespondentEmployerType",
+        "DisplayContext": "OPTIONAL",
+        "PageID": 3,
+        "PageDisplayOrder": 3,
+        "PageFieldDisplayOrder": 5,
+        "ShowSummaryChangeOption": "Y"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseRespondentEmployerType",
+        "DisplayContext": "OPTIONAL",
+        "PageID": 3,
+        "PageDisplayOrder": 3,
+        "PageFieldDisplayOrder": 5,
+        "ShowSummaryChangeOption": "Y"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseRespondentPreferredTitle",
+        "DisplayContext": "OPTIONAL",
+        "PageID": 3,
+        "PageDisplayOrder": 3,
+        "PageFieldDisplayOrder": 6,
+        "ShowSummaryChangeOption": "Y"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseRespondentPreferredTitle",
+        "DisplayContext": "OPTIONAL",
+        "PageID": 3,
+        "PageDisplayOrder": 3,
+        "PageFieldDisplayOrder": 6,
+        "ShowSummaryChangeOption": "Y"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseRespondentContactName",
+        "DisplayContext": "OPTIONAL",
+        "PageID": 3,
+        "PageDisplayOrder": 3,
+        "PageFieldDisplayOrder": 7,
+        "ShowSummaryChangeOption": "Y"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseRespondentContactName",
+        "DisplayContext": "OPTIONAL",
+        "PageID": 3,
+        "PageDisplayOrder": 3,
+        "PageFieldDisplayOrder": 7,
+        "ShowSummaryChangeOption": "Y"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseNameShowInset",
+        "DisplayContext": "OPTIONAL",
+        "PageID": 3,
+        "PageDisplayOrder": 3,
+        "PageFieldDisplayOrder": 8,
+        "FieldShowCondition": "et3ResponseNamePreamble=\"dummy\"",
+        "RetainHiddenValue": "Yes"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseNameShowInset",
+        "DisplayContext": "OPTIONAL",
+        "PageID": 3,
+        "PageDisplayOrder": 3,
+        "PageFieldDisplayOrder": 8,
+        "FieldShowCondition": "et3ResponseNamePreamble=\"dummy\"",
+        "RetainHiddenValue": "Yes"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3RespondentAddress",
+        "DisplayContext": "MANDATORY",
+        "PageID": 4,
+        "PageDisplayOrder": 4,
+        "PageFieldDisplayOrder": 1,
+        "ShowSummaryChangeOption": "Y",
+        "PageLabel": "Respondent address"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3RespondentAddress",
+        "DisplayContext": "MANDATORY",
+        "PageID": 4,
+        "PageDisplayOrder": 4,
+        "PageFieldDisplayOrder": 1,
+        "ShowSummaryChangeOption": "Y",
+        "PageLabel": "Respondent address"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseDXAddress",
+        "DisplayContext": "OPTIONAL",
+        "PageID": 4,
+        "PageDisplayOrder": 4,
+        "PageFieldDisplayOrder": 2,
+        "ShowSummaryChangeOption": "Y"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseDXAddress",
+        "DisplayContext": "OPTIONAL",
+        "PageID": 4,
+        "PageDisplayOrder": 4,
+        "PageFieldDisplayOrder": 2,
+        "ShowSummaryChangeOption": "Y"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponsePhone",
+        "DisplayContext": "OPTIONAL",
+        "PageID": 5,
+        "PageDisplayOrder": 5,
+        "PageFieldDisplayOrder": 1,
+        "ShowSummaryChangeOption": "Y",
+        "PageLabel": "What is your contact phone number? (Optional)"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponsePhone",
+        "DisplayContext": "OPTIONAL",
+        "PageID": 5,
+        "PageDisplayOrder": 5,
+        "PageFieldDisplayOrder": 1,
+        "ShowSummaryChangeOption": "Y",
+        "PageLabel": "What is your contact phone number? (Optional)"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseContactPreference",
+        "DisplayContext": "MANDATORY",
+        "PageID": 6,
+        "PageDisplayOrder": 6,
+        "PageFieldDisplayOrder": 1,
+        "ShowSummaryChangeOption": "Y",
+        "PageLabel": "How would you prefer to be contacted?"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseContactPreference",
+        "DisplayContext": "MANDATORY",
+        "PageID": 6,
+        "PageDisplayOrder": 6,
+        "PageFieldDisplayOrder": 1,
+        "ShowSummaryChangeOption": "Y",
+        "PageLabel": "How would you prefer to be contacted?"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseContactReason",
+        "DisplayContext": "MANDATORY",
+        "PageID": 6,
+        "PageDisplayOrder": 6,
+        "PageFieldDisplayOrder": 2,
+        "FieldShowCondition": "et3ResponseContactPreference=\"Post\"",
+        "RetainHiddenValue": "Yes",
+        "ShowSummaryChangeOption": "Y"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseContactReason",
+        "DisplayContext": "MANDATORY",
+        "PageID": 6,
+        "PageDisplayOrder": 6,
+        "PageFieldDisplayOrder": 2,
+        "FieldShowCondition": "et3ResponseContactPreference=\"Post\"",
+        "RetainHiddenValue": "Yes",
+        "ShowSummaryChangeOption": "Y"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseHearingPreamble",
+        "DisplayContext": "READONLY",
+        "PageID": 7,
+        "PageDisplayOrder": 7,
+        "PageFieldDisplayOrder": 1,
+        "PageLabel": "Hearing format"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseHearingPreamble",
+        "DisplayContext": "READONLY",
+        "PageID": 7,
+        "PageDisplayOrder": 7,
+        "PageFieldDisplayOrder": 1,
+        "PageLabel": "Hearing format"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseHearingRepresentative",
+        "DisplayContext": "MANDATORY",
+        "PageID": 7,
+        "PageDisplayOrder": 7,
+        "PageFieldDisplayOrder": 2,
+        "ShowSummaryChangeOption": "Y"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseHearingRepresentative",
+        "DisplayContext": "MANDATORY",
+        "PageID": 7,
+        "PageDisplayOrder": 7,
+        "PageFieldDisplayOrder": 2,
+        "ShowSummaryChangeOption": "Y"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseHearingRespondent",
+        "DisplayContext": "MANDATORY",
+        "PageID": 7,
+        "PageDisplayOrder": 7,
+        "PageFieldDisplayOrder": 3,
+        "ShowSummaryChangeOption": "Y"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseHearingRespondent",
+        "DisplayContext": "MANDATORY",
+        "PageID": 7,
+        "PageDisplayOrder": 7,
+        "PageFieldDisplayOrder": 3,
+        "ShowSummaryChangeOption": "Y"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseEmploymentCount",
+        "DisplayContext": "OPTIONAL",
+        "PageID": 8,
+        "PageDisplayOrder": 8,
+        "PageFieldDisplayOrder": 1,
+        "ShowSummaryChangeOption": "Y",
+        "PageLabel": "Respondent's workforce"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseEmploymentCount",
+        "DisplayContext": "OPTIONAL",
+        "PageID": 8,
+        "PageDisplayOrder": 8,
+        "PageFieldDisplayOrder": 1,
+        "ShowSummaryChangeOption": "Y",
+        "PageLabel": "Respondent's workforce"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseMultipleSites",
+        "DisplayContext": "OPTIONAL",
+        "PageID": 8,
+        "PageDisplayOrder": 8,
+        "PageFieldDisplayOrder": 2,
+        "ShowSummaryChangeOption": "Y"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseMultipleSites",
+        "DisplayContext": "OPTIONAL",
+        "PageID": 8,
+        "PageDisplayOrder": 8,
+        "PageFieldDisplayOrder": 2,
+        "ShowSummaryChangeOption": "Y"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseSiteEmploymentCount",
+        "DisplayContext": "OPTIONAL",
+        "PageID": 8,
+        "PageDisplayOrder": 8,
+        "PageFieldDisplayOrder": 3,
+        "ShowSummaryChangeOption": "Y"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseSiteEmploymentCount",
+        "DisplayContext": "OPTIONAL",
+        "PageID": 8,
+        "PageDisplayOrder": 8,
+        "PageFieldDisplayOrder": 3,
+        "ShowSummaryChangeOption": "Y"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseAcasAgree",
+        "DisplayContext": "MANDATORY",
+        "PageID": 9,
+        "PageDisplayOrder": 9,
+        "PageFieldDisplayOrder": 1,
+        "ShowSummaryChangeOption": "Y",
+        "PageLabel": "Do you agree with the details given by the claimant about early conciliation with Acas?"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseAcasAgree",
+        "DisplayContext": "MANDATORY",
+        "PageID": 9,
+        "PageDisplayOrder": 9,
+        "PageFieldDisplayOrder": 1,
+        "ShowSummaryChangeOption": "Y",
+        "PageLabel": "Do you agree with the details given by the claimant about early conciliation with Acas?"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseAcasAgreeReason",
+        "DisplayContext": "OPTIONAL",
+        "PageID": 9,
+        "PageDisplayOrder": 9,
+        "PageFieldDisplayOrder": 2,
+        "FieldShowCondition": "et3ResponseAcasAgree=\"No\"",
+        "RetainHiddenValue": "Yes",
+        "ShowSummaryChangeOption": "Y"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseAcasAgreeReason",
+        "DisplayContext": "OPTIONAL",
+        "PageID": 9,
+        "PageDisplayOrder": 9,
+        "PageFieldDisplayOrder": 2,
+        "FieldShowCondition": "et3ResponseAcasAgree=\"No\"",
+        "RetainHiddenValue": "Yes",
+        "ShowSummaryChangeOption": "Y"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseAreDatesCorrect",
+        "DisplayContext": "MANDATORY",
+        "PageID": 10,
+        "PageDisplayOrder": 10,
+        "PageFieldDisplayOrder": 1,
+        "ShowSummaryChangeOption": "Y",
+        "PageLabel": "Are the dates of employment given by the claimant correct?"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseAreDatesCorrect",
+        "DisplayContext": "MANDATORY",
+        "PageID": 10,
+        "PageDisplayOrder": 10,
+        "PageFieldDisplayOrder": 1,
+        "ShowSummaryChangeOption": "Y",
+        "PageLabel": "Are the dates of employment given by the claimant correct?"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseEmploymentStartDate",
+        "DisplayContext": "OPTIONAL",
+        "PageID": 11,
+        "PageDisplayOrder": 11,
+        "PageFieldDisplayOrder": 1,
+        "PageShowCondition": "et3ResponseAreDatesCorrect=\"No\"",
+        "ShowSummaryChangeOption": "Y",
+        "PageLabel": "What are the claimant's employment dates?"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseEmploymentStartDate",
+        "DisplayContext": "OPTIONAL",
+        "PageID": 11,
+        "PageDisplayOrder": 11,
+        "PageFieldDisplayOrder": 1,
+        "PageShowCondition": "et3ResponseAreDatesCorrect=\"No\"",
+        "ShowSummaryChangeOption": "Y",
+        "PageLabel": "What are the claimant's employment dates?"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseEmploymentEndDate",
+        "DisplayContext": "OPTIONAL",
+        "PageID": 11,
+        "PageDisplayOrder": 11,
+        "PageFieldDisplayOrder": 2,
+        "ShowSummaryChangeOption": "Y"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseEmploymentEndDate",
+        "DisplayContext": "OPTIONAL",
+        "PageID": 11,
+        "PageDisplayOrder": 11,
+        "PageFieldDisplayOrder": 2,
+        "ShowSummaryChangeOption": "Y"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseEmploymentInformation",
+        "DisplayContext": "OPTIONAL",
+        "PageID": 11,
+        "PageDisplayOrder": 11,
+        "PageFieldDisplayOrder": 3,
+        "ShowSummaryChangeOption": "Y"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseEmploymentInformation",
+        "DisplayContext": "OPTIONAL",
+        "PageID": 11,
+        "PageDisplayOrder": 11,
+        "PageFieldDisplayOrder": 3,
+        "ShowSummaryChangeOption": "Y"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseContinuingEmployment",
+        "DisplayContext": "MANDATORY",
+        "PageID": 12,
+        "PageDisplayOrder": 12,
+        "PageFieldDisplayOrder": 1,
+        "ShowSummaryChangeOption": "Y",
+        "PageLabel": "Is the claimant's employment with the respondent continuing?"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseContinuingEmployment",
+        "DisplayContext": "MANDATORY",
+        "PageID": 12,
+        "PageDisplayOrder": 12,
+        "PageFieldDisplayOrder": 1,
+        "ShowSummaryChangeOption": "Y",
+        "PageLabel": "Is the claimant's employment with the respondent continuing?"
+      }
+    ],
+    "CaseField": [
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "ID": "et3ResponseShowInset",
+        "Label": "Placeholder",
+        "FieldType": "YesOrNo",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "ID": "et3ResponseShowInset",
+        "Label": "Placeholder",
+        "FieldType": "YesOrNo",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "ID": "et3StartPagePreamble",
+        "Label": "To help you complete this, <a href=\"/cases/case-details/${[CASE_REFERENCE]}#Documents\" target=\"_blank\"> open the ET1 form, ACAS certificate and other documents in the Document tab (opens in a new tab)</a>.",
+        "FieldType": "Label",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "ID": "et3StartPagePreamble",
+        "Label": "To help you complete this, <a href=\"/cases/case-details/${[CASE_REFERENCE]}#Documents\" target=\"_blank\"> open the ET1 form, ACAS certificate and other documents in the Document tab (opens in a new tab)</a>.",
+        "FieldType": "Label",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "ID": "et3StartPageInset",
+        "Label": "This response must be completed and submitted within 28 days of the date of the claim form being sent by the tribunal.\r\n\r\nYou must provide your response to the claim even if you believe that another respondent is liable.\r\n\r\nIf you do not provide a response, a judgment may be issued against you without a hearing. If you consider another person or company maybe liable, you should still submit a response. You will have a chance in this response to explain why you think someone else may be liable.",
+        "FieldType": "Label",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "ID": "et3StartPageInset",
+        "Label": "This response must be completed and submitted within 28 days of the date of the claim form being sent by the tribunal.\r\n\r\nYou must provide your response to the claim even if you believe that another respondent is liable.\r\n\r\nIf you do not provide a response, a judgment may be issued against you without a hearing. If you consider another person or company maybe liable, you should still submit a response. You will have a chance in this response to explain why you think someone else may be liable.",
+        "FieldType": "Label",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "ID": "et3StartPageMainBody",
+        "Label": "It will help the tribunal and you as the respresentative if you have: \r\n\r\n* the claimant's employment start and end dates, hours of work and notice period\r\n* details of claimant's pay and benefits, before and after tax\r\n* your response to the claim, which you can upload in document format with a text field for accompanying information\r\n\r\n### How to fill in this form\r\n\r\n* read the questions carefully to make sure you're providing your details (as the representative) or the respondent's details\r\n* optional questions will be marked as such\r\n* you can review and edit your answers before you submit the form",
+        "FieldType": "Label",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "ID": "et3StartPageMainBody",
+        "Label": "It will help the tribunal and you as the respresentative if you have: \r\n\r\n* the claimant's employment start and end dates, hours of work and notice period\r\n* details of claimant's pay and benefits, before and after tax\r\n* your response to the claim, which you can upload in document format with a text field for accompanying information\r\n\r\n### How to fill in this form\r\n\r\n* read the questions carefully to make sure you're providing your details (as the representative) or the respondent's details\r\n* optional questions will be marked as such\r\n* you can review and edit your answers before you submit the form",
+        "FieldType": "Label",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "ID": "et3ResponseClaimantName",
+        "Label": "Placeholder",
+        "FieldType": "Text",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "ID": "et3ResponseClaimantNameLabel",
+        "Label": "${et3ResponseClaimantName}",
+        "FieldType": "Label",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "ID": "et3ResponseClaimantName",
+        "Label": "Placeholder",
+        "FieldType": "Text",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "ID": "et3ResponseClaimantNameLabel",
+        "Label": "${et3ResponseClaimantName}",
+        "FieldType": "Label",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "ID": "et3ResponseIsClaimantNameCorrect",
+        "Label": "Is this the correct claimant for the claim you're responding to?",
+        "FieldType": "YesOrNo",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "ID": "et3ResponseIsClaimantNameCorrect",
+        "Label": "Is this the correct claimant for the claim you're responding to?",
+        "FieldType": "YesOrNo",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "ID": "et3ResponseClaimantNameCorrection",
+        "Label": "What is the correct name of the claimant?",
+        "FieldType": "Text",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "ID": "et3ResponseClaimantNameCorrection",
+        "Label": "What is the correct name of the claimant?",
+        "FieldType": "Text",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "ID": "et3ResponseNamePreamble",
+        "Label": "This will be the respondent recorded in ET1 that you're representing.",
+        "FieldType": "Label",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "ID": "et3ResponseNamePreamble",
+        "Label": "This will be the respondent recorded in ET1 that you're representing.",
+        "FieldType": "Label",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "ID": "et3ResponseNameInset",
+        "Label": "If you consider another person or company may be liable, you should still submit a response.\r\n\r\nYou will have a chance in this form to explain why you think someone else may be liable.",
+        "FieldType": "Label",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "ID": "et3ResponseNameInset",
+        "Label": "If you consider another person or company may be liable, you should still submit a response.\r\n\r\nYou will have a chance in this form to explain why you think someone else may be liable.",
+        "FieldType": "Label",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "ID": "et3ResponseRespondentLegalName",
+        "Label": "Enter the respondent's registered or legal name",
+        "FieldType": "Text",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "ID": "et3ResponseRespondentLegalName",
+        "Label": "Enter the respondent's registered or legal name",
+        "FieldType": "Text",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "ID": "et3ResponseRespondentCompanyNumber",
+        "Label": "Enter the company number if applicable",
+        "FieldType": "Text",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "ID": "et3ResponseRespondentCompanyNumber",
+        "Label": "Enter the company number if applicable",
+        "FieldType": "Text",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "ID": "et3ResponseRespondentEmployerType",
+        "Label": "What type of employer is the respondent?",
+        "FieldType": "FixedList",
+        "FieldTypeParameter": "fl_employer_type",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "ID": "et3ResponseRespondentEmployerType",
+        "Label": "What type of employer is the respondent?",
+        "FieldType": "FixedList",
+        "FieldTypeParameter": "fl_employer_type",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "ID": "et3ResponseRespondentPreferredTitle",
+        "Label": "If individual, what is their preferred title?",
+        "FieldType": "Text",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "ID": "et3ResponseRespondentPreferredTitle",
+        "Label": "If individual, what is their preferred title?",
+        "FieldType": "Text",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "ID": "et3ResponseRespondentContactName",
+        "Label": "Name of contact at respondent's address if not you as the representative",
+        "FieldType": "Text",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "ID": "et3ResponseRespondentContactName",
+        "Label": "Name of contact at respondent's address if not you as the representative",
+        "FieldType": "Text",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "ID": "et3ResponseNameShowInset",
+        "Label": "hidden",
+        "FieldType": "YesOrNo",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "ID": "et3ResponseNameShowInset",
+        "Label": "hidden",
+        "FieldType": "YesOrNo",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "ID": "et3RespondentAddress",
+        "Label": "Enter a UK postcode",
+        "FieldType": "AddressUK",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "ID": "et3RespondentAddress",
+        "Label": "Enter a UK postcode",
+        "FieldType": "AddressUK",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "ID": "et3ResponseDXAddress",
+        "Label": "DX address (if known)",
+        "FieldType": "Text",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "ID": "et3ResponseDXAddress",
+        "Label": "DX address (if known)",
+        "FieldType": "Text",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "ID": "et3ResponsePhone",
+        "Label": "What is your contact phone number?",
+        "HintText": "Where we can contact you (as the representative) during the day. For international numbers include the country code.",
+        "FieldType": "Text",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "ID": "et3ResponsePhone",
+        "Label": "What is your contact phone number?",
+        "HintText": "Where we can contact you (as the representative) during the day. For international numbers include the country code.",
+        "FieldType": "Text",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "ID": "et3ResponseContactPreference",
+        "Label": "How would you prefer to be contacted?",
+        "HintText": "In most circumstances the tribunal will communicate by email. If you need communication by post, please tell us why.",
+        "FieldType": "FixedRadioList",
+        "FieldTypeParameter": "fl_et3_contact_preference",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "ID": "et3ResponseContactPreference",
+        "Label": "How would you prefer to be contacted?",
+        "HintText": "In most circumstances the tribunal will communicate by email. If you need communication by post, please tell us why.",
+        "FieldType": "FixedRadioList",
+        "FieldTypeParameter": "fl_et3_contact_preference",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "ID": "et3ResponseContactReason",
+        "Label": "Provide a reason why you have selected post",
+        "FieldType": "Text",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "ID": "et3ResponseContactReason",
+        "Label": "Provide a reason why you have selected post",
+        "FieldType": "Text",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "ID": "et3ResponseHearingPreamble",
+        "Label": "The parties can express their preference of in-person, video or phone hearings.\r\n\r\nRequests have to be agreed by a judge and it can depend on the type of hearing. If the case goes to a final hearing, this will normally be in-person but parties will be informed in advance.",
+        "FieldType": "Label",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "ID": "et3ResponseHearingPreamble",
+        "Label": "The parties can express their preference of in-person, video or phone hearings.\r\n\r\nRequests have to be agreed by a judge and it can depend on the type of hearing. If the case goes to a final hearing, this will normally be in-person but parties will be informed in advance.",
+        "FieldType": "Label",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "ID": "et3ResponseHearingRepresentative",
+        "Label": "Which types of hearing can you, as the representative, attend?",
+        "HintText": "Select all that apply",
+        "FieldType": "MultiSelectList",
+        "FieldTypeParameter": "fl_et3_hearing_type",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "ID": "et3ResponseHearingRepresentative",
+        "Label": "Which types of hearing can you, as the representative, attend?",
+        "HintText": "Select all that apply",
+        "FieldType": "MultiSelectList",
+        "FieldTypeParameter": "fl_et3_hearing_type",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "ID": "et3ResponseHearingRespondent",
+        "Label": "Which types of hearing can the respondent attend?",
+        "HintText": "Select all that apply",
+        "FieldType": "MultiSelectList",
+        "FieldTypeParameter": "fl_et3_hearing_type",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "ID": "et3ResponseHearingRespondent",
+        "Label": "Which types of hearing can the respondent attend?",
+        "HintText": "Select all that apply",
+        "FieldType": "MultiSelectList",
+        "FieldTypeParameter": "fl_et3_hearing_type",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "ID": "et3ResponseEmploymentCount",
+        "Label": "How many people does the respondent employ in Great Britain?",
+        "HintText": "It can help the tribunal to have an indication of the employer's size.\r\n\r\nEnter a rough amount in digits or leave blank if you're not sure",
+        "FieldType": "Number",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "ID": "et3ResponseEmploymentCount",
+        "Label": "How many people does the respondent employ in Great Britain?",
+        "HintText": "It can help the tribunal to have an indication of the employer's size.\r\n\r\nEnter a rough amount in digits or leave blank if you're not sure",
+        "FieldType": "Number",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "ID": "et3ResponseMultipleSites",
+        "Label": "Does the respondent have more than one site in Great Britain?",
+        "FieldType": "YesOrNo",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "ID": "et3ResponseMultipleSites",
+        "Label": "Does the respondent have more than one site in Great Britain?",
+        "FieldType": "YesOrNo",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "ID": "et3ResponseSiteEmploymentCount",
+        "Label": "How many people are employed at the place where the claimant worked?",
+        "HintText": "Enter a rough amount in digits or leave blank if you're not sure",
+        "FieldType": "Number",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "ID": "et3ResponseSiteEmploymentCount",
+        "Label": "How many people are employed at the place where the claimant worked?",
+        "HintText": "Enter a rough amount in digits or leave blank if you're not sure",
+        "FieldType": "Number",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "ID": "et3ResponseAcasAgree",
+        "Label": "Do you agree with the details given by the claimant about early conciliation with Acas?",
+        "FieldType": "YesOrNo",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "ID": "et3ResponseAcasAgree",
+        "Label": "Do you agree with the details given by the claimant about early conciliation with Acas?",
+        "FieldType": "YesOrNo",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "ID": "et3ResponseAcasAgreeReason",
+        "Label": "Why do you disagree with the Acas conciliation details given?",
+        "HintText": "For example, you may consider that the claimant gave an incorrect Acas early conciliation number of that they were wrong to say they were exempt from early conciliation.",
+        "FieldType": "TextArea",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "ID": "et3ResponseAcasAgreeReason",
+        "Label": "Why do you disagree with the Acas conciliation details given?",
+        "HintText": "For example, you may consider that the claimant gave an incorrect Acas early conciliation number of that they were wrong to say they were exempt from early conciliation.",
+        "FieldType": "TextArea",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "ID": "et3ResponseAreDatesCorrect",
+        "Label": "Are the dates of employment given by the claimant correct?",
+        "FieldType": "FixedRadioList",
+        "FieldTypeParameter": "fl_et3_are_dates_correct",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "ID": "et3ResponseAreDatesCorrect",
+        "Label": "Are the dates of employment given by the claimant correct?",
+        "FieldType": "FixedRadioList",
+        "FieldTypeParameter": "fl_et3_are_dates_correct",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "ID": "et3ResponseEmploymentStartDate",
+        "Label": "Enter the employment start date",
+        "HintText": "For example, 12 11 2020",
+        "FieldType": "Date",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "ID": "et3ResponseEmploymentStartDate",
+        "Label": "Enter the employment start date",
+        "HintText": "For example, 12 11 2020",
+        "FieldType": "Date",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "ID": "et3ResponseEmploymentEndDate",
+        "Label": "Enter employment end date",
+        "HintText": "For example, 12 11 2020",
+        "FieldType": "Date",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "ID": "et3ResponseEmploymentEndDate",
+        "Label": "Enter employment end date",
+        "HintText": "For example, 12 11 2020",
+        "FieldType": "Date",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "ID": "et3ResponseEmploymentInformation",
+        "Label": "Do you want to provide any further information about the claimant's employment dates?",
+        "FieldType": "TextArea",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "ID": "et3ResponseEmploymentInformation",
+        "Label": "Do you want to provide any further information about the claimant's employment dates?",
+        "FieldType": "TextArea",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "ID": "et3ResponseContinuingEmployment",
+        "Label": "Is the claimant's employment with the respondent continuing?",
+        "FieldType": "FixedRadioList",
+        "FieldTypeParameter": "fl_et3_are_dates_correct",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "ID": "et3ResponseContinuingEmployment",
+        "Label": "Is the claimant's employment with the respondent continuing?",
+        "FieldType": "FixedRadioList",
+        "FieldTypeParameter": "fl_et3_are_dates_correct",
+        "SecurityClassification": "Public"
+      }
+    ],
+    "Scrubbed": [
+      {
+        "ID": "fl_employer_type",
+        "ListElement": "Individual",
+        "ListElementCode": "Individual",
+        "DisplayOrder": 1
+      },
+      {
+        "ID": "fl_employer_type",
+        "ListElement": "Limited company",
+        "ListElementCode": "Limited company",
+        "DisplayOrder": 2
+      },
+      {
+        "ID": "fl_employer_type",
+        "ListElement": "Partnership",
+        "ListElementCode": "Partnership",
+        "DisplayOrder": 3
+      },
+      {
+        "ID": "fl_employer_type",
+        "ListElement": "Unincorporated association (such as a sports club)",
+        "ListElementCode": "Unincorporated association",
+        "DisplayOrder": 4
+      },
+      {
+        "ID": "fl_employer_type",
+        "ListElement": "Other",
+        "ListElementCode": "Other",
+        "DisplayOrder": 5
+      },
+      {
+        "ID": "fl_et3_contact_preference",
+        "ListElement": "Email",
+        "ListElementCode": "Email",
+        "DisplayOrder": 1
+      },
+      {
+        "ID": "fl_et3_contact_preference",
+        "ListElement": "Post",
+        "ListElementCode": "Post",
+        "DisplayOrder": 2
+      },
+      {
+        "ID": "fl_et3_hearing_type",
+        "ListElement": "Phone hearings",
+        "ListElementCode": "Phone hearings",
+        "DisplayOrder": 1
+      },
+      {
+        "ID": "fl_et3_hearing_type",
+        "ListElement": "Video hearings",
+        "ListElementCode": "Video hearings",
+        "DisplayOrder": 2
+      },
+      {
+        "ID": "fl_et3_are_dates_correct",
+        "ListElement": "Yes",
+        "ListElementCode": "Yes",
+        "DisplayOrder": 1
+      },
+      {
+        "ID": "fl_et3_are_dates_correct",
+        "ListElement": "No",
+        "ListElementCode": "No",
+        "DisplayOrder": 2
+      },
+      {
+        "ID": "fl_et3_are_dates_correct",
+        "ListElement": "Not applicable",
+        "ListElementCode": "Not applicable",
+        "DisplayOrder": 3
+      }
+    ],
+    "AuthorisationCaseEvent": [
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseEventID": "et3Response",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseEventID": "et3Response",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseEventID": "et3Response",
+        "UserRole": "caseworker-employment-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseEventID": "et3Response",
+        "UserRole": "caseworker-employment-etjudge-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseEventID": "et3Response",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseEventID": "et3Response",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseEventID": "et3Response",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseEventID": "et3Response",
+        "UserRole": "caseworker-employment-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseEventID": "et3Response",
+        "UserRole": "caseworker-employment-etjudge-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseEventID": "et3Response",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      }
+    ]
+  }
+}

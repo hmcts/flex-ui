@@ -1,8 +1,8 @@
 import { readFileSync, writeFileSync } from "fs"
 import { readdir } from "fs/promises"
 import { sep } from "path"
-import { addNewScrubbed, addToInMemoryConfig, doesEventExist, insertNewCaseEvent } from "./configs"
-import { deduplicateAddFields } from "./helpers"
+import { addNewScrubbed, addToInMemoryConfig,  upsertNewCaseEvent } from "./configs"
+import { upsertFields } from "./helpers"
 import { createNewSession, trimCaseEventToField, trimCaseField } from "./objects"
 import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, ConfigSheets, Scrubbed, Session } from "./types/types"
 
@@ -11,19 +11,8 @@ export const SESSION_EXT = '.session.json'
 
 export const session: Session = createNewSession(`sesssion_${Date.now()}`)
 
-export const lastAnswers: Partial<Record<keyof (CaseField) | keyof (CaseEventToField), any>> = {}
-
-export function setCurrentSessionName(name: string) {
-  session.name = name
-}
-
-export function getCurrentSessionName() {
-  return session.name
-}
-
-export function saveSession() {
-  session.lastAnswers = lastAnswers
-  writeFileSync(`${SESSION_DIR}${sep}${getCurrentSessionName()}${SESSION_EXT}`, JSON.stringify(session, null, 2))
+export function saveSession(session: Session) {
+  writeFileSync(`${SESSION_DIR}${sep}${session.name}${SESSION_EXT}`, JSON.stringify(session, null, 2))
 }
 
 export function restorePreviousSession(sessionName: string) {
@@ -52,15 +41,13 @@ export function restorePreviousSession(sessionName: string) {
   addNewScrubbed(session.added.Scrubbed)
 
   for (const event of session.added.CaseEvent) {
-    if (doesEventExist(event)) continue
-    insertNewCaseEvent(event)
+    upsertNewCaseEvent(event)
   }
 
   if (!json.lastAnswers) return
 
   for (const key in json.lastAnswers) {
-    //@ts-ignore
-    lastAnswers[key] = json.lastAnswers[key]
+    session.lastAnswers[key as keyof(Session['lastAnswers'])] = json.lastAnswers[key as keyof(Session['lastAnswers'])]
   }
 
 }
@@ -72,26 +59,44 @@ export async function findPreviousSessions() {
 
 export function addToConfig(fields: ConfigSheets) {
   if (fields.AuthorisationCaseField.length) {
-    deduplicateAddFields<AuthorisationCaseField>(session.added.AuthorisationCaseField, fields.AuthorisationCaseField, ['CaseFieldID', 'CaseTypeId', 'UserRole'])
+    upsertFields<AuthorisationCaseField>(session.added.AuthorisationCaseField, fields.AuthorisationCaseField, ['CaseFieldID', 'CaseTypeId', 'UserRole'])
   }
 
   if (fields.CaseField.length) {
-    deduplicateAddFields<CaseField>(session.added.CaseField, fields.CaseField, ['ID', 'CaseTypeID'])
+    upsertFields<CaseField>(session.added.CaseField, fields.CaseField, ['ID', 'CaseTypeID'])
   }
 
   if (fields.CaseEventToFields.length) {
-    deduplicateAddFields<CaseEventToField>(session.added.CaseEventToFields, fields.CaseEventToFields, ['CaseFieldID', 'CaseEventID', 'CaseTypeID'])
+    upsertFields<CaseEventToField>(session.added.CaseEventToFields, fields.CaseEventToFields, ['CaseFieldID', 'CaseEventID', 'CaseTypeID'])
   }
 
   if (fields.Scrubbed.length) {
-    deduplicateAddFields<Scrubbed>(session.added.Scrubbed, fields.Scrubbed, ['ID', 'ListElementCode'])
+    upsertFields<Scrubbed>(session.added.Scrubbed, fields.Scrubbed, ['ID', 'ListElementCode'])
   }
 
   if (fields.CaseEvent.length) {
-    deduplicateAddFields<CaseEvent>(session.added.CaseEvent, fields.CaseEvent, ['ID', 'CaseTypeID'])
+    upsertFields<CaseEvent>(session.added.CaseEvent, fields.CaseEvent, ['ID', 'CaseTypeID'])
   }
 
   if (fields.AuthorisationCaseEvent.length) {
-    deduplicateAddFields<AuthorisationCaseEvent>(session.added.AuthorisationCaseEvent, fields.AuthorisationCaseEvent, ['CaseEventID', 'CaseTypeId', 'UserRole'])
+    upsertFields<AuthorisationCaseEvent>(session.added.AuthorisationCaseEvent, fields.AuthorisationCaseEvent, ['CaseEventID', 'CaseTypeId', 'UserRole'])
   }
+}
+
+export function getFieldCount() {
+  return session.added.CaseField.length
+}
+
+export function getFieldsPerPage(): Record<number, number> {
+  return session.added.CaseEventToFields.reduce((acc: any, obj) => {
+    if (!acc[obj.PageID]) {
+      acc[obj.PageID] = 0
+    }
+    acc[obj.PageID]++
+    return acc
+  }, {})
+}
+
+export function getPageCount() {
+  return Object.keys(getFieldsPerPage())
 }

@@ -36,6 +36,22 @@ export function deduplicateAddFields<T>(to: T[], from: T[], keys: (keyof (T))[])
   }
 }
 
+export function upsertFields<T>(to: T[], from: T[], keys: (keyof (T))[], spliceIndexFn?: () => number) {
+  for (const obj of from) {
+    const existingIndex = to.findIndex(o => matcher(o, obj, keys))
+    if (existingIndex === -1) {
+      if (spliceIndexFn){
+        const chosenIndex = spliceIndexFn()
+        to.splice(chosenIndex, 0, obj)
+      } else {
+        to.push(obj)
+      }
+      continue
+    }
+    to.splice(existingIndex, 1, obj)
+  }
+}
+
 export function findMissingItems<T>(superlist: T[], list: T[], keys: (keyof (T))[]) {
   const missing = []
   for (const obj of list) {
