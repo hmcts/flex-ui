@@ -3,6 +3,7 @@ import { sep } from "path"
 import { findMissingItems, upsertFields } from "./helpers"
 import { trimCaseField } from "./objects"
 import { addToConfig } from "./session"
+const { exec } = require("child_process");
 import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, ConfigSheets, EventToComplexType, SaveMode, Scrubbed } from "./types/types"
 
 let englandwales: ConfigSheets
@@ -182,7 +183,7 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
   })
 }
 
-export function saveBackToProject(saveMode: SaveMode) {
+export async function saveBackToProject(saveMode: SaveMode) {
   // return JSON.parse(readFileSync(`${envvar}${sep}definitions${sep}json${sep}${name}.json`).toString())
 
   if (saveMode === SaveMode.ENGLANDWALES || saveMode === SaveMode.BOTH) {
@@ -204,44 +205,54 @@ export function saveBackToProject(saveMode: SaveMode) {
   writeFileSync(`${process.env.SCOTLAND_DEF_DIR}${sep}definitions${sep}json${sep}CaseEvent.json`, JSON.stringify(scotland.CaseEvent, null, 2))
   writeFileSync(`${process.env.SCOTLAND_DEF_DIR}${sep}definitions${sep}json${sep}AuthorisationCaseEvent.json`, JSON.stringify(scotland.AuthorisationCaseEvent, null, 2))
   writeFileSync(`${process.env.SCOTLAND_DEF_DIR}${sep}definitions${sep}json${sep}EventToComplexTypes.json`, JSON.stringify(scotland.EventToComplexTypes, null, 2))
+
+  return await execGenerateSpreadsheet()
 }
 
-export function executeYarnGenerate() {
-  const { exec } = require("child_process");
+export function execImportConfig() {
+  return new Promise((resolve, reject) => {
+    exec(`${process.env.ECM_DOCKER_DIR}/bin/ccd-import-definition.sh ${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}xlsx${sep}et-englandwales-ccd-config-local.xlsx`,
+      { cwd: process.env.ECM_DOCKER_DIR }
+      , function (error: any, stdout: any, stderr: any) {
+        console.log(`${error}\r\n${stdout}\r\n${stderr}`)
+        if (error) {
+          reject(new Error(`Failed to import EnglandWales defs`))
+        }
 
-  exec("yarn generate-excel-local", { cwd: process.env.ENGWALES_DEF_DIR },
-    function (error: any, stdout: any, stderr: any) {
-      console.log(`${error}\r\n${stdout}\r\n${stderr}`)
-      if (error) {
-        throw new Error('Failed to generate spreadsheet for engwales')
-      }
-
-      exec("yarn generate-excel-local", { cwd: process.env.SCOTLAND_DEF_DIR },
-        function (error: any, stdout: any, stderr: any) {
-          console.log(`${error}\r\n${stdout}\r\n${stderr}`)
-          if (error) {
-            throw new Error('Failed to generate spreadsheet for scotland')
-          }
-
-          exec(`${process.env.ECM_DOCKER_DIR}/bin/ccd-import-definition.sh ${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}xlsx${sep}et-englandwales-ccd-config-local.xlsx`,
-            { cwd: process.env.ECM_DOCKER_DIR }
-            , function (error: any, stdout: any, stderr: any) {
-              console.log(`${error}\r\n${stdout}\r\n${stderr}`)
-              if (error) {
-                throw new Error(`Failed to import EnglandWales defs`)
-              }
-
-              exec(`${process.env.ECM_DOCKER_DIR}/bin/ccd-import-definition.sh ${process.env.SCOTLAND_DEF_DIR}${sep}definitions${sep}xlsx${sep}et-scotland-ccd-config-local.xlsx`,
-                { cwd: process.env.ECM_DOCKER_DIR }
-                , function (error: any, stdout: any, stderr: any) {
-                  console.log(`${error}\r\n${stdout}\r\n${stderr}`)
-                  if (error) {
-                    throw new Error(`Failed to import scotland defs`)
-                  }
-                }
-              );
+        exec(`${process.env.ECM_DOCKER_DIR}/bin/ccd-import-definition.sh ${process.env.SCOTLAND_DEF_DIR}${sep}definitions${sep}xlsx${sep}et-scotland-ccd-config-local.xlsx`,
+          { cwd: process.env.ECM_DOCKER_DIR }
+          , function (error: any, stdout: any, stderr: any) {
+            console.log(`${error}\r\n${stdout}\r\n${stderr}`)
+            if (error) {
+              reject(new Error(`Failed to import scotland defs`))
             }
-          );
-        });
-    });
+            resolve(null)
+          }
+        );
+      }
+    );
+  })
+}
+
+export function execGenerateSpreadsheet() {
+  return new Promise((resolve, reject) => {
+    exec("yarn generate-excel-local", { cwd: process.env.ENGWALES_DEF_DIR },
+      function (error: any, stdout: any, stderr: any) {
+        console.log(`${error}\r\n${stdout}\r\n${stderr}`)
+        if (error) {
+          reject(new Error('Failed to generate spreadsheet for engwales'))
+        }
+
+        exec("yarn generate-excel-local", { cwd: process.env.SCOTLAND_DEF_DIR },
+          function (error: any, stdout: any, stderr: any) {
+            console.log(`${error}\r\n${stdout}\r\n${stderr}`)
+            if (error) {
+              reject(new Error('Failed to generate spreadsheet for scotland'))
+            }
+
+            resolve(null)
+          });
+      });
+  })
+
 }

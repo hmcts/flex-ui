@@ -1,10 +1,10 @@
 import 'source-map-support/register'
 import { config as envConfig } from 'dotenv'
-import { prompt } from 'inquirer'
-import { SaveMode, Scrubbed, Session } from './types/types'
+import { prompt, Separator } from 'inquirer'
+import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, SaveMode, Scrubbed, Session } from './types/types'
 import { createAuthorisationCaseEvent, createAuthorisationCaseFields, createNewCaseEvent, createNewCaseEventToField, createNewCaseFieldType, createNewEventToComplexType, createNewSession, duplicateFieldsForScotland, trimCaseEventToField, trimCaseField } from './objects'
-import { addNewScrubbed, addToInMemoryConfig, executeYarnGenerate, getCounts, getScrubbedOpts, upsertNewCaseEvent, readInCurrentConfig, saveBackToProject, getCaseEventIDOpts } from './configs'
-import { ensurePathExists } from './helpers'
+import { addNewScrubbed, addToInMemoryConfig, execGenerateSpreadsheet, getCounts, getScrubbedOpts, upsertNewCaseEvent, readInCurrentConfig, saveBackToProject, getCaseEventIDOpts } from './configs'
+import { ensurePathExists, upsertFields } from './helpers'
 import { findPreviousSessions, getFieldCount, getFieldsPerPage, getPageCount, restorePreviousSession, saveSession, session, SESSION_DIR } from './session'
 envConfig()
 
@@ -24,67 +24,48 @@ async function start() {
   checkEnvVars()
   readInCurrentConfig()
 
-  const journeyRestore = 'Restore a previous session'
-  const journeySetName = 'Set session name'
-  const journeySingle = 'Create a single field'
-  const journeyCallbackLabel = 'Create a Callback populated Label'
-  const journeySaveAndExit = 'Save JSONs and Exit'
-  const journeyCreatePage = 'Create new page/event'
-  const journeyCreateEventToComplexTypeOpt = 'Create an EventToComplexType'
-  const journeyDebugListChanges = "DEBUG: List in-memory configs"
-
-
   while (true) {
     const journeySplitSessionOpt = `Split current session (${getFieldCount()} fields across ${getPageCount().length} pages)`
+    const optSaveMode = `Change save mode (currently: ${SaveMode[saveMode]})`
+
+    const choices: { text: string | object, fn?: () => Promise<any> }[] = [
+      { text: 'Create a single field', fn: journeyCreateNewField },
+      { text: 'Create a Callback populated Label', fn: journeyCreateCallbackPopulatedTextField },
+      { text: 'Create new page/event', fn: journeyCreateCaseEvent },
+      { text: 'Create an EventToComplexType', fn: journeyCreateEventToComplexType },
+      { text: new Separator() },
+      { text: 'Set session name', fn: journeySessionName },
+      { text: 'Restore a previous session', fn: journeyRestoreSession },
+      { text: journeySplitSessionOpt, fn: journeySplitSession },
+      { text: new Separator() },
+      { text: optSaveMode, fn: journeySaveMode },
+      { text: 'Save back to Config', fn: async () => await saveBackToProject(saveMode) },
+      { text: 'Load Config into CCD', fn: execGenerateSpreadsheet },
+      { text: 'Exit', fn: async () => { console.log(`Bye!`); process.exit(0) } },
+      { text: new Separator() }
+    ]
+
     const answers = await prompt([
       {
         name: 'Journey',
         message: "What do you want to do?",
         type: 'list',
-        choices: [
-          journeySetName,
-          journeyRestore,
-          journeyCreatePage,
-          journeySingle,
-          journeyCallbackLabel,
-          journeyCreateEventToComplexTypeOpt,
-          journeySplitSessionOpt,
-          `Change save mode (currently: ${SaveMode[saveMode]})`,
-          journeyDebugListChanges,
-          journeySaveAndExit
-        ]
+        choices: choices.map(o => o.text)
       }
     ])
 
-    console.log(answers)
+    const selectedFn = choices.find(o => o.text === answers.Journey)
 
-    if (answers.Journey === journeySetName) {
-      await journeySessionName()
-    } else if (answers.Journey === journeyRestore) {
-      await journeyRestoreSession()
-    } else if (answers.Journey === journeyCreatePage) {
-      await journeyCreateCaseEvent()
-    } else if (answers.Journey === journeySingle) {
-      await journeyCreateNewField()
-    } else if (answers.Jourey === journeyCreateEventToComplexTypeOpt) {
-      await journeyCreateEventToComplexType()
-    } else if (answers.Journey === journeyCallbackLabel) {
-      await journeyCreateCallbackPopulatedTextField()
-    } else if (answers.Journey.startsWith("Change save mode")) {
-      await journeySaveMode()
-    } else if (answers.Journey === journeySplitSessionOpt) {
-      await journeySplitSession()
-    } else if (answers.Journey === journeyDebugListChanges) {
-      journeyDebugList()
-    } else if (answers.Journey === journeySaveAndExit) {
-      break
+    if (!selectedFn) {
+      throw new Error(`Uh-oh, unable to find your selected option. Probably a dev error`)
+    }
+
+    if (selectedFn.fn) {
+      await selectedFn.fn()
     }
 
     saveSession(session)
   }
-
-  saveBackToProject(saveMode)
-  executeYarnGenerate()
 }
 
 async function journeySaveMode() {
@@ -95,10 +76,6 @@ async function journeySaveMode() {
   saveMode = answers.SaveMode === "Both" ? SaveMode.BOTH
     : answers.SaveMode === "EnglandWales" ? SaveMode.ENGLANDWALES
       : SaveMode.SCOTLAND
-}
-
-async function journeyDebugList() {
-  console.log(`DEBUG: ${getCounts()}`)
 }
 
 async function journeySessionName() {
@@ -476,11 +453,20 @@ async function journeyCreateEventToComplexType() {
 
 async function journeySplitSession() {
   const ALL = "ALL"
+  const RANGE = "RANGE"
+
   const validPages = getFieldsPerPage()
+  const largestNumberLength = Object.keys(validPages).reduce((acc: number, obj) => Math.max(acc, obj.length), 0)
+  const pageChoices = Object.keys(validPages).map(o => {
+    return {
+      name: o.padStart(largestNumberLength, '0'),
+      value: Number(o)
+    }
+  })
 
   const answers = await prompt(
     [
-      { name: 'PageID', message: `Export fields from what page?`, type: 'input', choices: [...Object.keys(validPages).sort(), ALL] },
+      { name: 'PageID', message: `Export fields from what page?`, type: 'list', choices: [...pageChoices, new Separator(), RANGE, ALL, new Separator()] },
     ]
   )
 
@@ -495,6 +481,28 @@ async function journeySplitSession() {
       ])
 
       createSessionFromPage(i, followup.sessionName)
+    }
+    return
+  } else if (answers.PageID === RANGE) {
+
+    let followup = await prompt([
+      { name: 'startPage', message: 'Starting from what page ID?', type: 'list', choices: pageChoices },
+    ])
+
+    const lastPageChoice = pageChoices.filter(o => o.value > Number(followup.startPage)).sort()
+
+    followup = {
+      ...followup,
+      ...await prompt([
+        { name: 'lastPage', message: `Up to (including) what page ID?`, type: 'list', choices: [...lastPageChoice, new Separator()] },
+        { name: 'sessionName', message: 'Whats the name for this session file?', type: 'input' }
+      ])
+    }
+
+    const newSession = createNewSession(followup.sessionName)
+
+    for (let i = 1; i < Number(followup.lastPage) + 1; i++) {
+      addPageToSession(i, newSession)
     }
     return
   }
@@ -521,6 +529,28 @@ function createSessionFromPage(pageId: number, sessionName: string) {
   newSession.added.CaseEvent = full.CaseEvent.filter(o => fieldsOnPage.find(x => x.CaseEventID === o.ID))
   newSession.added.AuthorisationCaseEvent = full.AuthorisationCaseEvent.filter(o => newSession.added.CaseEvent.find(x => x.ID === o.CaseEventID))
   newSession.added.EventToComplexTypes = full.EventToComplexTypes.filter(o => fieldsOnPage.find(x => x.CaseFieldID === o.ID))
+
+  newSession.date = new Date()
+
+  saveSession(newSession)
+}
+
+function addPageToSession(pageId: number, newSession: Session) {
+  const full: Session['added'] = JSON.parse(JSON.stringify(session.added))
+
+  const fieldsOnPage = full.CaseEventToFields.filter(o => o.PageID === pageId)
+
+  upsertFields<AuthorisationCaseField>(newSession.added.AuthorisationCaseField, full.AuthorisationCaseField.filter(o => fieldsOnPage.find(x => x.CaseFieldID === o.CaseFieldID)), ['CaseFieldID', 'CaseTypeId', 'UserRole'])
+
+  upsertFields<CaseField>(newSession.added.CaseField, full.CaseField.filter(o => fieldsOnPage.find(x => x.CaseFieldID === o.ID)), ['ID', 'CaseTypeID'])
+
+  upsertFields<CaseEventToField>(newSession.added.CaseEventToFields, fieldsOnPage, ['CaseFieldID', 'CaseEventID', 'CaseTypeID'])
+
+  upsertFields<Scrubbed>(newSession.added.Scrubbed, full.Scrubbed.filter(o => newSession.added.CaseField.find(x => x.FieldTypeParameter === o.ID)), ['ID', 'ListElementCode'])
+
+  upsertFields<CaseEvent>(newSession.added.CaseEvent, full.CaseEvent.filter(o => fieldsOnPage.find(x => x.CaseEventID === o.ID)), ['ID', 'CaseTypeID'])
+
+  upsertFields<AuthorisationCaseEvent>(newSession.added.AuthorisationCaseEvent, full.AuthorisationCaseEvent.filter(o => newSession.added.CaseEvent.find(x => x.ID === o.CaseEventID)), ['CaseEventID', 'CaseTypeId', 'UserRole'])
 
   newSession.date = new Date()
 
