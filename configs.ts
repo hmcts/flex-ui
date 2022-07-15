@@ -3,7 +3,7 @@ import { sep } from "path"
 import { findMissingItems, upsertFields } from "./helpers"
 import { trimCaseField } from "./objects"
 import { addToConfig } from "./session"
-import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, ConfigSheets, SaveMode, Scrubbed } from "./types/types"
+import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, ConfigSheets, EventToComplexType, SaveMode, Scrubbed } from "./types/types"
 
 let englandwales: ConfigSheets
 
@@ -21,13 +21,24 @@ export function getScotland() {
   return scotland
 }
 
+export function getCaseEventIDOpts(defaultOption: string) {
+  return [...englandwales.CaseEvent, ...scotland.CaseEvent]
+    .reduce((acc: Record<string, any>, obj: CaseEvent) => {
+      if (!acc[obj.ID]) {
+        acc[obj.ID] = true
+      }
+      return acc
+    }, { [defaultOption]: true })
+}
+
 export function getScrubbedOpts(defaultOption: string) {
-  return englandwales.Scrubbed.reduce((acc: Record<string, any>, obj: Scrubbed) => {
-    if (!acc[obj.ID]) {
-      acc[obj.ID] = true
-    }
-    return acc
-  }, { [defaultOption]: true })
+  return [...englandwales.Scrubbed, ...scotland.Scrubbed]
+    .reduce((acc: Record<string, any>, obj: Scrubbed) => {
+      if (!acc[obj.ID]) {
+        acc[obj.ID] = true
+      }
+      return acc
+    }, { [defaultOption]: true })
 }
 
 export function getCounts() {
@@ -44,6 +55,7 @@ export function readInCurrentConfig() {
     Scrubbed: getJson(process.env.ENGWALES_DEF_DIR, "EnglandWales Scrubbed"),
     CaseEvent: getJson(process.env.ENGWALES_DEF_DIR, "CaseEvent"),
     AuthorisationCaseEvent: getJson(process.env.ENGWALES_DEF_DIR, "AuthorisationCaseEvent"),
+    EventToComplexTypes: getJson(process.env.ENGWALES_DEF_DIR, "EventToComplexTypes")
   }
 
   scotland = {
@@ -53,6 +65,7 @@ export function readInCurrentConfig() {
     Scrubbed: getJson(process.env.SCOTLAND_DEF_DIR, "Scotland Scrubbed"),
     CaseEvent: getJson(process.env.SCOTLAND_DEF_DIR, "CaseEvent"),
     AuthorisationCaseEvent: getJson(process.env.SCOTLAND_DEF_DIR, "AuthorisationCaseEvent"),
+    EventToComplexTypes: getJson(process.env.SCOTLAND_DEF_DIR, "EventToComplexTypes")
   }
 }
 
@@ -80,7 +93,8 @@ export function upsertNewCaseEvent(caseEvent: CaseEvent) {
     Scrubbed: [],
     CaseField: [],
     CaseEvent: [caseEvent],
-    AuthorisationCaseEvent: []
+    AuthorisationCaseEvent: [],
+    EventToComplexTypes: [],
   })
 }
 
@@ -109,38 +123,52 @@ export function addNewScrubbed(opts: Scrubbed[]) {
     CaseEvent: [],
     CaseEventToFields: [],
     CaseField: [],
-    Scrubbed: opts
+    Scrubbed: opts,
+    EventToComplexTypes: []
   })
 }
 
-export function addToInMemoryConfig(fields: ConfigSheets) {
-  const ewCaseFields = fields.CaseField.filter(o => o.CaseTypeID === "ET_EnglandWales")
-  const ewCaseEventToFields = fields.CaseEventToFields.filter(o => o.CaseTypeID === "ET_EnglandWales")
-  const ewAuthorsationCaseFields = fields.AuthorisationCaseField.filter(o => o.CaseTypeId === "ET_EnglandWales")
-  const ewAuthorsationCaseEvents = fields.AuthorisationCaseEvent.filter(o => o.CaseTypeId === "ET_EnglandWales")
+export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
+  const keys: (keyof ConfigSheets)[] = ['AuthorisationCaseEvent', 'AuthorisationCaseField', 'CaseEvent', 'CaseEventToFields', 'CaseField', 'EventToComplexTypes', 'Scrubbed']
 
-  const scCaseFields = fields.CaseField.filter(o => o.CaseTypeID === "ET_Scotland")
-  const scCaseEventToFields = fields.CaseEventToFields.filter(o => o.CaseTypeID === "ET_Scotland")
-  const scAuthorsationCaseFields = fields.AuthorisationCaseField.filter(o => o.CaseTypeId === "ET_Scotland")
-  const scAuthorsationCaseEvents = fields.AuthorisationCaseEvent.filter(o => o.CaseTypeId === "ET_Scotland")
+  for (const key of keys) {
+    if (!fields[key]) {
+      fields[key] = []
+    }
+  }
+
+  const ewCaseFields = fields.CaseField!.filter(o => o.CaseTypeID === "ET_EnglandWales")
+  const ewCaseEventToFields = fields.CaseEventToFields!.filter(o => o.CaseTypeID === "ET_EnglandWales")
+  const ewAuthorsationCaseFields = fields.AuthorisationCaseField!.filter(o => o.CaseTypeId === "ET_EnglandWales")
+  const ewAuthorsationCaseEvents = fields.AuthorisationCaseEvent!.filter(o => o.CaseTypeId === "ET_EnglandWales")
+
+  const scCaseFields = fields.CaseField!.filter(o => o.CaseTypeID === "ET_Scotland")
+  const scCaseEventToFields = fields.CaseEventToFields!.filter(o => o.CaseTypeID === "ET_Scotland")
+  const scAuthorsationCaseFields = fields.AuthorisationCaseField!.filter(o => o.CaseTypeId === "ET_Scotland")
+  const scAuthorsationCaseEvents = fields.AuthorisationCaseEvent!.filter(o => o.CaseTypeId === "ET_Scotland")
 
   upsertFields<CaseField>(englandwales.CaseField, ewCaseFields, ['ID', 'CaseTypeID'], () => englandwales.CaseField.findIndex(o => o.CaseTypeID.endsWith("_Listings")))
   upsertFields<CaseEventToField>(englandwales.CaseEventToFields, ewCaseEventToFields, ['CaseEventID', 'CaseFieldID', 'CaseTypeID'], () => englandwales.CaseEventToFields.findIndex(o => o.CaseTypeID.endsWith("_Listings")))
   upsertFields<AuthorisationCaseEvent>(englandwales.AuthorisationCaseEvent, ewAuthorsationCaseEvents, ['CaseEventID', 'CaseTypeId', 'UserRole'], () => englandwales.AuthorisationCaseEvent.findIndex(o => o.CaseTypeId.endsWith("_Listings")))
   upsertFields<AuthorisationCaseField>(englandwales.AuthorisationCaseField, ewAuthorsationCaseFields, ['CaseFieldID', 'CaseTypeId', 'UserRole'], () => englandwales.AuthorisationCaseField.findIndex(o => o.CaseTypeId.endsWith("_Listings")))
 
+  upsertFields<EventToComplexType>(englandwales.EventToComplexTypes, fields.EventToComplexTypes!, ['ID', 'CaseEventID', 'CaseFieldID'])
+
   upsertFields<CaseField>(scotland.CaseField, scCaseFields, ['ID', 'CaseTypeID'], () => scotland.CaseField.findIndex(o => o.CaseTypeID.endsWith("_Listings")))
   upsertFields<CaseEventToField>(scotland.CaseEventToFields, scCaseEventToFields, ['CaseEventID', 'CaseFieldID', 'CaseTypeID'], () => scotland.CaseEventToFields.findIndex(o => o.CaseTypeID.endsWith("_Listings")))
   upsertFields<AuthorisationCaseEvent>(scotland.AuthorisationCaseEvent, scAuthorsationCaseEvents, ['CaseEventID', 'CaseTypeId', 'UserRole'], () => scotland.AuthorisationCaseEvent.findIndex(o => o.CaseTypeId.endsWith("_Listings")))
   upsertFields<AuthorisationCaseField>(scotland.AuthorisationCaseField, scAuthorsationCaseFields, ['CaseFieldID', 'CaseTypeId', 'UserRole'], () => scotland.AuthorisationCaseField.findIndex(o => o.CaseTypeId.endsWith("_Listings")))
 
+  upsertFields<EventToComplexType>(scotland.EventToComplexTypes, fields.EventToComplexTypes!, ['ID', 'CaseEventID', 'CaseFieldID'])
+
   addToConfig({
     AuthorisationCaseField: ewAuthorsationCaseFields,
     CaseField: ewCaseFields,
     CaseEventToFields: ewCaseEventToFields,
     Scrubbed: [],
     CaseEvent: [], //scCaseEvents
-    AuthorisationCaseEvent: ewAuthorsationCaseEvents
+    AuthorisationCaseEvent: ewAuthorsationCaseEvents,
+    EventToComplexTypes: fields.EventToComplexTypes!
   })
 
   addToConfig({
@@ -149,66 +177,8 @@ export function addToInMemoryConfig(fields: ConfigSheets) {
     CaseEventToFields: scCaseEventToFields,
     Scrubbed: [],
     CaseEvent: [], //scCaseEvents,
-    AuthorisationCaseEvent: scAuthorsationCaseEvents
-  })
-}
-
-export function addToInMemoryConfigOld(fields: ConfigSheets) {
-  // We add these in just above _Listing
-
-  const ewCaseFields = findMissingItems<CaseField>(englandwales.CaseField, fields.CaseField.filter(o => o.CaseTypeID === "ET_EnglandWales"), ['ID', 'CaseTypeID'])
-  const ewCaseEventToFields = findMissingItems<CaseEventToField>(englandwales.CaseEventToFields, fields.CaseEventToFields.filter(o => o.CaseTypeID === "ET_EnglandWales"), ['CaseEventID', 'CaseFieldID', 'CaseTypeID'])
-  const ewAuthorsationCaseFields = findMissingItems<AuthorisationCaseField>(englandwales.AuthorisationCaseField, fields.AuthorisationCaseField.filter(o => o.CaseTypeId === "ET_EnglandWales"), ['CaseFieldID', 'CaseTypeId', 'UserRole'])
-  const ewAuthorsationCaseEvents = findMissingItems<AuthorisationCaseEvent>(englandwales.AuthorisationCaseEvent, fields.AuthorisationCaseEvent.filter(o => o.CaseTypeId === "ET_EnglandWales"), ['CaseEventID', 'CaseTypeId', 'UserRole'])
-  // const ewCaseEvents = fields.CaseEvent.filter(o => o.CaseTypeID === "ET_EnglandWales")
-
-  const scCaseFields = findMissingItems<CaseField>(scotland.CaseField, fields.CaseField.filter(o => o.CaseTypeID === "ET_Scotland"), ['ID', 'CaseTypeID'])
-  const scCaseEventToFields = findMissingItems<CaseEventToField>(scotland.CaseEventToFields, fields.CaseEventToFields.filter(o => o.CaseTypeID === "ET_Scotland"), ['CaseEventID', 'CaseFieldID', 'CaseTypeID'])
-  const scAuthorsationCaseFields = findMissingItems<AuthorisationCaseField>(scotland.AuthorisationCaseField, fields.AuthorisationCaseField.filter(o => o.CaseTypeId === "ET_Scotland"), ['CaseFieldID', 'CaseTypeId', 'UserRole'])
-  const scAuthorsationCaseEvents = findMissingItems<AuthorisationCaseEvent>(scotland.AuthorisationCaseEvent, fields.AuthorisationCaseEvent.filter(o => o.CaseTypeId === "ET_Scotland"), ['CaseEventID', 'CaseTypeId', 'UserRole'])
-
-  // const scCaseEvents = fields.CaseEvent.filter(o => o.CaseTypeID === "ET_Scotland")
-
-  const ewCaseFieldInsertIndex = englandwales.CaseField.findIndex(o => o.CaseTypeID.endsWith("_Listings"))
-  const ewCaseEventToFieldInsertIndex = englandwales.CaseEventToFields.findIndex(o => o.CaseTypeID.endsWith("_Listings"))
-  const ewAuthorisationInsertIndex = englandwales.AuthorisationCaseField.findIndex(o => o.CaseTypeId.endsWith("_Listings"))
-  const ewAuthorisationEventInsertIndex = englandwales.AuthorisationCaseEvent.findIndex(o => o.CaseTypeId.endsWith("_Listings"))
-  // const ewCaseEventsInsertIndex = englandwales.CaseEvent.findIndex(o => o.CaseTypeID.endsWith("_Listings"))
-
-  const scCaseFieldInsertIndex = scotland.CaseField.findIndex(o => o.CaseTypeID.endsWith("_Listings"))
-  const scCaseEventToFieldInsertIndex = scotland.CaseEventToFields.findIndex(o => o.CaseTypeID.endsWith("_Listings"))
-  const scAuthorisationInsertIndex = scotland.AuthorisationCaseField.findIndex(o => o.CaseTypeId.endsWith("_Listings"))
-  const scAuthorisationEventInsertIndex = scotland.AuthorisationCaseEvent.findIndex(o => o.CaseTypeId.endsWith("_Listings"))
-  // const scCaseEventsInsertIndex = scotland.CaseEvent.findIndex(o => o.CaseTypeID.endsWith("_Listings"))
-
-  englandwales.CaseField.splice(ewCaseFieldInsertIndex, 0, ...ewCaseFields)
-  englandwales.CaseEventToFields.splice(ewCaseEventToFieldInsertIndex, 0, ...ewCaseEventToFields)
-  englandwales.AuthorisationCaseField.splice(ewAuthorisationInsertIndex, 0, ...ewAuthorsationCaseFields)
-  englandwales.AuthorisationCaseEvent.splice(ewAuthorisationEventInsertIndex, 0, ...ewAuthorsationCaseEvents)
-  // englandwales.CaseEvent.splice(ewCaseEventsInsertIndex, 0, ...ewCaseEvents)
-
-  scotland.CaseField.splice(scCaseFieldInsertIndex, 0, ...scCaseFields)
-  scotland.CaseEventToFields.splice(scCaseEventToFieldInsertIndex, 0, ...scCaseEventToFields)
-  scotland.AuthorisationCaseField.splice(scAuthorisationInsertIndex, 0, ...scAuthorsationCaseFields)
-  scotland.AuthorisationCaseEvent.splice(scAuthorisationEventInsertIndex, 0, ...scAuthorsationCaseEvents)
-  // scotland.CaseEvent.splice(scCaseEventsInsertIndex, 0, ...scCaseEvents)
-
-  addToConfig({
-    AuthorisationCaseField: ewAuthorsationCaseFields,
-    CaseField: ewCaseFields,
-    CaseEventToFields: ewCaseEventToFields,
-    Scrubbed: [],
-    CaseEvent: [], //scCaseEvents
-    AuthorisationCaseEvent: ewAuthorsationCaseEvents
-  })
-
-  addToConfig({
-    AuthorisationCaseField: scAuthorsationCaseFields,
-    CaseField: scCaseFields,
-    CaseEventToFields: scCaseEventToFields,
-    Scrubbed: [],
-    CaseEvent: [], //scCaseEvents,
-    AuthorisationCaseEvent: scAuthorsationCaseEvents
+    AuthorisationCaseEvent: scAuthorsationCaseEvents,
+    EventToComplexTypes: fields.EventToComplexTypes!
   })
 }
 
@@ -222,6 +192,7 @@ export function saveBackToProject(saveMode: SaveMode) {
     writeFileSync(`${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}json${sep}EnglandWales Scrubbed.json`, JSON.stringify(englandwales.Scrubbed, null, 2))
     writeFileSync(`${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}json${sep}CaseEvent.json`, JSON.stringify(englandwales.CaseEvent, null, 2))
     writeFileSync(`${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}json${sep}AuthorisationCaseEvent.json`, JSON.stringify(englandwales.AuthorisationCaseEvent, null, 2))
+    writeFileSync(`${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}json${sep}EventToComplexTypes.json`, JSON.stringify(englandwales.EventToComplexTypes, null, 2))
   }
 
   if (saveMode === SaveMode.ENGLANDWALES) return
@@ -232,6 +203,7 @@ export function saveBackToProject(saveMode: SaveMode) {
   writeFileSync(`${process.env.SCOTLAND_DEF_DIR}${sep}definitions${sep}json${sep}Scotland Scrubbed.json`, JSON.stringify(scotland.Scrubbed, null, 2))
   writeFileSync(`${process.env.SCOTLAND_DEF_DIR}${sep}definitions${sep}json${sep}CaseEvent.json`, JSON.stringify(scotland.CaseEvent, null, 2))
   writeFileSync(`${process.env.SCOTLAND_DEF_DIR}${sep}definitions${sep}json${sep}AuthorisationCaseEvent.json`, JSON.stringify(scotland.AuthorisationCaseEvent, null, 2))
+  writeFileSync(`${process.env.SCOTLAND_DEF_DIR}${sep}definitions${sep}json${sep}EventToComplexTypes.json`, JSON.stringify(scotland.EventToComplexTypes, null, 2))
 }
 
 export function executeYarnGenerate() {

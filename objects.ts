@@ -1,4 +1,4 @@
-import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, Session } from './types/types'
+import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, EventToComplexType, Session } from './types/types'
 
 export function createNewCaseEvent(): CaseEvent {
   return {
@@ -165,6 +165,18 @@ export function createAuthorisationCaseFields(caseTypeId: string = "ET_EnglandWa
   ]
 }
 
+export function createNewEventToComplexType(): EventToComplexType {
+  return {
+    ID: '',
+    CaseFieldID: '',
+    CaseEventID: '',
+    ListElementCode: '',
+    EventElementLabel: '',
+    FieldDisplayOrder: 1,
+    DisplayContext: 'OPTIONAL'
+  }
+}
+
 export function createNewSession(name: string): Session {
   return {
     name,
@@ -176,7 +188,8 @@ export function createNewSession(name: string): Session {
       CaseField: [],
       Scrubbed: [],
       CaseEvent: [],
-      AuthorisationCaseEvent: []
+      AuthorisationCaseEvent: [],
+      EventToComplexTypes: [],
     }
   }
 }

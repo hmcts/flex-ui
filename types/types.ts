@@ -54,6 +54,19 @@ export interface CaseEvent {
   CallBackURLSubmittedEvent?: string
 }
 
+export interface EventToComplexType {
+  ID: string
+  CaseEventID: string
+  CaseFieldID: string
+  ListElementCode: string
+  EventElementLabel: string
+  EventHintText?: string
+  FieldDisplayOrder: number
+  DisplayContext: 'READONLY' | 'OPTIONAL' | 'MANDATORY',
+  FieldShowCondition?: string
+  RetainHiddenValue?: 'No' | 'Yes'
+}
+
 export interface AuthorisationCaseEvent {
   CaseTypeId: string
   CaseEventID: string
@@ -80,7 +93,8 @@ export type ConfigSheets = {
   CaseEvent: CaseEvent[],
   CaseEventToFields: CaseEventToField[],
   Scrubbed: Scrubbed[],
-  AuthorisationCaseEvent: AuthorisationCaseEvent[]
+  AuthorisationCaseEvent: AuthorisationCaseEvent[],
+  EventToComplexTypes: EventToComplexType[]
 }
 
 export type Session = {

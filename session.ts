@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from "fs"
 import { readdir } from "fs/promises"
 import { sep } from "path"
-import { addNewScrubbed, addToInMemoryConfig,  upsertNewCaseEvent } from "./configs"
+import { addNewScrubbed, addToInMemoryConfig, upsertNewCaseEvent } from "./configs"
 import { upsertFields } from "./helpers"
 import { createNewSession, trimCaseEventToField, trimCaseField } from "./objects"
 import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, ConfigSheets, Scrubbed, Session } from "./types/types"
@@ -25,7 +25,8 @@ export function restorePreviousSession(sessionName: string) {
     CaseEventToFields: json.added.CaseEventToFields.map(o => trimCaseEventToField(o)) || [],
     CaseField: json.added.CaseField.map(o => trimCaseField(o)) || [],
     Scrubbed: json.added.Scrubbed || [],
-    AuthorisationCaseEvent: json.added.AuthorisationCaseEvent || []
+    AuthorisationCaseEvent: json.added.AuthorisationCaseEvent || [],
+    EventToComplexTypes: json.added.EventToComplexTypes || []
   }
   session.date = json.date
   session.name = json.name
@@ -34,9 +35,8 @@ export function restorePreviousSession(sessionName: string) {
     AuthorisationCaseField: session.added.AuthorisationCaseField,
     CaseField: session.added.CaseField,
     CaseEventToFields: session.added.CaseEventToFields,
-    Scrubbed: [],
-    CaseEvent: [],
-    AuthorisationCaseEvent: session.added.AuthorisationCaseEvent
+    AuthorisationCaseEvent: session.added.AuthorisationCaseEvent,
+    EventToComplexTypes: session.added.EventToComplexTypes,
   })
   addNewScrubbed(session.added.Scrubbed)
 
@@ -47,7 +47,7 @@ export function restorePreviousSession(sessionName: string) {
   if (!json.lastAnswers) return
 
   for (const key in json.lastAnswers) {
-    session.lastAnswers[key as keyof(Session['lastAnswers'])] = json.lastAnswers[key as keyof(Session['lastAnswers'])]
+    session.lastAnswers[key as keyof (Session['lastAnswers'])] = json.lastAnswers[key as keyof (Session['lastAnswers'])]
   }
 
 }

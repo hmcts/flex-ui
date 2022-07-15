@@ -3310,6 +3310,66 @@
       },
       {
         "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseHealthShowInset",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseHealthShowInset",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseHealthShowInset",
+        "UserRole": "caseworker-employment-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseHealthShowInset",
+        "UserRole": "caseworker-employment-etjudge-englandwales",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
+        "CaseFieldID": "et3ResponseHealthShowInset",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseHealthShowInset",
+        "UserRole": "caseworker-employment",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseHealthShowInset",
+        "UserRole": "caseworker-employment-etjudge",
+        "CRUD": "R"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseHealthShowInset",
+        "UserRole": "caseworker-employment-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseHealthShowInset",
+        "UserRole": "caseworker-employment-etjudge-scotland",
+        "CRUD": "CRU"
+      },
+      {
+        "CaseTypeId": "ET_Scotland",
+        "CaseFieldID": "et3ResponseHealthShowInset",
+        "UserRole": "caseworker-employment-api",
+        "CRUD": "CRUD"
+      },
+      {
+        "CaseTypeId": "ET_EnglandWales",
         "CaseFieldID": "et3ResponseHealthInsetPreamble",
         "UserRole": "caseworker-employment",
         "CRUD": "R"
@@ -4817,11 +4877,37 @@
       {
         "CaseTypeID": "ET_EnglandWales",
         "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseHealthShowInset",
+        "DisplayContext": "OPTIONAL",
+        "PageID": 23,
+        "PageDisplayOrder": 23,
+        "PageFieldDisplayOrder": 1,
+        "FieldShowCondition": "et3ResponseRespondentSupportNeeded=\"dummy\"",
+        "RetainHiddenValue": "Yes",
+        "PageLabel": "In the respondent party - are you aware of any physical, mental or learning disability or health conditions which requires support?"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "CaseEventID": "et3Response",
+        "CaseFieldID": "et3ResponseHealthShowInset",
+        "DisplayContext": "OPTIONAL",
+        "PageID": 23,
+        "PageDisplayOrder": 23,
+        "PageFieldDisplayOrder": 1,
+        "FieldShowCondition": "et3ResponseRespondentSupportNeeded=\"dummy\"",
+        "RetainHiddenValue": "Yes",
+        "PageLabel": "In the respondent party - are you aware of any physical, mental or learning disability or health conditions which requires support?"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
+        "CaseEventID": "et3Response",
         "CaseFieldID": "et3ResponseHealthInsetPreamble",
         "DisplayContext": "READONLY",
         "PageID": 23,
         "PageDisplayOrder": 23,
-        "PageFieldDisplayOrder": 2
+        "PageFieldDisplayOrder": 2,
+        "FieldShowCondition": "et3ResponseHealthShowInset=\"Yes\"",
+        "RetainHiddenValue": "Yes"
       },
       {
         "CaseTypeID": "ET_Scotland",
@@ -4830,7 +4916,9 @@
         "DisplayContext": "READONLY",
         "PageID": 23,
         "PageDisplayOrder": 23,
-        "PageFieldDisplayOrder": 2
+        "PageFieldDisplayOrder": 2,
+        "FieldShowCondition": "et3ResponseHealthShowInset=\"Yes\"",
+        "RetainHiddenValue": "Yes"
       },
       {
         "CaseTypeID": "ET_EnglandWales",
@@ -5746,15 +5834,29 @@
       },
       {
         "CaseTypeID": "ET_EnglandWales",
+        "ID": "et3ResponseHealthShowInset",
+        "Label": "none",
+        "FieldType": "YesOrNo",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_Scotland",
+        "ID": "et3ResponseHealthShowInset",
+        "Label": "none",
+        "FieldType": "YesOrNo",
+        "SecurityClassification": "Public"
+      },
+      {
+        "CaseTypeID": "ET_EnglandWales",
         "ID": "et3ResponseHealthInsetPreamble",
-        "Label": "<details class=\"govuk-details\"> <summary class=\"govuk-details__summary\"><span class=\"govuk-details__summary-text\"> What support is available? </span></summary> <div class=\"govuk-details__text\"> We know people with disabilities sometimes need support to access information and use our services. We call this a reasonable adjustment. Some reasonable adjustments need to be agreed by a judge, and you can discuss with the tribunal if your needs change.<br><br>Reasonable adjustments can include:<br><br>\r\n\r\n* documents in alternative formats, colours and fonts\r\n* help with communicating, sight, hearing, speaking and interpretation\r\n* access and mobility support if a hearing takes place in person </div> </details>",
+        "Label": "We know people with disabilities sometimes need support to access information and use our services. We call this a reasonable adjustment. Some reasonable adjustments need to be agreed by a judge, and you can discuss with the tribunal if your needs change.\r\n\r\nReasonable adjustments can include:\r\n\r\n* documents in alternative formats, colours and fonts\r\n* help with communicating, sight, hearing, speaking and interpretation\r\n* access and mobility support if a hearing takes place in person",
         "FieldType": "Label",
         "SecurityClassification": "Public"
       },
       {
         "CaseTypeID": "ET_Scotland",
         "ID": "et3ResponseHealthInsetPreamble",
-        "Label": "<details class=\"govuk-details\"> <summary class=\"govuk-details__summary\"><span class=\"govuk-details__summary-text\"> What support is available? </span></summary> <div class=\"govuk-details__text\"> We know people with disabilities sometimes need support to access information and use our services. We call this a reasonable adjustment. Some reasonable adjustments need to be agreed by a judge, and you can discuss with the tribunal if your needs change.<br><br>Reasonable adjustments can include:<br><br>\r\n\r\n* documents in alternative formats, colours and fonts\r\n* help with communicating, sight, hearing, speaking and interpretation\r\n* access and mobility support if a hearing takes place in person </div> </details>",
+        "Label": "We know people with disabilities sometimes need support to access information and use our services. We call this a reasonable adjustment. Some reasonable adjustments need to be agreed by a judge, and you can discuss with the tribunal if your needs change.\r\n\r\nReasonable adjustments can include:\r\n\r\n* documents in alternative formats, colours and fonts\r\n* help with communicating, sight, hearing, speaking and interpretation\r\n* access and mobility support if a hearing takes place in person",
         "FieldType": "Label",
         "SecurityClassification": "Public"
       },
@@ -6009,9 +6111,7 @@
         "CaseEventID": "et3Response",
         "CaseFieldID": "et3ResponseContestClaimDocument",
         "ListElementCode": "uploadedDocument",
-        "EventElementLabel": "Upload a document to your response",
-        "FieldDisplayOrder": 1,
-        "DisplayContext": "OPTIONAL"
+        "EventElementLabel": "Upload a document to your response"
       }
     ]
   }

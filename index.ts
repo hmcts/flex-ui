@@ -1,14 +1,11 @@
 import 'source-map-support/register'
 import { config as envConfig } from 'dotenv'
 import { prompt } from 'inquirer'
-import { AuthorisationCaseField, CaseEventToField, CaseField, SaveMode, Scrubbed, Session } from './types/types'
-import { readFileSync, writeFileSync } from 'fs'
-import { sep } from 'path'
-import { createAuthorisationCaseEvent, createAuthorisationCaseFields, createNewCaseEvent, createNewCaseEventToField, createNewCaseFieldType, createNewSession, duplicateFieldsForScotland, trimCaseEventToField, trimCaseField } from './objects'
-import { addNewScrubbed, addToInMemoryConfig, executeYarnGenerate, getCounts, getScrubbedOpts, upsertNewCaseEvent, readInCurrentConfig, saveBackToProject } from './configs'
+import { SaveMode, Scrubbed, Session } from './types/types'
+import { createAuthorisationCaseEvent, createAuthorisationCaseFields, createNewCaseEvent, createNewCaseEventToField, createNewCaseFieldType, createNewEventToComplexType, createNewSession, duplicateFieldsForScotland, trimCaseEventToField, trimCaseField } from './objects'
+import { addNewScrubbed, addToInMemoryConfig, executeYarnGenerate, getCounts, getScrubbedOpts, upsertNewCaseEvent, readInCurrentConfig, saveBackToProject, getCaseEventIDOpts } from './configs'
 import { ensurePathExists } from './helpers'
-import { readdir } from 'fs/promises'
-import { findPreviousSessions, getFieldCount, getFieldsPerPage, getPageCount, restorePreviousSession, saveSession, session, SESSION_DIR, SESSION_EXT } from './session'
+import { findPreviousSessions, getFieldCount, getFieldsPerPage, getPageCount, restorePreviousSession, saveSession, session, SESSION_DIR } from './session'
 envConfig()
 
 function checkEnvVars() {
@@ -20,6 +17,7 @@ function checkEnvVars() {
 }
 
 let saveMode: SaveMode = SaveMode.BOTH
+const NEW = "New..."
 
 async function start() {
   ensurePathExists(SESSION_DIR)
@@ -32,6 +30,7 @@ async function start() {
   const journeyCallbackLabel = 'Create a Callback populated Label'
   const journeySaveAndExit = 'Save JSONs and Exit'
   const journeyCreatePage = 'Create new page/event'
+  const journeyCreateEventToComplexTypeOpt = 'Create an EventToComplexType'
   const journeyDebugListChanges = "DEBUG: List in-memory configs"
 
 
@@ -48,6 +47,7 @@ async function start() {
           journeyCreatePage,
           journeySingle,
           journeyCallbackLabel,
+          journeyCreateEventToComplexTypeOpt,
           journeySplitSessionOpt,
           `Change save mode (currently: ${SaveMode[saveMode]})`,
           journeyDebugListChanges,
@@ -66,6 +66,8 @@ async function start() {
       await journeyCreateCaseEvent()
     } else if (answers.Journey === journeySingle) {
       await journeyCreateNewField()
+    } else if (answers.Jourey === journeyCreateEventToComplexTypeOpt) {
+      await journeyCreateEventToComplexType()
     } else if (answers.Journey === journeyCallbackLabel) {
       await journeyCreateCallbackPopulatedTextField()
     } else if (answers.Journey.startsWith("Change save mode")) {
@@ -172,7 +174,6 @@ async function journeyCreateNewScrubbed() {
 }
 
 async function journeyCreateNewField() {
-  const Number = 'Number (Text with RegularExpression field)'
   const optsFieldType = [
     'FixedList',
     'FixedRadioList',
@@ -181,7 +182,8 @@ async function journeyCreateNewField() {
     'TextArea',
     'YesOrNo',
     'Text',
-    Number,
+    'Number',
+    'Collection',
     'Other'
   ]
 
@@ -209,7 +211,7 @@ async function journeyCreateNewField() {
   } else {
     answers = {
       ...answers, ...await prompt([
-        { name: 'DisplayContext', message: 'Is this field READONLY, OPTIONAL or MANDATORY?', type: 'list', choices: ['READONLY', 'OPTIONAL', 'MANDATORY'], default: 'OPTIONAL' },
+        { name: 'DisplayContext', message: 'Is this field READONLY, OPTIONAL, MANDATORY or COMPLEX?', type: 'list', choices: ['READONLY', 'OPTIONAL', 'MANDATORY', 'COMPLEX'], default: 'OPTIONAL' },
         { name: 'ShowSummaryChangeOption', message: 'Should this field appear on the CYA page?', type: 'list', choices: ['Yes', 'No'], default: 'Yes' },
       ])
     }
@@ -233,8 +235,8 @@ async function journeyCreateNewField() {
     }
   }
 
-  if (['FixedList', 'FixedRadioList', 'MultiSelectList'].includes(answers.FieldType)) {
-    const NEW = "New..."
+  if (['FixedList', 'FixedRadioList', 'MultiSelectList', 'Collection'].includes(answers.FieldType)) {
+
     const fieldTypeOpts = getScrubbedOpts(NEW)
 
     const followup = await prompt([
@@ -251,17 +253,21 @@ async function journeyCreateNewField() {
 
   } else if (answers.FieldType === "Other") {
     const followup = await prompt([
-      { name: 'Other', message: `Enter the name of the ComplexType for ${answers.ID}` }
+      { name: 'Other', message: `Enter the name of the ComplexType for ${answers.ID}` },
+      { name: 'FieldTypeParameter', message: `Enter the name of the FieldTypeParameter for ${answers.ID} (leave blank if not needed)` }
     ])
 
     answers.FieldType = followup.Other
+    answers.FieldTypeParameter = followup.FieldTypeParameter
   }
 
-  // if (answers.FieldType === "Text") {
-  //   const followup = await prompt([
-  //     { name: 'RegularExpression', message: "Do we need a RegularExpression for the field?", type: 'list', choices: [], default:  }
-  //   ])
-  // }
+  if (answers.FieldType === "Text") {
+    answers = {
+      ...answers, ...await prompt([
+        { name: 'RegularExpression', message: "Do we need a RegularExpression for the field?", type: 'input' }
+      ])
+    }
+  }
 
   caseField.CaseTypeID = "ET_EnglandWales"
 
@@ -269,6 +275,7 @@ async function journeyCreateNewField() {
   caseField.Label = answers.Label
   caseField.HintText = answers.HintText
   caseField.FieldType = answers.FieldType
+  caseField.RegularExpression = answers.RegularExpression
 
   caseEventToField.CaseTypeID = "ET_EnglandWales"
   caseEventToField.CaseEventID = answers.CaseEventID
@@ -282,21 +289,13 @@ async function journeyCreateNewField() {
   caseEventToField.FieldShowCondition = answers.FieldShowCondition
   caseEventToField.ShowSummaryChangeOption = answers.ShowSummaryChangeOption === 'Yes' ? 'Y' : 'N'
 
-  if (answers.FieldType === Number) {
-    answers.FieldType = "Text"
-    caseField.RegularExpression = "^[0-9]+$"
-  }
-
   const fieldAuthorisations = createAuthorisationCaseFields("ET_EnglandWales", answers.ID)
   const output = duplicateFieldsForScotland([trimCaseField(caseField)], [trimCaseEventToField(caseEventToField)], fieldAuthorisations, [])
 
   addToInMemoryConfig({
     AuthorisationCaseField: output.authorisationCaseFields,
     CaseField: output.caseFields,
-    CaseEventToFields: output.caseEventToFields,
-    Scrubbed: [],
-    CaseEvent: [],
-    AuthorisationCaseEvent: []
+    CaseEventToFields: output.caseEventToFields
   })
 
   console.log(`Added ${output.caseFields.length} caseFields, ${output.caseEventToFields.length} caseEventToFields and ${output.authorisationCaseFields.length} authorisationCaseFields`)
@@ -347,13 +346,10 @@ async function journeyCreateCaseEvent() {
   console.log(`after duplication had ${output.authorisationCaseEvents.length} auths for case event`)
 
   addToInMemoryConfig({
-    AuthorisationCaseField: [],
-    CaseField: [],
-    CaseEventToFields: [],
-    Scrubbed: [],
-    CaseEvent: [],
     AuthorisationCaseEvent: output.authorisationCaseEvents
   })
+
+  return caseEvent.ID
 }
 
 async function journeyCreateCallbackPopulatedTextField() {
@@ -431,14 +427,51 @@ async function journeyCreateCallbackPopulatedTextField() {
   addToInMemoryConfig({
     AuthorisationCaseField: output.authorisationCaseFields,
     CaseField: output.caseFields,
-    CaseEventToFields: output.caseEventToFields,
-    Scrubbed: [],
-    CaseEvent: [],
-    AuthorisationCaseEvent: [],
+    CaseEventToFields: output.caseEventToFields
   })
 
   console.log(output)
   console.log(`Added ${output.caseFields.length} caseFields, ${output.caseEventToFields.length} caseEventToFields and ${output.authorisationCaseFields.length} authorisationCaseFields`)
+}
+
+async function journeyCreateEventToComplexType() {
+  const caseEventIdOpts = getCaseEventIDOpts(NEW)
+  const answers = await prompt(
+    [
+      { name: 'ID', message: "What's the ID for this?", type: 'input' },
+      { name: 'CaseEventID', message: "What's the CaseEventID for this?", type: 'list', choices: Object.keys(caseEventIdOpts) },
+      { name: 'CaseFieldID', message: "What's the CaseFieldID for this?", type: 'input' },
+      { name: 'ListElementCode', message: 'Whats the ListElementCode for this?', type: 'input' },
+      { name: 'EventElementLabel', message: 'What\'s the custom label for this control?', type: 'input' },
+      { name: 'FieldDisplayOrder', message: 'DWhats the FieldDisplayOrder for this?', type: 'number' },
+      { name: 'DisplayContext', message: 'Whats the DisplayContext for this?', type: 'list', choices: ['READONLY', 'OPTIONAL', 'MANDATORY'] },
+      { name: 'FieldShowCondition', message: 'Enter a FieldShowCondition (or leave blank if not needed', type: 'input' }
+    ]
+  )
+
+  if (answers.CaseEventID === NEW) {
+    answers.CaseEventID = await journeyCreateCaseEvent()
+  }
+
+  const eventToComplexType = createNewEventToComplexType()
+
+  eventToComplexType.ID = answers.ID
+  eventToComplexType.CaseEventID = answers.CaseEventID
+  eventToComplexType.CaseFieldID = answers.CaseFieldID
+  eventToComplexType.ListElementCode = answers.ListElementCode
+  eventToComplexType.EventElementLabel = answers.EventElementLabel
+  eventToComplexType.DisplayContext = answers.DisplayContext
+  eventToComplexType.FieldShowCondition = answers.FieldShowCondition
+
+  addToInMemoryConfig({
+    AuthorisationCaseEvent: [],
+    AuthorisationCaseField: [],
+    CaseEvent: [],
+    CaseEventToFields: [],
+    CaseField: [],
+    EventToComplexTypes: [eventToComplexType],
+    Scrubbed: []
+  })
 }
 
 async function journeySplitSession() {
@@ -453,7 +486,7 @@ async function journeySplitSession() {
 
   if (answers.PageID === ALL) {
     const totalPages = Object.keys(validPages).length
-    
+
     for (let i = 1; i < totalPages + 1; i++) {
       const fieldCountOnPage = validPages[i]
 
@@ -487,6 +520,7 @@ function createSessionFromPage(pageId: number, sessionName: string) {
   newSession.added.Scrubbed = full.Scrubbed.filter(o => newSession.added.CaseField.find(x => x.FieldTypeParameter === o.ID))
   newSession.added.CaseEvent = full.CaseEvent.filter(o => fieldsOnPage.find(x => x.CaseEventID === o.ID))
   newSession.added.AuthorisationCaseEvent = full.AuthorisationCaseEvent.filter(o => newSession.added.CaseEvent.find(x => x.ID === o.CaseEventID))
+  newSession.added.EventToComplexTypes = full.EventToComplexTypes.filter(o => fieldsOnPage.find(x => x.CaseFieldID === o.ID))
 
   newSession.date = new Date()
 
