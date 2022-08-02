@@ -14,6 +14,7 @@
     "@types/inquirer": "^8.2.1",
     "@types/mocha": "^9.1.1",
     "@types/node": "^18.0.0",
+    "@types/node-fetch": "^2.6.2",
     "chai": "^4.3.6",
     "mocha": "^10.0.0",
     "ts-node": "^10.8.1",
@@ -22,6 +23,7 @@
   "dependencies": {
     "dotenv": "^16.0.1",
     "inquirer": "^8.2.4",
+    "node-fetch": "^2.6.7",
     "source-map-support": "^0.5.21"
   }
 }

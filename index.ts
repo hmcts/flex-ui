@@ -3,9 +3,11 @@ import { config as envConfig } from 'dotenv'
 import { prompt, Separator } from 'inquirer'
 import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, SaveMode, Scrubbed, Session } from './types/types'
 import { createAuthorisationCaseEvent, createAuthorisationCaseFields, createNewCaseEvent, createNewCaseEventToField, createNewCaseFieldType, createNewEventToComplexType, createNewSession, duplicateFieldsForScotland, trimCaseEventToField, trimCaseField } from './objects'
-import { addNewScrubbed, addToInMemoryConfig, execGenerateSpreadsheet, getCounts, getScrubbedOpts, upsertNewCaseEvent, readInCurrentConfig, saveBackToProject, getCaseEventIDOpts } from './configs'
+import { addNewScrubbed, addToInMemoryConfig, execGenerateSpreadsheet, getCounts, getScrubbedOpts, upsertNewCaseEvent, readInCurrentConfig, saveBackToProject, getCaseEventIDOpts, getEnglandWales, getScotland, execImportConfig } from './configs'
 import { ensurePathExists, upsertFields } from './helpers'
 import { findPreviousSessions, getFieldCount, getFieldsPerPage, getPageCount, restorePreviousSession, saveSession, session, SESSION_DIR } from './session'
+import { ensureUp, tearDown } from './setup'
+import { createNewCase, loginToIdam } from './web'
 envConfig()
 
 function checkEnvVars() {
@@ -29,18 +31,25 @@ async function start() {
     const optSaveMode = `Change save mode (currently: ${SaveMode[saveMode]})`
 
     const choices: { text: string | object, fn?: () => Promise<any> }[] = [
+      { text: optSaveMode, fn: journeySaveMode },
+      { text: 'Set session name', fn: journeySessionName },
+      { text: 'Restore a previous session', fn: journeyRestoreSession },
+      { text: journeySplitSessionOpt, fn: journeySplitSession },
+      { text: new Separator() },
       { text: 'Create a single field', fn: journeyCreateNewField },
       { text: 'Create a Callback populated Label', fn: journeyCreateCallbackPopulatedTextField },
       { text: 'Create new page/event', fn: journeyCreateCaseEvent },
       { text: 'Create an EventToComplexType', fn: journeyCreateEventToComplexType },
       { text: new Separator() },
-      { text: 'Set session name', fn: journeySessionName },
-      { text: 'Restore a previous session', fn: journeyRestoreSession },
-      { text: journeySplitSessionOpt, fn: journeySplitSession },
+      { text: "Temp journey validate authorisation case fields", fn: journeyValidateAuthorisationCaseFields },
       { text: new Separator() },
-      { text: optSaveMode, fn: journeySaveMode },
+      { text: 'Fresh start docker (destroy and rebuild)', fn: async () => { await tearDown(); await ensureUp() } },
+      { text: 'Boot and setup ECM/CCD docker', fn: async () => await ensureUp() },
+      { text: 'Tear down everything docker', fn: async () => await tearDown() },
+      { text: new Separator() },
       { text: 'Save back to Config', fn: async () => await saveBackToProject(saveMode) },
       { text: 'Load Config into CCD', fn: execGenerateSpreadsheet },
+      { text: 'Import configs into CCD', fn: execImportConfig },
       { text: 'Exit', fn: async () => { console.log(`Bye!`); process.exit(0) } },
       { text: new Separator() }
     ]
@@ -516,6 +525,43 @@ async function journeySplitSession() {
   createSessionFromPage(answers.PageID, followup.sessionName)
 }
 
+async function journeyValidateAuthorisationCaseFields() {
+  const OTHER = "Other..."
+
+  const answers = await prompt(
+    [
+      { name: 'caseTypeId', message: `What is the caseTypeId?`, type: 'list', choices: ["ET_EnglandWales", "ET_Scotland", OTHER] },
+    ]
+  )
+
+  if (answers.caseTypeId === OTHER) {
+    const followup = await prompt(
+      [
+        { name: 'caseTypeId', message: `Enter a custom caseTypeId` },
+      ]
+    )
+    answers.caseTypeId = followup.caseTypeId
+  }
+
+  const region = answers.caseTypeId.startsWith("ET_EnglandWales") ? getEnglandWales() : getScotland()
+
+  const uniqueCaseFields = region.AuthorisationCaseField.filter(o => o.CaseTypeId === answers.caseTypeId).reduce((acc: any, obj) => {
+    acc[obj.CaseFieldID] = true
+    return acc
+  }, {})
+
+  const standardizedRoles = Object.keys(uniqueCaseFields).flatMap(o => createAuthorisationCaseFields(answers.caseTypeId, o))
+    .filter(o => o.UserRole === "caseworker-employment-legalrep-solicitor")
+
+  for (const auth of standardizedRoles) {
+    const alreadyExists = region.AuthorisationCaseField.find(o => o.CaseFieldID === auth.CaseFieldID && o.UserRole === auth.UserRole && o.CaseTypeId === auth.CaseTypeId)
+    if (alreadyExists) continue
+
+    const insertIndex = region.AuthorisationCaseField.findIndex(o => o.CaseFieldID === auth.CaseFieldID)
+    region.AuthorisationCaseField.splice(insertIndex, 0, auth)
+  }
+}
+
 function createSessionFromPage(pageId: number, sessionName: string) {
   const full: Session['added'] = JSON.parse(JSON.stringify(session.added))
 
@@ -557,4 +603,6 @@ function addPageToSession(pageId: number, newSession: Session) {
   saveSession(newSession)
 }
 
-start()
+//start()
+
+createNewCase()

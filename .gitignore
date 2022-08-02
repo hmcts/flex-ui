@@ -1,4 +1,4 @@
 node_modules
-dist
+dist/*.*
+dist/types
 .env
-sessions

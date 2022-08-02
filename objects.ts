@@ -159,6 +159,12 @@ export function createAuthorisationCaseFields(caseTypeId: string = "ET_EnglandWa
     {
       "CaseTypeId": caseTypeId,
       "CaseFieldID": fieldId,
+      "UserRole": `caseworker-employment-legalrep-solicitor`,
+      "CRUD": "CRU"
+    },
+    {
+      "CaseTypeId": caseTypeId,
+      "CaseFieldID": fieldId,
       "UserRole": "caseworker-employment-api",
       "CRUD": "CRUD"
     },
