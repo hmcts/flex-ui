@@ -41,6 +41,7 @@ async function start() {
       { text: 'Create new page/event', fn: journeyCreateCaseEvent },
       { text: 'Create an EventToComplexType', fn: journeyCreateEventToComplexType },
       { text: new Separator() },
+      // Don't use this one - it was a hack job I needed for a very specific thing
       { text: "Temp journey validate authorisation case fields", fn: journeyValidateAuthorisationCaseFields },
       { text: new Separator() },
       { text: 'Fresh start docker (destroy and rebuild)', fn: async () => { await tearDown(); await ensureUp() } },
@@ -603,6 +604,4 @@ function addPageToSession(pageId: number, newSession: Session) {
   saveSession(newSession)
 }
 
-//start()
-
-createNewCase()
+start()
