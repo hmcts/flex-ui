@@ -3,11 +3,10 @@ import { config as envConfig } from 'dotenv'
 import { prompt, Separator } from 'inquirer'
 import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, SaveMode, Scrubbed, Session } from './types/types'
 import { createAuthorisationCaseEvent, createAuthorisationCaseFields, createNewCaseEvent, createNewCaseEventToField, createNewCaseFieldType, createNewEventToComplexType, createNewSession, duplicateFieldsForScotland, trimCaseEventToField, trimCaseField } from './objects'
-import { addNewScrubbed, addToInMemoryConfig, execGenerateSpreadsheet, getCounts, getScrubbedOpts, upsertNewCaseEvent, readInCurrentConfig, saveBackToProject, getCaseEventIDOpts, getEnglandWales, getScotland, execImportConfig } from './configs'
+import { addNewScrubbed, addToInMemoryConfig, execGenerateSpreadsheet, getScrubbedOpts, upsertNewCaseEvent, readInCurrentConfig, saveBackToProject, getCaseEventIDOpts, getEnglandWales, getScotland, execImportConfig } from './configs'
 import { ensurePathExists, upsertFields } from './helpers'
 import { findPreviousSessions, getFieldCount, getFieldsPerPage, getPageCount, restorePreviousSession, saveSession, session, SESSION_DIR } from './session'
 import { ensureUp, tearDown } from './setup'
-import { createNewCase, loginToIdam } from './web'
 envConfig()
 
 function checkEnvVars() {
@@ -45,11 +44,11 @@ async function start() {
       { text: "Temp journey validate authorisation case fields", fn: journeyValidateAuthorisationCaseFields },
       { text: new Separator() },
       { text: 'Fresh start docker (destroy and rebuild)', fn: async () => { await tearDown(); await ensureUp() } },
-      { text: 'Boot and setup ECM/CCD docker', fn: async () => await ensureUp() },
-      { text: 'Tear down everything docker', fn: async () => await tearDown() },
+      { text: 'Boot and setup ECM/CCD docker', fn: async () => ensureUp() },
+      { text: 'Tear down everything docker', fn: async () => tearDown() },
       { text: new Separator() },
-      { text: 'Save back to Config', fn: async () => await saveBackToProject(saveMode) },
-      { text: 'Load Config into CCD', fn: execGenerateSpreadsheet },
+      { text: 'Save to JSONs and Generate spreadsheets', fn: async () => saveBackToProject(saveMode) },
+      { text: 'Generate spreadsheets', fn: execGenerateSpreadsheet },
       { text: 'Import configs into CCD', fn: execImportConfig },
       { text: 'Exit', fn: async () => { console.log(`Bye!`); process.exit(0) } },
       { text: new Separator() }
@@ -218,6 +217,7 @@ async function journeyCreateNewField() {
       ...answers, ...await prompt([
         { name: 'PageLabel', message: 'Does this page have a custom title?', type: 'input' },
         { name: 'PageShowCondition', message: 'Enter a page show condition string (leave blank if not needed)', type: 'input' },
+        { name: 'CallBackURLMidEvent', message: 'Enter the callback url to hit before loading the next page (leave blank if not needed)', type: 'input' }
       ])
     }
   }
@@ -275,6 +275,12 @@ async function journeyCreateNewField() {
   caseEventToField.PageShowCondition = answers.PageShowCondition
   caseEventToField.FieldShowCondition = answers.FieldShowCondition
   caseEventToField.ShowSummaryChangeOption = answers.ShowSummaryChangeOption === 'Yes' ? 'Y' : 'N'
+
+  if (answers.CallBackURLMidEvent?.startsWith('/')) {
+    answers.CallBackURLMidEvent = "${ET_COS_URL}" + answers.CallBackURLMidEvent
+  }
+
+  caseEventToField.CallBackURLMidEvent = answers.CallBackURLMidEvent
 
   const fieldAuthorisations = createAuthorisationCaseFields("ET_EnglandWales", answers.ID)
   const output = duplicateFieldsForScotland([trimCaseField(caseField)], [trimCaseEventToField(caseEventToField)], fieldAuthorisations, [])
@@ -345,16 +351,24 @@ async function journeyCreateCallbackPopulatedTextField() {
   const caseFieldLabel = createNewCaseFieldType()
   const caseEventToFieldLabel = createNewCaseEventToField()
 
-  const answers = await prompt(
+  let answers = await prompt(
     [
-      { name: 'CaseEventID', message: "Whats the CaseEvent that this field belongs to?" },
+      { name: 'CaseEventID', message: "Whats the CaseEvent that this field belongs to?", default: session.lastAnswers.CaseEventID },
       { name: 'ID', message: "What's the ID for this field?", type: 'input' },
-      { name: 'PageID', message: 'What page will this field appear on?', type: 'number' },
-      { name: 'PageFieldDisplayOrder', message: 'Whats the PageFieldDisplayOrder for this field?', type: 'number' },
-      { name: 'PageTitle', message: 'Does this page have a custom title? (leave blank if this is not the first field on that page)', type: 'input' },
-      { name: 'PageShowCondition', message: 'Enter a page show condition string (leave blank if not needed)', type: 'input' }
+      { name: 'PageID', message: 'What page will this field appear on?', type: 'number', default: session.lastAnswers.PageID || 1 },
+      { name: 'PageFieldDisplayOrder', message: 'Whats the PageFieldDisplayOrder for this field?', type: 'number', default: session.lastAnswers.PageFieldDisplayOrder + 1 || 1 }
     ]
   )
+
+  if (answers.PageFieldDisplayOrder === 1) {
+    answers = {
+      ...answers, ...await prompt([
+        { name: 'PageLabel', message: 'Does this page have a custom title?', type: 'input' },
+        { name: 'PageShowCondition', message: 'Enter a page show condition string (leave blank if not needed)', type: 'input' },
+        { name: 'CallBackURLMidEvent', message: 'Enter the callback url to hit before loading the next page (leave blank if not needed)', type: 'input' }
+      ])
+    }
+  }
 
   caseField.CaseTypeID = "ET_EnglandWales"
   caseFieldLabel.CaseTypeID = "ET_EnglandWales"
@@ -402,6 +416,12 @@ async function journeyCreateCallbackPopulatedTextField() {
   caseEventToField.PageShowCondition = answers.PageShowCondition
 
   caseEventToField.RetainHiddenValue = "No"
+
+  if (answers.CallBackURLMidEvent?.startsWith('/')) {
+    answers.CallBackURLMidEvent = "${ET_COS_URL}" + answers.CallBackURLMidEvent
+  }
+
+  caseEventToField.CallBackURLMidEvent = answers.CallBackURLMidEvent
 
   const fieldAuthorisations = [...createAuthorisationCaseFields("ET_EnglandWales", answers.ID), ...createAuthorisationCaseFields("ET_EnglandWales", `${answers.ID}Label`)]
   const output = duplicateFieldsForScotland(
