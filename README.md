@@ -1,9 +1,8 @@
-# HMCTS Helpers
+# CCD Helpers
 
 A collection of tools to help speed up development of ExUI. Split into flows using `inquirer` to create a friendly CLI environment.
 
-Knowledge on ExUI development is still required to use this, please learn how to do this stuff manually before using this tool. This is only to speed up development
-
+Knowledge on ExUI development is still required to use this, this is NOT a replacement for learning how CCD works.
 
 ## Features:
 
@@ -23,51 +22,6 @@ Knowledge on ExUI development is still required to use this, please learn how to
 + Tear down and rebuild the Docker environment
 + Save to XLSX and import definitions
 
-## Testimony
-
-The entire ET3 Response journey was created using this tool. An example of the finished session containing everything needed for ET3 Response can be found in "sessions/24-RET-1948.session.json".
-
-After following the questions and generating all the pages. `Split current session` was used to generate story-by-story session files that could be replayed on top of the latest sprint branch. Here the entire ET3 Response journey was merged in a single day:
-
-+ https://github.com/hmcts/et-ccd-definitions-englandwales/pull/195
-+ https://github.com/hmcts/et-ccd-definitions-englandwales/pull/197
-+ https://github.com/hmcts/et-ccd-definitions-englandwales/pull/198
-+ https://github.com/hmcts/et-ccd-definitions-englandwales/pull/199
-+ https://github.com/hmcts/et-ccd-definitions-englandwales/pull/201
-
-## Limitations
-
-This was created to speed up my workflow and only contains tools to replicate actions I've needed to take for development. ie, if I've not had to do it manually yet, its not in here. 
-
-An example of this limitation is EnglandWales/Scotland replication, currently all generated fields are duplicated between this no CLI support for differences between the two. As a hack there is a mode to disable scotland generation.
-
-## WIP / Future Improvements
-
-##### Automated setup of new cases in CCD
-  - An example POC exists in web.ts to create a new case in EnglandWales
-  - It would be nice to build out a system that could take us through ALL events
-
-##### Validation of configs
-  - Catch errors before attempting to import and in the wild
-  - There's an attempt at 'fixing' authorisations but the tool should only suggest changes and not automatically apply (as some discrepancies are intended)
-
-##### Error handling in code
-  - There's really not a lot of error handling so it's probably pretty easy to break
-
-##### Go back after answering a question wrong
-  - I don't know how easy this is to do in inquirer
-  - When I made mistakes in the past I restart (it doesn't take long to get back to where you were)
-
-##### Add support for the other sheets
-  - There's many that haven't been covered here simply because I haven't needed to use them yet
-
-##### Add to et-ccd-callbacks project
-  - Template out new endpoints with the provided CallBackURL...
-  - I feel like a collection of vscode snippets works better for this (no need to overcomplicate)
-
-##### Tests
-  - All officially support tools should have them?
-
 ## Requirements
 
 Built with Node 16 but should run with 14 as well
@@ -85,6 +39,126 @@ ET_CCD_CALLBACKS_DIR="/Users/jackreeve/hmcts/et-ccd-callbacks"
 ```
 
 The script will yell at you if these are not provided
+
+## Roadmap:
+
+This tools has been picked up by Version 1 officially to support CCD development but it is far from "production ready". We hope to eventually make this tool public to HMCTS so that other teams may fork for their specific environments, here are some things that need to happen
+
+### Generic
+
+We want this tool to be generic so that other teams can adapt it for their use.In it's current state this tool is only suited for Employment Tribunals and has some hard coded logic that needs rewriting.
+The main area of focus should be in the `config.ts` file, this handles loading and saving the raw JSON files and is currently hardcoded to look for "ET_". The ET team currently use two different configs (ET_EnglandWales and ET_Scotland), we are aware that other teams only have one and other teams may have more than two.
+
+This shouldn't be too hard to do, but it will need some time to overcome this limitation.
+
+### Documentation
+
+A tutorial is shown at the end of this file, but we need technical documentation for maintainence (such as JSDocs, maybe a wiki). Have not done this yet as the tool is pending refactor
+
+### Spreadsheet support
+
+Currently, ET team uses JSON files that get converted into a spreadsheet. This means it will be unusable in teams who do not use JSON files currently. We currently call off to an external script to handle this conversion but it would be nice to bring this in natively and convert back from spreadsheet -> JSON.
+
+Either we add native spreadsheet support to this tool or allow for XLSX -> JSON for working with this app (perhaps your team can migrate to JSON files if not already).
+
+### Add support for missing JSONS
+
+There are still many sheets that the tool does not touch, most of these are rarely modified by the ET team, but at least one comes to mind that we do not support yet (ComplexTypes)
+
++ [✓] AuthorisationCaseEvent
++ [✓] AuthorisationCaseField
++ [✓] CaseEvent
++ [✓] CaseEventToFields
++ [✓] CaseField
++ [✓] Scrubbed
++ [✓] EventToComplexTypes
+
+Not supported yet: 
+
++ [✗] AuthorisationCaseState
++ [✗] AuthorisationCaseType
++ [✗] AuthorisationComplexType
++ [✗] CaseRoles
++ [✗] CaseType
++ [✗] CaseTypeTab
++ [✗] ComplexTypes
++ [✗] Jurisdiction
++ [✗] SearchCaseResultFields
++ [✗] SearchInputFields
++ [✗] SearchResultFields
++ [✗] State
++ [✗] UserProfile
++ [✗] WorkBasetInputFields
++ [✗] WorkBasketResultFields
+
+### Code Refactor
+
+The codebase is a bit disorganised for a professional tool and needs refactoring. I have many ideas around this, see the refactoring section for more details.
+
+### Error Handling
+
+Right now there's not too much that can go wrong, but I have run into some errors such as crashes if you don't provide a label for a control. Not a huge issue, but something to sure up anyway, testing should uncover a lot of these.
+
+### Tests
+
+We need to increase our test coverage to enable other people to maintain this tool. Emulating user input for the questions may be difficult
+
+## Refactoring
+
+Here are some more technical things that need refactoring
+
+### Questions are duplicated
+
+There are a lot of questions with duplicated logic (ie, questions for creating a callback populated field are repeated in creating a single field). On the `duplicate-field` branch exists a fairly clean way of doing this, `addOnDuplicateQuestion()` is an example of a clean way of asking a group of questions that can be added on to existing journeys. There's also an abandoned branch called `dedup-questions` that attempted this using more generic methods of asking questions, I don't like how this turned out but there are some interesting ideas.
+
+### Journeys should be split out into files
+
+Currently all journeys are focused in the index.ts making calls off to other components. It's hard to navigate around. There's a lot of code required to drive asking questions, we should split this off from the main logic entirely and make better use of the other files. I have started doing this already with the "duplicate field" journey. Inspiration taken from Jack Brogan's script having a seperate function that takes all the answers to questions.
+
+### Better seperate concerns
+
+Code is loosely grouped by function right now, but the lines have become blurred and this can be better. Tackle splitting out questions / logic first and this task should become easier.
+
+### Remove some hard coded values
+
+Things like authorisations are currently hard coded because they don't really change for the ET team's use case and 99% of fields will have the same authorisations. There's two issues here:
+
+1. Hard coded user roles - these will obviously be different in other teams
+2. Very crude logic that just duplicates authorisations and changes the ID
+
+We could extract this snippet out into it's own file for other teams to replace as they see fit OR expand on the authorisations functionality altogether and create a journey specifically for it.
+
+### Re-haul configs
+
+The earliest remnant of code is the config loading, and theres nothing wrong with it for ET. But it's unlikely to work in other teams.
+
+The entire configs.ts is built around the idea of loading in both englandwales and scotland like so:
+
+```ts
+export function readInCurrentConfig() {
+  englandwales = {
+    AuthorisationCaseField: getJson(process.env.ENGWALES_DEF_DIR, "AuthorisationCaseField"),
+    CaseEventToFields: getJson(process.env.ENGWALES_DEF_DIR, "CaseEventToFields"),
+    CaseField: getJson(process.env.ENGWALES_DEF_DIR, "CaseField"),
+    Scrubbed: getJson(process.env.ENGWALES_DEF_DIR, "EnglandWales Scrubbed"),
+    CaseEvent: getJson(process.env.ENGWALES_DEF_DIR, "CaseEvent"),
+    AuthorisationCaseEvent: getJson(process.env.ENGWALES_DEF_DIR, "AuthorisationCaseEvent"),
+    EventToComplexTypes: getJson(process.env.ENGWALES_DEF_DIR, "EventToComplexTypes")
+  }
+
+  scotland = {
+    AuthorisationCaseField: getJson(process.env.SCOTLAND_DEF_DIR, "AuthorisationCaseField"),
+    CaseEventToFields: getJson(process.env.SCOTLAND_DEF_DIR, "CaseEventToFields"),
+    CaseField: getJson(process.env.SCOTLAND_DEF_DIR, "CaseField"),
+    Scrubbed: getJson(process.env.SCOTLAND_DEF_DIR, "Scotland Scrubbed"),
+    CaseEvent: getJson(process.env.SCOTLAND_DEF_DIR, "CaseEvent"),
+    AuthorisationCaseEvent: getJson(process.env.SCOTLAND_DEF_DIR, "AuthorisationCaseEvent"),
+    EventToComplexTypes: getJson(process.env.SCOTLAND_DEF_DIR, "EventToComplexTypes")
+  }
+}
+```
+
+Everything is based around whether we're reading from `englandwales` OR `scotland`. It's very possible to change this without a rewrite, but I would imagine it taking a dev at least a day's worth of effort. A more complex mapper is required around writing to which file rather than the current "if not englandwales then scotland"
 
 ## Walkthrough
 
