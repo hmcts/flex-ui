@@ -101,5 +101,5 @@ export type Session = {
   name: string
   date: Date | string
   added: ConfigSheets
-  lastAnswers: Partial<Record<keyof (CaseField) | keyof (CaseEventToField), any>>
+  lastAnswers: Partial<Record<keyof (CaseField) | keyof (CaseEventToField) | keyof (CaseEvent), any>>
 }
