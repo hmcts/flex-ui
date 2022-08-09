@@ -57,7 +57,7 @@ export async function findPreviousSessions() {
   return files.filter(o => o.name.endsWith(SESSION_EXT)).map(o => o.name)
 }
 
-export function addToConfig(fields: ConfigSheets) {
+export function addToSession(fields: ConfigSheets) {
   if (fields.AuthorisationCaseField.length) {
     upsertFields<AuthorisationCaseField>(session.added.AuthorisationCaseField, fields.AuthorisationCaseField, ['CaseFieldID', 'CaseTypeId', 'UserRole'])
   }

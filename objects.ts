@@ -200,7 +200,30 @@ export function createNewSession(name: string): Session {
   }
 }
 
-export function duplicateFieldsForScotland(caseFields: CaseField[], caseEventToFields: CaseEventToField[], authorisationCaseFields: AuthorisationCaseField[], authorisationCaseEvents: AuthorisationCaseEvent[]) {
+function swapRegions(input: string) {
+  if (input.endsWith("englandwales")) {
+    return input.replace("englandwales", "scotland")
+  }
+  if (input.endsWith("scotland")) {
+    return input.replace("scotland", "englandwales")
+  }
+  return input
+}
+
+export function duplicateInCaseType<T extends { CaseTypeID: string }>(caseTypeID: string, obj: T) {
+  const copy = Object.assign({}, obj)
+  copy.CaseTypeID = caseTypeID
+  return copy
+}
+
+export function duplicateAuthorisationInCaseType<T extends { CaseTypeId: string, UserRole: string }>(caseTypeID: string, obj: T) {
+  const copy = Object.assign({}, obj)
+  copy.CaseTypeId = caseTypeID
+  copy.UserRole = swapRegions(copy.UserRole)
+  return copy
+}
+
+export function duplicateFieldsFor(caseTypeId: string, caseFields: CaseField[], caseEventToFields: CaseEventToField[], authorisationCaseFields: AuthorisationCaseField[], authorisationCaseEvents: AuthorisationCaseEvent[]) {
   const newCaseFields = []
   const newCaseFieldAuthorisations = []
   const newCaseEventToFields = []
@@ -208,31 +231,27 @@ export function duplicateFieldsForScotland(caseFields: CaseField[], caseEventToF
 
   for (const caseField of caseFields) {
     const newObj = Object.assign({}, caseField)
-    newObj.CaseTypeID = "ET_Scotland"
+    newObj.CaseTypeID = caseTypeId
     newCaseFields.push(newObj)
   }
 
   for (const caseEventToField of caseEventToFields) {
     const newObj = Object.assign({}, caseEventToField)
-    newObj.CaseTypeID = "ET_Scotland"
+    newObj.CaseTypeID = caseTypeId
     newCaseEventToFields.push(newObj)
   }
 
   for (const auth of authorisationCaseFields) {
     const newObj = Object.assign({}, auth)
-    newObj.CaseTypeId = "ET_Scotland"
-    if (newObj.UserRole.endsWith("englandwales")) {
-      newObj.UserRole = newObj.UserRole.replace("englandwales", "scotland")
-    }
+    newObj.CaseTypeId = caseTypeId
+    newObj.UserRole = swapRegions(newObj.UserRole)
     newCaseFieldAuthorisations.push(newObj)
   }
 
   for (const auth of authorisationCaseEvents) {
     const newObj = Object.assign({}, auth)
-    newObj.CaseTypeId = "ET_Scotland"
-    if (newObj.UserRole.endsWith("englandwales")) {
-      newObj.UserRole = newObj.UserRole.replace("englandwales", "scotland")
-    }
+    newObj.CaseTypeId = caseTypeId
+    newObj.UserRole = swapRegions(newObj.UserRole)
     newCaseEventAuthorisations.push(newObj)
   }
 

@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync } from "fs"
 import { sep } from "path"
 import { findMissingItems, upsertFields } from "./helpers"
 import { trimCaseField } from "./objects"
-import { addToConfig } from "./session"
+import { addToSession } from "./session"
 const { exec } = require("child_process");
 import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, ConfigSheets, EventToComplexType, SaveMode, Scrubbed } from "./types/types"
 
@@ -40,12 +40,6 @@ export function getScrubbedOpts(defaultOption: string) {
       }
       return acc
     }, { [defaultOption]: true })
-}
-
-export function getCounts() {
-  return [...Object.keys(englandwales).map(o => `EnglandWales.${o} has ${englandwales[o as keyof (ConfigSheets)].length} objects`),
-  ...Object.keys(scotland).map(o => `Scotland.${o} has ${scotland[o as keyof (ConfigSheets)].length} objects`)]
-    .join('\r\n')
 }
 
 export function readInCurrentConfig() {
@@ -88,7 +82,7 @@ export function upsertNewCaseEvent(caseEvent: CaseEvent) {
     configSheets.CaseEvent.splice(existIndex, 1, caseEvent)
   }
 
-  addToConfig({
+  addToSession({
     AuthorisationCaseField: [],
     CaseEventToFields: [],
     Scrubbed: [],
@@ -118,7 +112,7 @@ export function addNewScrubbed(opts: Scrubbed[]) {
     }
   }
 
-  addToConfig({
+  addToSession({
     AuthorisationCaseEvent: [],
     AuthorisationCaseField: [],
     CaseEvent: [],
@@ -139,7 +133,7 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
   }
 
   const ewCaseFields = fields.CaseField!.filter(o => o.CaseTypeID === "ET_EnglandWales")
-  const ewCaseEventToFields = fields.CaseEventToFields!.filter(o => o.CaseTypeID === "ET_EnglandWales")
+  const ewCaseEventToFields = fields.CaseEventToFields.filter(o => o.CaseTypeID === "ET_EnglandWales")
   const ewAuthorsationCaseFields = fields.AuthorisationCaseField!.filter(o => o.CaseTypeId === "ET_EnglandWales")
   const ewAuthorsationCaseEvents = fields.AuthorisationCaseEvent!.filter(o => o.CaseTypeId === "ET_EnglandWales")
 
@@ -162,7 +156,7 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
 
   upsertFields<EventToComplexType>(scotland.EventToComplexTypes, fields.EventToComplexTypes!, ['ID', 'CaseEventID', 'CaseFieldID'])
 
-  addToConfig({
+  addToSession({
     AuthorisationCaseField: ewAuthorsationCaseFields,
     CaseField: ewCaseFields,
     CaseEventToFields: ewCaseEventToFields,
@@ -172,7 +166,7 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
     EventToComplexTypes: fields.EventToComplexTypes!
   })
 
-  addToConfig({
+  addToSession({
     AuthorisationCaseField: scAuthorsationCaseFields,
     CaseField: scCaseFields,
     CaseEventToFields: scCaseEventToFields,
@@ -255,4 +249,9 @@ export function execGenerateSpreadsheet() {
       });
   })
 
+}
+
+export function getUniqueCaseFields(region: string) {
+  const set = region.startsWith("ET_EnglandWales") ? getEnglandWales() : getScotland()
+  return set.CaseField.map(o => o.ID)
 }

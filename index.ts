@@ -1,13 +1,19 @@
 import 'source-map-support/register'
 import { config as envConfig } from 'dotenv'
-import { prompt, Separator } from 'inquirer'
-import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, SaveMode, Scrubbed, Session } from './types/types'
-import { createAuthorisationCaseEvent, createAuthorisationCaseFields, createNewCaseEvent, createNewCaseEventToField, createNewCaseFieldType, createNewEventToComplexType, createNewSession, duplicateFieldsForScotland, trimCaseEventToField, trimCaseField } from './objects'
+import { prompt, Separator, registerPrompt } from 'inquirer'
+import autocomplete from "inquirer-autocomplete-prompt"
+import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, ConfigSheets, SaveMode, Scrubbed, Session } from './types/types'
+import { createAuthorisationCaseEvent, createAuthorisationCaseFields, createNewCaseEvent, createNewCaseEventToField, createNewCaseFieldType, createNewEventToComplexType, createNewSession, duplicateAuthorisationInCaseType, duplicateFieldsFor, duplicateInCaseType, trimCaseEventToField, trimCaseField } from './objects'
 import { addNewScrubbed, addToInMemoryConfig, execGenerateSpreadsheet, getScrubbedOpts, upsertNewCaseEvent, readInCurrentConfig, saveBackToProject, getCaseEventIDOpts, getEnglandWales, getScotland, execImportConfig } from './configs'
 import { ensurePathExists, upsertFields } from './helpers'
 import { findPreviousSessions, getFieldCount, getFieldsPerPage, getPageCount, restorePreviousSession, saveSession, session, SESSION_DIR } from './session'
 import { ensureUp, tearDown } from './setup'
+import { askYesNo, listOrFreeType, requestCaseTypeID } from './questions'
+import { CASE_FIELD_TYPES, NO_DUPLICATE } from './constants'
+import fuzzy from "fuzzy"
 envConfig()
+
+registerPrompt('autocomplete', autocomplete);
 
 function checkEnvVars() {
   const needed = [process.env.ENGWALES_DEF_DIR, process.env.SCOTLAND_DEF_DIR]
@@ -27,10 +33,8 @@ async function start() {
 
   while (true) {
     const journeySplitSessionOpt = `Split current session (${getFieldCount()} fields across ${getPageCount().length} pages)`
-    const optSaveMode = `Change save mode (currently: ${SaveMode[saveMode]})`
 
     const choices: { text: string | object, fn?: () => Promise<any> }[] = [
-      { text: optSaveMode, fn: journeySaveMode },
       { text: 'Set session name', fn: journeySessionName },
       { text: 'Restore a previous session', fn: journeyRestoreSession },
       { text: journeySplitSessionOpt, fn: journeySplitSession },
@@ -40,8 +44,7 @@ async function start() {
       { text: 'Create new page/event', fn: journeyCreateCaseEvent },
       { text: 'Create an EventToComplexType', fn: journeyCreateEventToComplexType },
       { text: new Separator() },
-      // Don't use this one - it was a hack job I needed for a very specific thing
-      { text: "Temp journey validate authorisation case fields", fn: journeyValidateAuthorisationCaseFields },
+      { text: 'Duplicate case field', fn: journeyDuplicateCaseField },
       { text: new Separator() },
       { text: 'Fresh start docker (destroy and rebuild)', fn: async () => { await tearDown(); await ensureUp() } },
       { text: 'Boot and setup ECM/CCD docker', fn: async () => ensureUp() },
@@ -75,16 +78,6 @@ async function start() {
 
     saveSession(session)
   }
-}
-
-async function journeySaveMode() {
-  const answers = await prompt([
-    { name: 'SaveMode', message: "Which ones would you like to generate/save for?", type: 'list', choices: ['Both', 'EnglandWales', 'Scotland'] }
-  ])
-
-  saveMode = answers.SaveMode === "Both" ? SaveMode.BOTH
-    : answers.SaveMode === "EnglandWales" ? SaveMode.ENGLANDWALES
-      : SaveMode.SCOTLAND
 }
 
 async function journeySessionName() {
@@ -160,34 +153,22 @@ async function journeyCreateNewScrubbed() {
 }
 
 async function journeyCreateNewField() {
-  const optsFieldType = [
-    'FixedList',
-    'FixedRadioList',
-    'MultiSelectList',
-    'Label',
-    'TextArea',
-    'YesOrNo',
-    'Text',
-    'Number',
-    'Collection',
-    'Other'
-  ]
-
   const caseField = createNewCaseFieldType()
   const caseEventToField = createNewCaseEventToField()
 
-  let answers = await prompt(
+  let answers: Session['lastAnswers'] = await prompt(
     [
       { name: 'CaseEventID', message: `Whats the CaseEvent that this field belongs to?`, default: session.lastAnswers.CaseEventID },
       { name: 'ID', message: `What's the ID for this field?`, type: 'input' },
       { name: 'Label', message: 'What text should this field have (Label)?', type: 'input' },
-      { name: 'FieldType', message: 'What FieldType should this be?', type: 'list', choices: optsFieldType },
+      { name: 'FieldType', message: 'What FieldType should this be?', type: 'list', choices: CASE_FIELD_TYPES },
       { name: 'PageID', message: `What page will this field appear on?`, type: 'number', default: session.lastAnswers.PageID || 1 },
       { name: 'PageFieldDisplayOrder', message: `Whats the PageFieldDisplayOrder for this field?`, type: 'number', default: session.lastAnswers.PageFieldDisplayOrder + 1 || 1 },
       { name: 'FieldShowCondition', message: 'Enter a field show condition string (leave blank if not needed)', type: 'input' }
-    ]
-  )
+    ],
+    { ...await requestCaseTypeID() })
 
+  session.lastAnswers.CaseTypeID = answers.CaseTypeID
   session.lastAnswers.CaseEventID = answers.CaseEventID
   session.lastAnswers.PageID = answers.PageID
   session.lastAnswers.PageFieldDisplayOrder = answers.PageFieldDisplayOrder
@@ -256,7 +237,7 @@ async function journeyCreateNewField() {
     }
   }
 
-  caseField.CaseTypeID = "ET_EnglandWales"
+  caseField.CaseTypeID = answers.CaseTypeID
 
   caseField.ID = answers.ID
   caseField.Label = answers.Label
@@ -264,7 +245,7 @@ async function journeyCreateNewField() {
   caseField.FieldType = answers.FieldType
   caseField.RegularExpression = answers.RegularExpression
 
-  caseEventToField.CaseTypeID = "ET_EnglandWales"
+  caseEventToField.CaseTypeID = answers.CaseTypeID
   caseEventToField.CaseEventID = answers.CaseEventID
   caseEventToField.CaseFieldID = answers.ID
   caseEventToField.DisplayContext = answers.DisplayContext
@@ -282,22 +263,35 @@ async function journeyCreateNewField() {
 
   caseEventToField.CallBackURLMidEvent = answers.CallBackURLMidEvent
 
-  const fieldAuthorisations = createAuthorisationCaseFields("ET_EnglandWales", answers.ID)
-  const output = duplicateFieldsForScotland([trimCaseField(caseField)], [trimCaseEventToField(caseEventToField)], fieldAuthorisations, [])
+  const fieldAuthorisations = createAuthorisationCaseFields(answers.CaseTypeID, answers.ID)
 
   addToInMemoryConfig({
-    AuthorisationCaseField: output.authorisationCaseFields,
-    CaseField: output.caseFields,
-    CaseEventToFields: output.caseEventToFields
+    AuthorisationCaseField: fieldAuthorisations,
+    CaseField: [trimCaseField(caseField)],
+    CaseEventToFields: [trimCaseEventToField(caseEventToField)]
   })
 
-  console.log(`Added ${output.caseFields.length} caseFields, ${output.caseEventToFields.length} caseEventToFields and ${output.authorisationCaseFields.length} authorisationCaseFields`)
+  await addOnDuplicateQuestion(answers as { CaseTypeID: string, ID: string })
+}
+
+async function addOnDuplicateQuestion(answers: { CaseTypeID: string, ID: string } & Record<string, any>) {
+  answers = {
+    ...answers,
+    ...await listOrFreeType('duplicate', "Do we need this field duplicated under another caseTypeId?", [NO_DUPLICATE, 'ET_EnglandWales', 'ET_Scotland'])
+  }
+
+  if (answers.duplicate === NO_DUPLICATE) {
+    return
+  }
+
+  doDuplicateCaseField(answers.CaseTypeID, answers.ID, answers.duplicate)
+  return answers
 }
 
 async function journeyCreateCaseEvent() {
   const caseEvent = createNewCaseEvent()
 
-  let answers = await prompt(
+  let answers: Session['lastAnswers'] = await prompt(
     [
       { name: 'ID', message: `What's the page ID?`, type: 'input' },
       { name: 'Name', message: 'Give the new page a name', type: 'input' },
@@ -311,14 +305,16 @@ async function journeyCreateCaseEvent() {
       { name: 'CallBackURLAboutToStartEvent', message: 'Do we need a callback before we start? (leave blank if not)', type: 'input' },
       { name: 'CallBackURLAboutToSubmitEvent', message: 'Do we need a callback before we submit? (leave blank if not)', type: 'input' },
       { name: 'CallBackURLSubmittedEvent', message: 'Do we need a callback after we submit? (leave blank if not)', type: 'input' },
-    ]
+    ], {
+    ...await requestCaseTypeID()
+  }
   )
 
   caseEvent.CallBackURLAboutToStartEvent = answers.CallBackURLAboutToStartEvent
   caseEvent.CallBackURLAboutToSubmitEvent = answers.CallBackURLAboutToSubmitEvent
   caseEvent.CallBackURLSubmittedEvent = answers.CallBackURLSubmittedEvent
 
-  caseEvent.CaseTypeID = "ET_EnglandWales"
+  caseEvent.CaseTypeID = answers.CaseTypeID
   caseEvent.ID = answers.ID
   caseEvent.Name = answers.Name
   caseEvent.Description = answers.Description
@@ -329,17 +325,12 @@ async function journeyCreateCaseEvent() {
   caseEvent.ShowEventNotes = answers.ShowEventNotes
   caseEvent.ShowSummary = answers.ShowSummary
 
-  const scotlandCaseEvent = { ...caseEvent, CaseTypeID: caseEvent.CaseTypeID.replace("ET_EnglandWales", "ET_Scotland") }
   upsertNewCaseEvent(caseEvent)
-  upsertNewCaseEvent(scotlandCaseEvent)
 
-  const caseAuthorisations = createAuthorisationCaseEvent("ET_EnglandWales", answers.ID)
-  console.log(`created ${caseAuthorisations.length} auths for case event`)
-  const output = duplicateFieldsForScotland([], [], [], caseAuthorisations)
-  console.log(`after duplication had ${output.authorisationCaseEvents.length} auths for case event`)
+  const caseAuthorisations = createAuthorisationCaseEvent(answers.CaseTypeID, answers.ID)
 
   addToInMemoryConfig({
-    AuthorisationCaseEvent: output.authorisationCaseEvents
+    AuthorisationCaseEvent: caseAuthorisations
   })
 
   return caseEvent.ID
@@ -351,13 +342,15 @@ async function journeyCreateCallbackPopulatedTextField() {
   const caseFieldLabel = createNewCaseFieldType()
   const caseEventToFieldLabel = createNewCaseEventToField()
 
-  let answers = await prompt(
+  let answers: Session['lastAnswers'] = await prompt(
     [
       { name: 'CaseEventID', message: "Whats the CaseEvent that this field belongs to?", default: session.lastAnswers.CaseEventID },
       { name: 'ID', message: "What's the ID for this field?", type: 'input' },
       { name: 'PageID', message: 'What page will this field appear on?', type: 'number', default: session.lastAnswers.PageID || 1 },
       { name: 'PageFieldDisplayOrder', message: 'Whats the PageFieldDisplayOrder for this field?', type: 'number', default: session.lastAnswers.PageFieldDisplayOrder + 1 || 1 }
-    ]
+    ], {
+    ...await requestCaseTypeID()
+  }
   )
 
   if (answers.PageFieldDisplayOrder === 1) {
@@ -370,8 +363,8 @@ async function journeyCreateCallbackPopulatedTextField() {
     }
   }
 
-  caseField.CaseTypeID = "ET_EnglandWales"
-  caseFieldLabel.CaseTypeID = "ET_EnglandWales"
+  caseField.CaseTypeID = answers.CaseTypeID
+  caseFieldLabel.CaseTypeID = answers.CaseTypeID
 
   caseField.ID = answers.ID
   caseFieldLabel.ID = `${answers.ID}Label`
@@ -385,8 +378,8 @@ async function journeyCreateCallbackPopulatedTextField() {
   caseEventToField.ShowSummaryChangeOption = 'N'
   caseEventToFieldLabel.ShowSummaryChangeOption = 'N'
 
-  caseEventToField.CaseTypeID = "ET_EnglandWales"
-  caseEventToFieldLabel.CaseTypeID = "ET_EnglandWales"
+  caseEventToField.CaseTypeID = answers.CaseTypeID
+  caseEventToFieldLabel.CaseTypeID = answers.CaseTypeID
 
   caseEventToField.CaseEventID = answers.CaseEventID
   caseEventToFieldLabel.CaseEventID = answers.CaseEventID
@@ -409,7 +402,7 @@ async function journeyCreateCallbackPopulatedTextField() {
   caseEventToFieldLabel.PageFieldDisplayOrder = caseEventToField.PageFieldDisplayOrder + 1
   session.lastAnswers.PageID = caseEventToFieldLabel.PageFieldDisplayOrder
 
-  caseEventToField.PageLabel = answers.PageTitle
+  caseEventToField.PageLabel = answers.PageLabel
 
   caseEventToField.FieldShowCondition = `${answers.ID}Label=\"dummy\"`
 
@@ -423,22 +416,15 @@ async function journeyCreateCallbackPopulatedTextField() {
 
   caseEventToField.CallBackURLMidEvent = answers.CallBackURLMidEvent
 
-  const fieldAuthorisations = [...createAuthorisationCaseFields("ET_EnglandWales", answers.ID), ...createAuthorisationCaseFields("ET_EnglandWales", `${answers.ID}Label`)]
-  const output = duplicateFieldsForScotland(
-    [trimCaseField(caseField), trimCaseField(caseFieldLabel)],
-    [trimCaseEventToField(caseEventToField), trimCaseEventToField(caseEventToFieldLabel)],
-    fieldAuthorisations,
-    []
-  )
+  const fieldAuthorisations = [...createAuthorisationCaseFields(answers.CaseTypeID, answers.ID), ...createAuthorisationCaseFields(answers.CaseTypeID, `${answers.ID}Label`)]
 
   addToInMemoryConfig({
-    AuthorisationCaseField: output.authorisationCaseFields,
-    CaseField: output.caseFields,
-    CaseEventToFields: output.caseEventToFields
+    AuthorisationCaseField: fieldAuthorisations,
+    CaseField: [trimCaseField(caseField), trimCaseField(caseFieldLabel)],
+    CaseEventToFields: [trimCaseEventToField(caseEventToField), trimCaseEventToField(caseEventToFieldLabel)]
   })
 
-  console.log(output)
-  console.log(`Added ${output.caseFields.length} caseFields, ${output.caseEventToFields.length} caseEventToFields and ${output.authorisationCaseFields.length} authorisationCaseFields`)
+  await addOnDuplicateQuestion({ CaseTypeID: answers.CaseTypeID, ID: caseFieldLabel.ID })
 }
 
 async function journeyCreateEventToComplexType() {
@@ -479,6 +465,77 @@ async function journeyCreateEventToComplexType() {
     EventToComplexTypes: [eventToComplexType],
     Scrubbed: []
   })
+}
+
+async function journeyDuplicateCaseField() {
+
+  const { CaseTypeID } = await requestCaseTypeID()
+  const region = CaseTypeID.startsWith("ET_EnglandWales") ? getEnglandWales() : getScotland()
+
+  let answers = await prompt([
+    { name: 'ID', message: "What's the ID of the field to select?", type: 'autocomplete', source: (answers, input) => searchCaseField(region.CaseField.map(o => o.ID), answers, input) }
+  ])
+
+  if (answers.ID === "CANCEL") {
+    return
+  }
+
+  answers = {
+    ...answers,
+    ...await requestCaseTypeID()
+  }
+
+  doDuplicateCaseField(CaseTypeID, answers.ID, answers.CaseTypeID)
+}
+
+function doDuplicateCaseField(fromCaseTypeId: string, caseFieldId: string, toCaseTypeId: string) {
+  const referenced = getObjectsReferencedByCaseField(fromCaseTypeId, caseFieldId)
+
+  referenced.CaseEvent.forEach(o => upsertNewCaseEvent(duplicateInCaseType(toCaseTypeId, o)))
+
+  addToInMemoryConfig({
+    AuthorisationCaseEvent: referenced.AuthorisationCaseEvent.map(o => duplicateAuthorisationInCaseType(toCaseTypeId, o)),
+    AuthorisationCaseField: referenced.AuthorisationCaseField.map(o => duplicateAuthorisationInCaseType(toCaseTypeId, o)),
+    CaseEvent: referenced.CaseEvent.map(o => duplicateInCaseType(toCaseTypeId, o)),
+    CaseEventToFields: referenced.CaseEventToFields.map(o => duplicateInCaseType(toCaseTypeId, o)),
+    CaseField: referenced.CaseField.map(o => duplicateInCaseType(toCaseTypeId, o)),
+  })
+}
+
+function searchCaseField(choices, answers, input = '') {
+  return fuzzy.filter(input, ['CANCEL', ...choices]).map((el) => el.original)
+}
+
+function isFieldReferencedInField(caseField: CaseField, caseFieldId: string) {
+  return caseField.Label.includes(`{${caseFieldId}}`) || caseField.HintText?.includes(`{${caseFieldId}}`)
+}
+
+function getObjectsReferencedByCaseField(caseTypeId: string, caseFieldId: string) {
+  const region = caseTypeId.startsWith("ET_EnglandWales") ? getEnglandWales() : getScotland()
+
+  const caseField = region.CaseField.find(o => o.ID === caseFieldId)
+
+  return getObjectsReferencedByCaseFields(region, [caseField])
+}
+
+function getObjectsReferencedByCaseFields(config: ConfigSheets, caseFields: CaseField[]) {
+  const refCaseFields = config.CaseField.filter(o => caseFields.find(x => x.ID === o.ID || isFieldReferencedInField(x, o.ID)))
+  const refCaseEventToField = config.CaseEventToFields.filter(o => refCaseFields.find(x => x.ID === o.CaseFieldID))
+  const refCaseEvents = config.CaseEvent.filter(o => refCaseEventToField.find(x => x.CaseEventID === o.ID))
+  const refEventToComplexTypes = config.EventToComplexTypes.filter(o => refCaseFields.find(x => x.ID === o.CaseFieldID))
+  const refScrubbed = config.Scrubbed.filter(o => refCaseFields.find(x => x.FieldTypeParameter === o.ID))
+  const refAuthCaseField = config.AuthorisationCaseField.filter(o => refCaseFields.find(x => x.ID === o.CaseFieldID))
+  const refAuthCaseEvent = config.AuthorisationCaseEvent.filter(o => refCaseEvents.find(x => x.ID === o.CaseEventID))
+
+  return {
+    AuthorisationCaseEvent: refAuthCaseEvent,
+    AuthorisationCaseField: refAuthCaseField,
+    CaseField: refCaseFields,
+    CaseEvent: refCaseEvents,
+    CaseEventToFields: refCaseEventToField,
+    Scrubbed: refScrubbed,
+    EventToComplexTypes: refEventToComplexTypes,
+  } as ConfigSheets
 }
 
 async function journeySplitSession() {
@@ -589,14 +646,7 @@ function createSessionFromPage(pageId: number, sessionName: string) {
   const fieldsOnPage = full.CaseEventToFields.filter(o => o.PageID === pageId)
   const newSession = createNewSession(sessionName)
 
-  newSession.added.CaseEventToFields = fieldsOnPage
-  newSession.added.CaseField = full.CaseField.filter(o => fieldsOnPage.find(x => x.CaseFieldID === o.ID))
-  newSession.added.AuthorisationCaseField = full.AuthorisationCaseField.filter(o => fieldsOnPage.find(x => x.CaseFieldID === o.CaseFieldID))
-  newSession.added.Scrubbed = full.Scrubbed.filter(o => newSession.added.CaseField.find(x => x.FieldTypeParameter === o.ID))
-  newSession.added.CaseEvent = full.CaseEvent.filter(o => fieldsOnPage.find(x => x.CaseEventID === o.ID))
-  newSession.added.AuthorisationCaseEvent = full.AuthorisationCaseEvent.filter(o => newSession.added.CaseEvent.find(x => x.ID === o.CaseEventID))
-  newSession.added.EventToComplexTypes = full.EventToComplexTypes.filter(o => fieldsOnPage.find(x => x.CaseFieldID === o.ID))
-
+  newSession.added = getObjectsReferencedByCaseFields(full, full.CaseField.filter(o => fieldsOnPage.find(x => x.CaseFieldID === o.ID)))
   newSession.date = new Date()
 
   saveSession(newSession)
