@@ -1,6 +1,8 @@
 import { prompt } from "inquirer"
 import { CASE_FIELD_TYPES, DISPLAY_CONTEXT_OPTIONS, NO, YES } from "./constants"
 import { session } from "./session"
+import fuzzy from "fuzzy"
+import { CaseFieldKeys } from "./types/types"
 
 export async function requestCaseTypeID(message: string = "What's the CaseTypeID?") {
   const choices = ['ET_EnglandWales', 'ET_Scotland']

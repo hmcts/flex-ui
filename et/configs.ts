@@ -1,10 +1,9 @@
 import { readFileSync, writeFileSync } from "fs"
 import { sep } from "path"
-import { findMissingItems, upsertFields } from "./helpers"
-import { trimCaseField } from "./objects"
-import { addToSession } from "./session"
+import { upsertFields } from "../helpers"
+import { addToSession } from "../session"
 const { exec } = require("child_process");
-import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, ConfigSheets, EventToComplexType, SaveMode, Scrubbed } from "./types/types"
+import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, ConfigSheets, EventToComplexType, Scrubbed } from "../types/types"
 
 let englandwales: ConfigSheets
 
@@ -22,24 +21,44 @@ export function getScotland() {
   return scotland
 }
 
-export function getCaseEventIDOpts(defaultOption: string) {
+export function getCaseEventIDOpts(defaultOption?: string) {
   return [...englandwales.CaseEvent, ...scotland.CaseEvent]
     .reduce((acc: Record<string, any>, obj: CaseEvent) => {
       if (!acc[obj.ID]) {
         acc[obj.ID] = true
       }
       return acc
-    }, { [defaultOption]: true })
+    }, defaultOption ? { [defaultOption]: true } : {})
 }
 
-export function getScrubbedOpts(defaultOption: string) {
+export function getScrubbedOpts(defaultOption?: string) {
   return [...englandwales.Scrubbed, ...scotland.Scrubbed]
     .reduce((acc: Record<string, any>, obj: Scrubbed) => {
       if (!acc[obj.ID]) {
         acc[obj.ID] = true
       }
       return acc
-    }, { [defaultOption]: true })
+    }, defaultOption ? { [defaultOption]: true } : {})
+}
+
+export function getKnownCaseFieldTypes(defaultOption?: string) {
+  return [...englandwales.CaseField, ...scotland.CaseField]
+    .reduce((acc: Record<string, any>, obj: CaseField) => {
+      if (!acc[obj.FieldType]) {
+        acc[obj.FieldType] = true
+      }
+      return acc
+    }, defaultOption ? { [defaultOption]: true } : {})
+}
+
+export function getKnownCaseFieldTypeParameters(defaultOption?: string) {
+  return [...englandwales.CaseField, ...scotland.CaseField]
+    .reduce((acc: Record<string, any>, obj: CaseField) => {
+      if (!acc[obj.FieldTypeParameter]) {
+        acc[obj.FieldTypeParameter] = true
+      }
+      return acc
+    }, defaultOption ? { [defaultOption]: true } : {})
 }
 
 export function readInCurrentConfig() {
@@ -132,38 +151,38 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
     }
   }
 
-  const ewCaseFields = fields.CaseField!.filter(o => o.CaseTypeID === "ET_EnglandWales")
+  const ewCaseFields = fields.CaseField.filter(o => o.CaseTypeID === "ET_EnglandWales")
   const ewCaseEventToFields = fields.CaseEventToFields.filter(o => o.CaseTypeID === "ET_EnglandWales")
-  const ewAuthorsationCaseFields = fields.AuthorisationCaseField!.filter(o => o.CaseTypeId === "ET_EnglandWales")
-  const ewAuthorsationCaseEvents = fields.AuthorisationCaseEvent!.filter(o => o.CaseTypeId === "ET_EnglandWales")
+  const ewAuthorsationCaseFields = fields.AuthorisationCaseField.filter(o => o.CaseTypeId === "ET_EnglandWales")
+  const ewAuthorsationCaseEvents = fields.AuthorisationCaseEvent.filter(o => o.CaseTypeId === "ET_EnglandWales")
 
-  const scCaseFields = fields.CaseField!.filter(o => o.CaseTypeID === "ET_Scotland")
-  const scCaseEventToFields = fields.CaseEventToFields!.filter(o => o.CaseTypeID === "ET_Scotland")
-  const scAuthorsationCaseFields = fields.AuthorisationCaseField!.filter(o => o.CaseTypeId === "ET_Scotland")
-  const scAuthorsationCaseEvents = fields.AuthorisationCaseEvent!.filter(o => o.CaseTypeId === "ET_Scotland")
+  const scCaseFields = fields.CaseField.filter(o => o.CaseTypeID === "ET_Scotland")
+  const scCaseEventToFields = fields.CaseEventToFields.filter(o => o.CaseTypeID === "ET_Scotland")
+  const scAuthorsationCaseFields = fields.AuthorisationCaseField.filter(o => o.CaseTypeId === "ET_Scotland")
+  const scAuthorsationCaseEvents = fields.AuthorisationCaseEvent.filter(o => o.CaseTypeId === "ET_Scotland")
 
   upsertFields<CaseField>(englandwales.CaseField, ewCaseFields, ['ID', 'CaseTypeID'], () => englandwales.CaseField.findIndex(o => o.CaseTypeID.endsWith("_Listings")))
   upsertFields<CaseEventToField>(englandwales.CaseEventToFields, ewCaseEventToFields, ['CaseEventID', 'CaseFieldID', 'CaseTypeID'], () => englandwales.CaseEventToFields.findIndex(o => o.CaseTypeID.endsWith("_Listings")))
   upsertFields<AuthorisationCaseEvent>(englandwales.AuthorisationCaseEvent, ewAuthorsationCaseEvents, ['CaseEventID', 'CaseTypeId', 'UserRole'], () => englandwales.AuthorisationCaseEvent.findIndex(o => o.CaseTypeId.endsWith("_Listings")))
   upsertFields<AuthorisationCaseField>(englandwales.AuthorisationCaseField, ewAuthorsationCaseFields, ['CaseFieldID', 'CaseTypeId', 'UserRole'], () => englandwales.AuthorisationCaseField.findIndex(o => o.CaseTypeId.endsWith("_Listings")))
 
-  upsertFields<EventToComplexType>(englandwales.EventToComplexTypes, fields.EventToComplexTypes!, ['ID', 'CaseEventID', 'CaseFieldID'])
+  upsertFields<EventToComplexType>(englandwales.EventToComplexTypes, fields.EventToComplexTypes, ['ID', 'CaseEventID', 'CaseFieldID', 'ListElementCode'])
 
   upsertFields<CaseField>(scotland.CaseField, scCaseFields, ['ID', 'CaseTypeID'], () => scotland.CaseField.findIndex(o => o.CaseTypeID.endsWith("_Listings")))
   upsertFields<CaseEventToField>(scotland.CaseEventToFields, scCaseEventToFields, ['CaseEventID', 'CaseFieldID', 'CaseTypeID'], () => scotland.CaseEventToFields.findIndex(o => o.CaseTypeID.endsWith("_Listings")))
   upsertFields<AuthorisationCaseEvent>(scotland.AuthorisationCaseEvent, scAuthorsationCaseEvents, ['CaseEventID', 'CaseTypeId', 'UserRole'], () => scotland.AuthorisationCaseEvent.findIndex(o => o.CaseTypeId.endsWith("_Listings")))
   upsertFields<AuthorisationCaseField>(scotland.AuthorisationCaseField, scAuthorsationCaseFields, ['CaseFieldID', 'CaseTypeId', 'UserRole'], () => scotland.AuthorisationCaseField.findIndex(o => o.CaseTypeId.endsWith("_Listings")))
 
-  upsertFields<EventToComplexType>(scotland.EventToComplexTypes, fields.EventToComplexTypes!, ['ID', 'CaseEventID', 'CaseFieldID'])
-
+  upsertFields<EventToComplexType>(scotland.EventToComplexTypes, fields.EventToComplexTypes, ['ID', 'CaseEventID', 'CaseFieldID', 'ListElementCode'])
+ 
   addToSession({
     AuthorisationCaseField: ewAuthorsationCaseFields,
     CaseField: ewCaseFields,
     CaseEventToFields: ewCaseEventToFields,
     Scrubbed: [],
-    CaseEvent: [], //scCaseEvents
+    CaseEvent: [],
     AuthorisationCaseEvent: ewAuthorsationCaseEvents,
-    EventToComplexTypes: fields.EventToComplexTypes!
+    EventToComplexTypes: fields.EventToComplexTypes
   })
 
   addToSession({
@@ -171,26 +190,20 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
     CaseField: scCaseFields,
     CaseEventToFields: scCaseEventToFields,
     Scrubbed: [],
-    CaseEvent: [], //scCaseEvents,
+    CaseEvent: [],
     AuthorisationCaseEvent: scAuthorsationCaseEvents,
-    EventToComplexTypes: fields.EventToComplexTypes!
+    EventToComplexTypes: fields.EventToComplexTypes
   })
 }
 
-export async function saveBackToProject(saveMode: SaveMode) {
-  // return JSON.parse(readFileSync(`${envvar}${sep}definitions${sep}json${sep}${name}.json`).toString())
-
-  if (saveMode === SaveMode.ENGLANDWALES || saveMode === SaveMode.BOTH) {
-    writeFileSync(`${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}json${sep}CaseField.json`, JSON.stringify(englandwales.CaseField, null, 2))
-    writeFileSync(`${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}json${sep}AuthorisationCaseField.json`, JSON.stringify(englandwales.AuthorisationCaseField, null, 2))
-    writeFileSync(`${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}json${sep}CaseEventToFields.json`, JSON.stringify(englandwales.CaseEventToFields, null, 2))
-    writeFileSync(`${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}json${sep}EnglandWales Scrubbed.json`, JSON.stringify(englandwales.Scrubbed, null, 2))
-    writeFileSync(`${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}json${sep}CaseEvent.json`, JSON.stringify(englandwales.CaseEvent, null, 2))
-    writeFileSync(`${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}json${sep}AuthorisationCaseEvent.json`, JSON.stringify(englandwales.AuthorisationCaseEvent, null, 2))
-    writeFileSync(`${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}json${sep}EventToComplexTypes.json`, JSON.stringify(englandwales.EventToComplexTypes, null, 2))
-  }
-
-  if (saveMode === SaveMode.ENGLANDWALES) return
+export async function saveBackToProject() {
+  writeFileSync(`${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}json${sep}CaseField.json`, JSON.stringify(englandwales.CaseField, null, 2))
+  writeFileSync(`${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}json${sep}AuthorisationCaseField.json`, JSON.stringify(englandwales.AuthorisationCaseField, null, 2))
+  writeFileSync(`${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}json${sep}CaseEventToFields.json`, JSON.stringify(englandwales.CaseEventToFields, null, 2))
+  writeFileSync(`${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}json${sep}EnglandWales Scrubbed.json`, JSON.stringify(englandwales.Scrubbed, null, 2))
+  writeFileSync(`${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}json${sep}CaseEvent.json`, JSON.stringify(englandwales.CaseEvent, null, 2))
+  writeFileSync(`${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}json${sep}AuthorisationCaseEvent.json`, JSON.stringify(englandwales.AuthorisationCaseEvent, null, 2))
+  writeFileSync(`${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}json${sep}EventToComplexTypes.json`, JSON.stringify(englandwales.EventToComplexTypes, null, 2))
 
   writeFileSync(`${process.env.SCOTLAND_DEF_DIR}${sep}definitions${sep}json${sep}CaseField.json`, JSON.stringify(scotland.CaseField, null, 2))
   writeFileSync(`${process.env.SCOTLAND_DEF_DIR}${sep}definitions${sep}json${sep}AuthorisationCaseField.json`, JSON.stringify(scotland.AuthorisationCaseField, null, 2))
@@ -200,7 +213,7 @@ export async function saveBackToProject(saveMode: SaveMode) {
   writeFileSync(`${process.env.SCOTLAND_DEF_DIR}${sep}definitions${sep}json${sep}AuthorisationCaseEvent.json`, JSON.stringify(scotland.AuthorisationCaseEvent, null, 2))
   writeFileSync(`${process.env.SCOTLAND_DEF_DIR}${sep}definitions${sep}json${sep}EventToComplexTypes.json`, JSON.stringify(scotland.EventToComplexTypes, null, 2))
 
-  return await execGenerateSpreadsheet()
+  return execGenerateSpreadsheet()
 }
 
 export function execImportConfig() {

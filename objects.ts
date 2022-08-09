@@ -1,53 +1,70 @@
-import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, EventToComplexType, Session } from './types/types'
+import { Answers, AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, EventToComplexType, Session } from './types/types'
 
-export function createNewCaseEvent(): CaseEvent {
+export function createNewCaseEvent(answers?: Answers): CaseEvent {
   return {
-    CaseTypeID: '',
-    ID: '',
-    Name: '',
-    Description: '',
-    DisplayOrder: 1,
-    "PreConditionState(s)": "*",
-    PostConditionState: "*",
+    CaseTypeID: answers?.CaseTypeID || '',
+    ID: answers?.ID || '',
+    Name: answers?.Name || '',
+    Description: answers?.Description || '',
+    DisplayOrder: answers?.DisplayOrder || 1,
+    "PreConditionState(s)": answers?.['PreConditionState(s)'] || "*",
+    PostConditionState: answers?.PostConditionState || "*",
     "SecurityClassification": "Public",
-    ShowEventNotes: 'N',
-    ShowSummary: 'Y',
+    ShowEventNotes: answers?.ShowEventNotes || 'N',
+    ShowSummary: answers?.ShowSummary || 'Y',
+    EventEnablingCondition: answers?.EventEnablingCondition || '',
+    CallBackURLAboutToStartEvent: answers?.CallBackURLAboutToStartEvent || '',
+    CallBackURLAboutToSubmitEvent: answers?.CallBackURLAboutToSubmitEvent || '',
+    CallBackURLSubmittedEvent: answers?.CallBackURLSubmittedEvent || ''
   }
 }
 
-export function createNewCaseFieldType(): CaseField {
+export function createNewCaseField(answers?: Answers): CaseField {
   return {
-    CaseTypeID: '',
-    ID: '',
-    Label: '',
-    HintText: undefined,
-    FieldType: '',
-    FieldTypeParameter: undefined,
-    RegularExpression: undefined,
+    CaseTypeID: answers?.CaseTypeID || '',
+    ID: answers?.ID || '',
+    Label: answers?.Label || '',
+    HintText: answers?.HintText,
+    FieldType: answers?.FieldType,
+    FieldTypeParameter: answers?.FieldTypeParameter,
+    RegularExpression: answers?.RegularExpression,
     SecurityClassification: 'Public',
-    Min: 0,
-    Max: 0
+    Min: answers?.Min,
+    Max: answers?.Max
   }
 }
 
-export function createNewCaseEventToField(): CaseEventToField {
+export function createNewCaseEventToField(answers?: Answers): CaseEventToField {
   return {
-    CaseTypeID: 'ET_EnglandWales',
-    CaseEventID: '',
-    CaseFieldID: '',
-    DisplayContext: 'READONLY',
-    PageID: 1,
-    PageDisplayOrder: 1,
-    PageFieldDisplayOrder: 1,
-    FieldShowCondition: undefined,
-    PageShowCondition: undefined,
-    RetainHiddenValue: 'Yes',
-    ShowSummaryChangeOption: 'N',
-    CallBackURLMidEvent: undefined,
-    PageLabel: 'Page Title',
-    PageColumnNumber: 1,
-    ShowSummaryContentOption: undefined,
-    RetriesTimeoutURLMidEvent: undefined
+    CaseTypeID: answers?.CaseTypeID || 'ET_EnglandWales',
+    CaseEventID: answers?.CaseEventID || '',
+    CaseFieldID: answers?.CaseFieldID || answers?.ID || '',
+    DisplayContext: answers?.DisplayContext || 'READONLY',
+    PageID: answers?.PageID || 1,
+    PageDisplayOrder: answers?.PageDisplayOrder || answers?.PageID || 1,
+    PageFieldDisplayOrder: answers?.PageFieldDisplayOrder || 1,
+    FieldShowCondition: answers?.FieldShowCondition,
+    PageShowCondition: answers?.PageShowCondition,
+    RetainHiddenValue: answers?.RetainHiddenValue || 'Yes',
+    ShowSummaryChangeOption: answers?.ShowSummaryChangeOption || 'N',
+    CallBackURLMidEvent: answers?.CallBackURLMidEvent?.startsWith('/') ? ("${ET_COS_URL}" + answers.CallBackURLMidEvent) : answers?.CallBackURLMidEvent,
+    PageLabel: answers?.PageLabel || '',
+    PageColumnNumber: answers?.PageColumnNumber || 1,
+    ShowSummaryContentOption: answers?.ShowSummaryContentOption,
+    RetriesTimeoutURLMidEvent: answers?.RetriesTimeoutURLMidEvent
+  }
+}
+
+export function createNewEventToComplexType(answers?: Answers): EventToComplexType {
+  return {
+    ID: answers?.ID || '',
+    CaseFieldID: answers?.CaseFieldID || '',
+    CaseEventID: answers?.CaseEventID || '',
+    ListElementCode: answers?.ListElementCode || '',
+    EventElementLabel: answers?.EventElementLabel || '',
+    FieldDisplayOrder: answers?.FieldDisplayOrder || 1,
+    DisplayContext: answers?.DisplayContext || 'OPTIONAL',
+    FieldShowCondition: answers?.FieldShowCondition
   }
 }
 
@@ -171,18 +188,6 @@ export function createAuthorisationCaseFields(caseTypeId: string = "ET_EnglandWa
   ]
 }
 
-export function createNewEventToComplexType(): EventToComplexType {
-  return {
-    ID: '',
-    CaseFieldID: '',
-    CaseEventID: '',
-    ListElementCode: '',
-    EventElementLabel: '',
-    FieldDisplayOrder: 1,
-    DisplayContext: 'OPTIONAL'
-  }
-}
-
 export function createNewSession(name: string): Session {
   return {
     name,
@@ -210,18 +215,7 @@ function swapRegions(input: string) {
   return input
 }
 
-export function duplicateInCaseType<T extends { CaseTypeID: string }>(caseTypeID: string, obj: T) {
-  const copy = Object.assign({}, obj)
-  copy.CaseTypeID = caseTypeID
-  return copy
-}
 
-export function duplicateAuthorisationInCaseType<T extends { CaseTypeId: string, UserRole: string }>(caseTypeID: string, obj: T) {
-  const copy = Object.assign({}, obj)
-  copy.CaseTypeId = caseTypeID
-  copy.UserRole = swapRegions(copy.UserRole)
-  return copy
-}
 
 export function duplicateFieldsFor(caseTypeId: string, caseFields: CaseField[], caseEventToFields: CaseEventToField[], authorisationCaseFields: AuthorisationCaseField[], authorisationCaseEvents: AuthorisationCaseEvent[]) {
   const newCaseFields = []

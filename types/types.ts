@@ -103,3 +103,95 @@ export type Session = {
   added: ConfigSheets
   lastAnswers: Partial<Record<keyof (CaseField) | keyof (CaseEventToField) | keyof (CaseEvent), any>>
 }
+
+export type Answers = Partial<Record<keyof (CaseField) | keyof (CaseEventToField) | keyof (CaseEvent) | keyof (EventToComplexType), any>>
+
+export type Journey = {
+  group?: string
+  text: string | object | (() => string)
+  fn?: () => Promise<any>
+}
+
+export enum CaseFieldKeys {
+  CaseTypeID = 'CaseTypeID',
+  ID = 'ID',
+  Label = 'Label',
+  HintText = 'HintText',
+  FieldType = 'FieldType',
+  FieldTypeParameter = 'FieldTypeParameter',
+  RegularExpression = 'RegularExpression',
+  SecurityClassification = 'SecurityClassification',
+  Min = 'Min',
+  Max = 'Max'
+}
+
+export enum AuthorisationCaseFieldKeys {
+  CaseTypeId = 'CaseTypeId',
+  CaseFieldID = 'CaseFieldID',
+  UserRole = 'UserRole',
+  CRUD = 'CRUD'
+}
+
+export enum CaseEventToFieldKeys {
+  CaseTypeID = 'CaseTypeID',
+  CaseEventID = 'CaseEventID',
+  CaseFieldID = 'CaseFieldID',
+  DisplayContext = 'DisplayContext',
+  PageID = 'PageID',
+  PageDisplayOrder = 'PageDisplayOrder',
+  PageFieldDisplayOrder = 'PageFieldDisplayOrder',
+  FieldShowCondition = 'FieldShowCondition',
+  PageShowCondition = 'PageShowCondition',
+  RetainHiddenValue = 'RetainHiddenValue',
+  ShowSummaryChangeOption = 'ShowSummaryChangeOption',
+  CallBackURLMidEvent = 'CallBackURLMidEvent',
+  PageLabel = 'PageLabel',
+  PageColumnNumber = 'PageColumnNumber',
+  ShowSummaryContentOption = 'ShowSummaryContentOption',
+  RetriesTimeoutURLMidEvent = 'RetriesTimeoutURLMidEvent',
+}
+
+export enum CaseEventKeys {
+  CaseTypeID = 'CaseTypeID',
+  ID = 'ID',
+  Name = 'Name',
+  Description = 'Description',
+  DisplayOrder = 'DisplayOrder',
+  PreConditionStates = 'PreConditionState(s)',
+  PostConditionState = 'PostConditionState',
+  SecurityClassification = 'SecurityClassification',
+  EventEnablingCondition = 'EventEnablingCondition',
+  ShowEventNotes = 'ShowEventNotes',
+  ShowSummary = 'ShowSummary',
+  CallBackURLAboutToStartEvent = 'CallBackURLAboutToStartEvent',
+  CallBackURLAboutToSubmitEvent = 'CallBackURLAboutToSubmitEvent',
+  CallBackURLSubmittedEvent = 'CallBackURLSubmittedEvent',
+}
+
+export enum EventToComplexTypeKeys {
+  ID = 'ID',
+  CaseEventID = 'CaseEventID',
+  CaseFieldID = 'CaseFieldID',
+  ListElementCode = 'ListElementCode',
+  EventElementLabel = 'EventElementLabel',
+  EventHintText = 'EventHintText',
+  FieldDisplayOrder = 'FieldDisplayOrder',
+  DisplayContext = 'DisplayContext',
+  FieldShowCondition = 'FieldShowCondition',
+  RetainHiddenValue = 'RetainHiddenValue',
+}
+
+export enum AuthorisationCaseEventKeys {
+  CaseTypeId = 'CaseTypeId',
+  CaseEventID = 'CaseEventID',
+  UserRole = 'UserRole',
+  CRUD = 'CRUD',
+}
+
+export enum ScrubbedKeys {
+  ID = 'ID',
+  ListElementCode = 'ListElementCode',
+  ListElement = 'ListElement',
+  DisplayOrder = 'DisplayOrder',
+}
+

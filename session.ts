@@ -1,10 +1,10 @@
 import { readFileSync, writeFileSync } from "fs"
 import { readdir } from "fs/promises"
 import { sep } from "path"
-import { addNewScrubbed, addToInMemoryConfig, upsertNewCaseEvent } from "./configs"
+import { addNewScrubbed, addToInMemoryConfig, upsertNewCaseEvent } from "./et/configs"
 import { upsertFields } from "./helpers"
 import { createNewSession, trimCaseEventToField, trimCaseField } from "./objects"
-import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, ConfigSheets, Scrubbed, Session } from "./types/types"
+import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, ConfigSheets, EventToComplexType, Scrubbed, Session } from "./types/types"
 
 export const SESSION_DIR = 'sessions'
 export const SESSION_EXT = '.session.json'
@@ -81,6 +81,10 @@ export function addToSession(fields: ConfigSheets) {
   if (fields.AuthorisationCaseEvent.length) {
     upsertFields<AuthorisationCaseEvent>(session.added.AuthorisationCaseEvent, fields.AuthorisationCaseEvent, ['CaseEventID', 'CaseTypeId', 'UserRole'])
   }
+
+  if (fields.EventToComplexTypes.length) {
+    upsertFields<EventToComplexType>(session.added.EventToComplexTypes, fields.EventToComplexTypes, ['ID', 'CaseEventID', 'CaseFieldID', 'ListElementCode'])
+  }
 }
 
 export function getFieldCount() {
@@ -99,4 +103,11 @@ export function getFieldsPerPage(): Record<number, number> {
 
 export function getPageCount() {
   return Object.keys(getFieldsPerPage())
+}
+
+export function addToLastAnswers(answers: any) {
+  session.lastAnswers = {
+    ...session.lastAnswers,
+    ...answers
+  }
 }
