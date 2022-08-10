@@ -1,64 +1,65 @@
 import { prompt } from "inquirer"
-import { CASE_FIELD_TYPES, DISPLAY_CONTEXT_OPTIONS, NO, YES } from "./constants"
+import { CUSTOM, NO, YES } from "./constants"
 import { session } from "./session"
 import fuzzy from "fuzzy"
 import { CaseFieldKeys } from "./types/types"
+import { getKnownCaseTypeIds } from "./et/configs"
 
-export async function requestCaseTypeID(message: string = "What's the CaseTypeID?") {
-  const choices = ['ET_EnglandWales', 'ET_Scotland']
-  return listOrFreeType("CaseTypeID", message, choices, choices[0])
+export async function askCaseTypeID(answers: any = {}) {
+  const opts = Object.keys(getKnownCaseTypeIds())
+  const key = CaseFieldKeys.CaseTypeID
+
+  answers = await prompt([
+    {
+      name: key,
+      message: "Select the CaseTypeID",
+      type: 'autocomplete',
+      source: (_answers: any, input: string) => fuzzySearch([CUSTOM, ...opts], input)
+    }
+  ], answers)
+
+  if (answers[key] === CUSTOM) {
+    answers = await askBasicFreeEntry({}, key, "Enter a custom value for CaseTypeID")
+    //TODO: There's no support for CaseType.json yet so theres no flow to create one. But we could...
+  }
+
+  return answers
 }
 
-export async function requestCaseFieldType() {
-  return listOrFreeType("FieldType", "What field type should this be?", CASE_FIELD_TYPES, CASE_FIELD_TYPES[0])
+export async function askYesNo(answers: any, name: string, message: string) {
+  return list(answers, name, message, [YES, NO])
 }
 
-export async function requestCaseEventID() {
-  return askBasicFreeEntry('CaseEventID')
-}
-
-export async function askYesNo(name: string, message: string) {
-  return list(name, message, [YES, NO])
-}
-
-export async function askToDuplicate() {
-  let answers = await askYesNo('duplicate', '?')
+export async function askToDuplicate(answers: any) {
+  answers = await askYesNo(answers, 'duplicate', '?')
 
   if (answers.duplicate === NO) {
     return answers
   }
 
-  return requestCaseTypeID()
+  return askCaseTypeID(answers)
 }
 
-async function list(name: string, message: string, choices: string[], defaultValue?: any) {
-  return prompt(
-    [
-      { name, message, type: 'list', choices, default: defaultValue }
-    ]
-  )
+async function list(answers: any, name: string, message: string, choices: string[], defaultValue?: any) {
+  return prompt([{ name, message, type: 'list', choices, default: defaultValue }], answers)
 }
 
-export async function listOrFreeType(name: string, message: string, choices: string[], defaultValue?: any) {
-  const OTHER = "Other..."
+export async function listOrFreeType(answers: any, name: string, message: string, choices: string[], defaultValue?: any) {
+  answers = await list(answers, name, message, [CUSTOM, ...choices], defaultValue)
 
-  let answers = await prompt(
-    [
-      { name, message, type: 'list', choices: [OTHER, ...choices], default: defaultValue }
-    ]
-  )
-
-  if (answers[name] !== OTHER) {
+  if (answers[name] !== CUSTOM) {
     return answers
   }
 
-  return prompt(
-    [
-      { name, message: `Enter a custom value for ${name}` },
-    ]
-  )
+  // We need this to reset the value of <custom> so the user can provide an actual value
+  delete answers[name]
+  return prompt([{ name, message: `Enter a custom value` }], answers)
 }
 
-export async function askBasicFreeEntry(name: string, message?: string, defaultValue?: any) {
-  return prompt([{ name, message: message || `What's the ${name}?`, default: defaultValue || session.lastAnswers[name] }])
+export async function askBasicFreeEntry(answers: any, name: string, message?: string, defaultValue?: any) {
+  return prompt([{ name, message: message || `What's the ${name}?`, default: defaultValue || session.lastAnswers[name] }], answers || {})
+}
+
+export function fuzzySearch(choices: string[], input = '') {
+  return fuzzy.filter(input, [...choices].sort()).map((el) => el.original)
 }

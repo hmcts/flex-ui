@@ -17,6 +17,7 @@ export const DISPLAY_CONTEXT_OPTIONS = ['READONLY', 'OPTIONAL', 'MANDATORY', 'CO
 export const YES = 'Yes'
 export const NO = 'No'
 export const YES_OR_NO = [YES, NO]
+export const Y_OR_N = ['Y', 'N']
 export const NO_DUPLICATE = 'Don\'t duplicate'
 
 export const JOURNEY_DIR = 'journeys'
@@ -41,3 +42,7 @@ export const FIELD_TYPES_NEED_SCRUBBED = [
   'FixedRadioList',
   'MultiSelectList',
 ]
+
+export const NONE = '<none>'
+export const CUSTOM = '<custom>'
+export const CANCEL = '<cancel>'

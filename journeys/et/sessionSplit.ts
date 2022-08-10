@@ -3,8 +3,15 @@ import { getFieldCount, getFieldsPerPage, getPageCount, saveSession, session } f
 import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, Journey, Scrubbed, Session } from "types/types";
 import { createNewSession } from "app/objects";
 import { getObjectsReferencedByCaseFields } from "app/et/duplicateCaseField";
-import { upsertFields } from "app/helpers";
+import { format, upsertFields } from "app/helpers";
 import { COMPOUND_KEYS } from "app/et/constants";
+
+const QUESTION_PAGE_ID = `Export fields from what page?`;
+const QUESTION_PAGE_ID_START = 'Starting from (including) what page ID?';
+const QUESTION_PAGE_ID_END = `Up to (including) what page ID?`;
+const QUESTION_NAME = "What's the name of the session to export {0} fields to?"
+const QUESTION_NAME_BY_PAGE = `What's the name of the session to export page {0} ({1} fields) to?`
+const QUESTION_NAME_NO_COUNT = 'Whats the name for this session file?';
 
 async function splitSession() {
   const ALL = "ALL"
@@ -23,7 +30,7 @@ async function splitSession() {
 
   const answers = await prompt(
     [
-      { name: 'PageID', message: `Export fields from what page?`, type: 'list', choices: [...pageChoices, new Separator(), RANGE, ALL, new Separator()] },
+      { name: 'PageID', message: QUESTION_PAGE_ID, type: 'list', choices: [...pageChoices, new Separator(), RANGE, ALL, new Separator()] },
     ]
   )
 
@@ -38,7 +45,7 @@ async function splitSession() {
   const fieldCountOnPage = validPages[answers.PageID]
 
   const followup = await prompt([
-    { name: 'sessionName', message: `What's the name of the session to export ${fieldCountOnPage} fields to?`, type: 'input' },
+    { name: 'sessionName', message: format(QUESTION_NAME, fieldCountOnPage), type: 'input' },
   ])
 
   createSessionFromPage(answers.PageID, followup.sessionName)
@@ -51,7 +58,7 @@ async function splitPageByPage(fieldCountByPage: Record<number, number>) {
     const fieldCountOnPage = fieldCountByPage[i]
 
     const answers = await prompt([
-      { name: 'sessionName', message: `What's the name of the session to export page ${i} (${fieldCountOnPage} fields) to?`, type: 'input' },
+      { name: 'sessionName', message:format(QUESTION_NAME_BY_PAGE, i, fieldCountOnPage), type: 'input' },
     ])
 
     createSessionFromPage(i, answers.sessionName)
@@ -60,14 +67,14 @@ async function splitPageByPage(fieldCountByPage: Record<number, number>) {
 
 async function splitRangePage(pageChoices: { name: string; value: number; }[]) {
   let answers = await prompt([
-    { name: 'startPage', message: 'Starting from (including) what page ID?', type: 'list', choices: pageChoices },
+    { name: 'startPage', message: QUESTION_PAGE_ID_START, type: 'list', choices: pageChoices },
   ])
 
   const lastPageChoice = pageChoices.filter(o => o.value > Number(answers.startPage)).sort()
 
   answers = await prompt([
-    { name: 'lastPage', message: `Up to (including) what page ID?`, type: 'list', choices: [...lastPageChoice, new Separator()] },
-    { name: 'sessionName', message: 'Whats the name for this session file?', type: 'input' }
+    { name: 'lastPage', message: QUESTION_PAGE_ID_END, type: 'list', choices: [...lastPageChoice, new Separator()] },
+    { name: 'sessionName', message: QUESTION_NAME_NO_COUNT, type: 'input' }
   ], answers)
 
   const newSession = createNewSession(answers.sessionName)

@@ -1,17 +1,33 @@
 import { prompt } from "inquirer";
-import { addToLastAnswers, findPreviousSessions, restorePreviousSession, session } from "app/session";
+import { addToLastAnswers, session } from "app/session";
 import { CaseEventKeys, CaseEventToFieldKeys, CaseFieldKeys, Journey } from "types/types";
-import { askBasicFreeEntry, listOrFreeType, requestCaseTypeID } from "app/questions";
-import { CASE_FIELD_TYPES, DISPLAY_CONTEXT_OPTIONS, FIELD_TYPES_NEED_PARAMETER, FIELD_TYPES_NEED_SCRUBBED, FIELD_TYPES_NO_PARAMETER, NO, YES, YES_OR_NO } from "app/constants";
-import fuzzy from "fuzzy"
+import { askBasicFreeEntry, askCaseTypeID, fuzzySearch } from "app/questions";
+import { CUSTOM, DISPLAY_CONTEXT_OPTIONS, FIELD_TYPES_NO_PARAMETER, NONE } from "app/constants";
 import { addToInMemoryConfig, getCaseEventIDOpts, getKnownCaseFieldTypeParameters, getKnownCaseFieldTypes } from "app/et/configs";
 import { addOnDuplicateQuestion } from "./manageDuplicateField";
 import { createAuthorisationCaseFields, createNewCaseEventToField, createNewCaseField, trimCaseEventToField, trimCaseField } from "app/objects";
 import { createScrubbed } from "./createScrubbed";
 import { createEvent } from "./createEvent";
+import { format } from "app/helpers";
 
-const NONE = '<none>'
-const CUSTOM = '<custom>'
+export const QUESTION_ID = `What's the ID for this field?`;
+const QUESTION_LABEL = 'What text (Label) should this field have?';
+export const QUESTION_PAGE_ID = `What page will this field appear on?`;
+export const QUESTION_PAGE_FIELD_DISPLAY_ORDER = `Whats the PageFieldDisplayOrder for this field?`;
+export const QUESTION_FIELD_SHOW_CONDITION = 'Enter a field show condition string (optional)';
+const QUESTION_CASE_EVENT_ID = `What event does this new field belong to?`;
+const QUESTION_FIELD_TYPE_PARAMETER = "What's the parameter for this {0} field?"
+const QUESTION_FIELD_TYPE = "What's the type of this field?";
+const QUESTION_FIELD_TYPE_CUSTOM = "What's the name of the FieldType?";
+const QUESTION_HINT_TEXT = 'What HintText should this field have? (optional)';
+const QUESTION_DISPLAY_CONTEXT = 'Is this field READONLY, OPTIONAL, MANDATORY or COMPLEX?';
+const QUESTION_SHOW_SUMMARY_CHANGE_OPTION = 'Should this field appear on the CYA page?';
+const QUESTION_MIN = 'Enter a min for this field (optional)';
+const QUESTION_MAX = 'Enter a max for this field (optional)';
+const QUESTION_PAGE_LABEL = 'Does this page have a custom title? (optional)';
+const QUESTION_PAGE_SHOW_CONDITION = 'Enter a page show condition string (optional)';
+const QUESTION_CALLBACK_URL_MID_EVENT = 'Enter the callback url to hit before loading the next page (optional)';
+const QUESTION_REGULAR_EXPRESSION = "Do we need a RegularExpression for the field?";
 
 async function createSingleField() {
   let answers = await askBasic({})
@@ -50,20 +66,21 @@ async function createSingleField() {
 }
 
 async function askBasic(answers: any = {}) {
+  answers = await askCaseTypeID(answers)
+  answers = await askCaseEvent(answers)
+
   return prompt(
     [
-      { name: CaseFieldKeys.ID, message: `What's the ID for this field?`, type: 'input' },
-      { name: CaseFieldKeys.Label, message: 'What text (Label) should this field have?', type: 'input' },
-      { name: CaseEventToFieldKeys.PageID, message: `What page will this field appear on?`, type: 'number', default: session.lastAnswers.PageID || 1 },
-      { name: CaseEventToFieldKeys.PageFieldDisplayOrder, message: `Whats the PageFieldDisplayOrder for this field?`, type: 'number', default: session.lastAnswers.PageFieldDisplayOrder + 1 || 1 },
-      { name: CaseEventToFieldKeys.FieldShowCondition, message: 'Enter a field show condition string (optional)', type: 'input' }
+      { name: CaseFieldKeys.ID, message: QUESTION_ID, type: 'input' },
+      { name: CaseFieldKeys.Label, message: QUESTION_LABEL, type: 'input' },
+      { name: CaseEventToFieldKeys.PageID, message: QUESTION_PAGE_ID, type: 'number', default: session.lastAnswers.PageID || 1 },
+      { name: CaseEventToFieldKeys.PageFieldDisplayOrder, message: QUESTION_PAGE_FIELD_DISPLAY_ORDER, type: 'number', default: session.lastAnswers.PageFieldDisplayOrder + 1 || 1 },
+      { name: CaseEventToFieldKeys.FieldShowCondition, message: QUESTION_FIELD_SHOW_CONDITION, type: 'input' }
     ],
-    {
-      ...answers,
-      ... await requestCaseTypeID(),
-      ... await askCaseEvent()
-    })
+    answers
+  )
 }
+
 
 export async function askCaseEvent(answers: any = {}) {
   const opts = Object.keys(getCaseEventIDOpts())
@@ -71,22 +88,19 @@ export async function askCaseEvent(answers: any = {}) {
   answers = await prompt([
     {
       name: key,
-      message: `What event does this new field belong to?`,
+      message: QUESTION_CASE_EVENT_ID,
       type: 'autocomplete',
       source: (_answers: any, input: string) => fuzzySearch([CUSTOM, ...opts], input)
     }
   ], answers)
 
   if (answers[key] === CUSTOM) {
-    answers = {
-      ...answers,
-      ...await askBasicFreeEntry(key, "What's the name of the Event?")
-    }
-    await createEvent(answers[key])
+    answers[key] = await createEvent({ CaseTypeID: answers[CaseEventKeys.CaseTypeID] })
   }
 
   return answers
 }
+
 
 async function askFieldTypeParameter(answers: any = {}) {
   const opts = Object.keys(getKnownCaseFieldTypeParameters())
@@ -94,7 +108,7 @@ async function askFieldTypeParameter(answers: any = {}) {
   answers = await prompt([
     {
       name: key,
-      message: `What's the parameter for this ${answers[CaseFieldKeys.FieldType]} field?`,
+      message: format(QUESTION_FIELD_TYPE_PARAMETER, answers[CaseFieldKeys.FieldType]),
       type: 'autocomplete',
       source: (_answers: any, input: string) => fuzzySearch([NONE, CUSTOM, ...opts], input)
     }
@@ -103,15 +117,13 @@ async function askFieldTypeParameter(answers: any = {}) {
   if (answers[key] === NONE) {
     answers[key] = ''
   } else if (answers[key] === CUSTOM) {
-    answers = {
-      ...answers,
-      ...await askBasicFreeEntry(key, "What's the name of the FieldTypeParameter?")
-    }
-    await createScrubbed(answers[key])
+    delete answers[key]
+    answers[key] = await createScrubbed({})
   }
 
   return answers
 }
+
 
 async function askFieldType(answers: any = {}) {
   const opts = Object.keys(getKnownCaseFieldTypes())
@@ -119,54 +131,43 @@ async function askFieldType(answers: any = {}) {
   answers = await prompt([
     {
       name: key,
-      message: "What's the type of this field?",
+      message: QUESTION_FIELD_TYPE,
       type: 'autocomplete',
       source: (_answers: any, input: string) => fuzzySearch([CUSTOM, ...opts], input)
     }
   ], answers)
 
   if (answers[key] === CUSTOM) {
-    answers = {
-      ...answers,
-      ...await askBasicFreeEntry(key, "What's the name of the FieldType?")
-    }
+    answers = await askBasicFreeEntry(key, QUESTION_FIELD_TYPE_CUSTOM)
+    // TODO: Add ComplexType creation route here when ComplexType support is added
   }
 
   return answers
 }
 
-function fuzzySearch(choices: string[], input = '') {
-  return fuzzy.filter(input, choices.sort()).map((el) => el.original)
-}
-
 async function askNonLabelQuestions(answers: any = {}) {
   return prompt([
-    { name: CaseFieldKeys.HintText, message: 'What HintText should this field have? (optional)', type: 'input' },
-    { name: CaseEventToFieldKeys.DisplayContext, message: 'Is this field READONLY, OPTIONAL, MANDATORY or COMPLEX?', type: 'list', choices: DISPLAY_CONTEXT_OPTIONS, default: DISPLAY_CONTEXT_OPTIONS[1] },
-    { name: CaseEventToFieldKeys.ShowSummaryChangeOption, message: 'Should this field appear on the CYA page?', type: 'list', choices: ['Y', 'N'], default: 'Y' },
-    { name: CaseFieldKeys.Min, message: 'Enter a min for this field (optional)', },
-    { name: CaseFieldKeys.Max, message: 'Enter a max for this field (optional)', },
-  ], {
-    ...answers
-  })
+    { name: CaseFieldKeys.HintText, message: QUESTION_HINT_TEXT, type: 'input' },
+    { name: CaseEventToFieldKeys.DisplayContext, message: QUESTION_DISPLAY_CONTEXT, type: 'list', choices: DISPLAY_CONTEXT_OPTIONS, default: DISPLAY_CONTEXT_OPTIONS[1] },
+    { name: CaseEventToFieldKeys.ShowSummaryChangeOption, message: QUESTION_SHOW_SUMMARY_CHANGE_OPTION, type: 'list', choices: ['Y', 'N'], default: 'Y' },
+    { name: CaseFieldKeys.Min, message: QUESTION_MIN, },
+    { name: CaseFieldKeys.Max, message: QUESTION_MAX, },
+  ], answers)
 }
 
 export async function askFirstOnPageQuestions(answers: any = {}) {
   return prompt([
-    { name: CaseEventToFieldKeys.PageLabel, message: 'Does this page have a custom title? (optional)', type: 'input' },
-    { name: CaseEventToFieldKeys.PageShowCondition, message: 'Enter a page show condition string (optional)', type: 'input' },
-    { name: CaseEventToFieldKeys.CallBackURLMidEvent, message: 'Enter the callback url to hit before loading the next page (optional)', type: 'input' }
-  ], {
-    ...answers
-  })
+    { name: CaseEventToFieldKeys.PageLabel, message: QUESTION_PAGE_LABEL, type: 'input' },
+    { name: CaseEventToFieldKeys.PageShowCondition, message: QUESTION_PAGE_SHOW_CONDITION, type: 'input' },
+    { name: CaseEventToFieldKeys.CallBackURLMidEvent, message: QUESTION_CALLBACK_URL_MID_EVENT, type: 'input' }
+  ], answers)
 }
+
 
 async function askForRegularExpression(answers: any = {}) {
   return prompt([
-    { name: CaseFieldKeys.RegularExpression, message: "Do we need a RegularExpression for the field?", type: 'input' }
-  ], {
-    ...answers
-  })
+    { name: CaseFieldKeys.RegularExpression, message: QUESTION_REGULAR_EXPRESSION, type: 'input' }
+  ], answers)
 }
 
 export default {

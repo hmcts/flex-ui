@@ -3,10 +3,14 @@ import { addNewScrubbed } from "app/et/configs";
 import { prompt } from "inquirer";
 import { Journey, Scrubbed } from "types/types";
 
-export async function createScrubbed(id: string) {
-  const answers = id ? { id } : await prompt([
-    { name: 'id', message: "What's the name of the new Scrubbed list?" }
-  ])
+const QUESTION_ID = "What's the name of the new Scrubbed list?";
+const QUESTION_LIST_ELEMENT = `What should be displayed to the user when selecting this option?`;
+const QUESTION_LIST_ELEMENT_CODE = `Give a ListElementCode for this item`;
+const QUESTION_DISPLAY_ORDER = `Whats the DisplayOrder for this item?`;
+const QUESTION_ADD_ANOTHER = `Add another?`;
+
+export async function createScrubbed(answers: any) {
+  answers = await prompt([{ name: 'ID', message: QUESTION_ID }], answers)
 
   let createdItems: Scrubbed[] = []
 
@@ -14,13 +18,13 @@ export async function createScrubbed(id: string) {
   while (true) {
     x++
     const followup = await prompt([
-      { name: 'ListElement', message: `What should be displayed to the user when selecting this option?` },
+      { name: 'ListElement', message: QUESTION_LIST_ELEMENT },
     ])
 
     const more = await prompt([
-      { name: 'ListElementCode', message: `Give a ListElementCode for this item`, default: followup.ListElement },
-      { name: 'DisplayOrder', message: `Whats the DisplayOrder for this item?`, default: x },
-      { name: 'More', message: `Add another?`, type: 'list', choices: YES_OR_NO }
+      { name: 'ListElementCode', message: QUESTION_LIST_ELEMENT_CODE, default: followup.ListElement },
+      { name: 'DisplayOrder', message: QUESTION_DISPLAY_ORDER, default: x },
+      { name: 'More', message: QUESTION_ADD_ANOTHER, type: 'list', choices: YES_OR_NO }
     ])
 
     if (!more.ListElementCode) {
@@ -32,7 +36,7 @@ export async function createScrubbed(id: string) {
     }
 
     createdItems.push({
-      ID: answers.id,
+      ID: answers.ID,
       ListElement: followup.ListElement,
       ListElementCode: more.ListElementCode,
       DisplayOrder: more.DisplayOrder
@@ -45,7 +49,7 @@ export async function createScrubbed(id: string) {
 
   addNewScrubbed(createdItems)
 
-  return answers.Name
+  return answers.ID
 }
 
 export default {

@@ -1,5 +1,5 @@
 import { AuthorisationCaseField, CaseField, Journey } from "types/types";
-import { requestCaseTypeID } from "app/questions";
+import { askCaseTypeID } from "app/questions";
 import { getConfigSheetsForCaseTypeId } from "app/et/configs";
 import { createAuthorisationCaseFields } from "app/objects";
 import { findMissing, matcher } from "app/helpers";
@@ -8,7 +8,7 @@ import { writeFileSync } from "fs";
 import { resolve } from "path";
 
 async function validateCaseFieldAuths() {
-  const { CaseTypeID } = await requestCaseTypeID()
+  const { CaseTypeID } = await askCaseTypeID()
   const region = getConfigSheetsForCaseTypeId(CaseTypeID)
 
   const caseFieldsForType = region.CaseField.filter(o => o.CaseTypeID === CaseTypeID)

@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync } from "fs"
 import { readdir } from "fs/promises"
 import { resolve } from "path"
+import fuzzy from "fuzzy"
 
 /**
  * Ensures a path exists by creating its parent directories and then itself
@@ -48,12 +49,12 @@ export function findMissing<T>(to: T[], from: T[], keys: (keyof (T))[]) {
 }
 
 
-export function upsertFields<T>(to: T[], from: T[], keys: (keyof (T))[], spliceIndexFn?: () => number) {
+export function upsertFields<T>(to: T[], from: T[], keys: (keyof (T))[], spliceIndexFn?: (obj: T, arr: T[]) => number) {
   for (const obj of from) {
     const existingIndex = to.findIndex(o => matcher(o, obj, keys))
     if (existingIndex === -1) {
       if (spliceIndexFn) {
-        const chosenIndex = spliceIndexFn()
+        const chosenIndex = spliceIndexFn(obj, to)
         to.splice(chosenIndex, 0, obj)
       } else {
         to.push(obj)
@@ -81,4 +82,20 @@ export function matcher<T>(item1: T, item2: T, keys: (keyof (T))[]) {
     }
   }
   return true
+}
+
+export function findLastIndex<T>(arr: T[], predicate: (value: T, index: number, obj: T[]) => unknown) {
+  const reversed = [...arr].reverse()
+  const indexReversed = reversed.findIndex(predicate)
+
+  return arr.length - indexReversed - 1
+}
+
+export function format(template: string, ...args: (string | number)[]) {
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    template = template.replace(new RegExp(`\\{${i}\\}`, 'g'), String(arg))
+  }
+
+  return template
 }

@@ -1,13 +1,12 @@
 import { readFileSync, writeFileSync } from "fs"
 import { sep } from "path"
-import { upsertFields } from "../helpers"
+import { findLastIndex, upsertFields } from "../helpers"
 import { addToSession } from "../session"
-const { exec } = require("child_process");
+import { exec } from "child_process";
 import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, ConfigSheets, EventToComplexType, Scrubbed } from "../types/types"
 import { COMPOUND_KEYS } from "./constants";
 
 let englandwales: ConfigSheets
-
 let scotland: ConfigSheets
 
 function getJson(envvar: string, name: string) {
@@ -26,44 +25,34 @@ export function getConfigSheetsForCaseTypeId(caseTypeId: string) {
   return caseTypeId.startsWith("ET_EnglandWales") ? getEnglandWales() : getScotland()
 }
 
+function getUniqueByKey<T>(arr: T[], key: keyof (T), defaultOption?: string) {
+  return arr.reduce((acc: Record<string, any>, obj: T) => {
+    const accKey = String(obj[key])
+    if (!acc[accKey]) {
+      acc[accKey] = true
+    }
+    return acc
+  }, defaultOption ? { [defaultOption]: true } : {})
+}
+
 export function getCaseEventIDOpts(defaultOption?: string) {
-  return [...englandwales.CaseEvent, ...scotland.CaseEvent]
-    .reduce((acc: Record<string, any>, obj: CaseEvent) => {
-      if (!acc[obj.ID]) {
-        acc[obj.ID] = true
-      }
-      return acc
-    }, defaultOption ? { [defaultOption]: true } : {})
+  return getUniqueByKey([...englandwales.CaseEvent, ...scotland.CaseEvent], 'ID', defaultOption)
 }
 
 export function getScrubbedOpts(defaultOption?: string) {
-  return [...englandwales.Scrubbed, ...scotland.Scrubbed]
-    .reduce((acc: Record<string, any>, obj: Scrubbed) => {
-      if (!acc[obj.ID]) {
-        acc[obj.ID] = true
-      }
-      return acc
-    }, defaultOption ? { [defaultOption]: true } : {})
+  return getUniqueByKey([...englandwales.Scrubbed, ...scotland.Scrubbed], 'ID', defaultOption)
 }
 
 export function getKnownCaseFieldTypes(defaultOption?: string) {
-  return [...englandwales.CaseField, ...scotland.CaseField]
-    .reduce((acc: Record<string, any>, obj: CaseField) => {
-      if (!acc[obj.FieldType]) {
-        acc[obj.FieldType] = true
-      }
-      return acc
-    }, defaultOption ? { [defaultOption]: true } : {})
+  return getUniqueByKey([...englandwales.CaseField, ...scotland.CaseField], 'FieldType', defaultOption)
 }
 
 export function getKnownCaseFieldTypeParameters(defaultOption?: string) {
-  return [...englandwales.CaseField, ...scotland.CaseField]
-    .reduce((acc: Record<string, any>, obj: CaseField) => {
-      if (!acc[obj.FieldTypeParameter]) {
-        acc[obj.FieldTypeParameter] = true
-      }
-      return acc
-    }, defaultOption ? { [defaultOption]: true } : {})
+  return getUniqueByKey([...englandwales.CaseField, ...scotland.CaseField], 'FieldTypeParameter', defaultOption)
+}
+
+export function getKnownCaseTypeIds() {
+  return getUniqueByKey([...englandwales.CaseField, ...scotland.CaseField], 'CaseTypeID')
 }
 
 export function readInCurrentConfig() {
@@ -156,29 +145,29 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
     }
   }
 
-  const ewCaseFields = fields.CaseField.filter(o => o.CaseTypeID === "ET_EnglandWales")
-  const ewCaseEventToFields = fields.CaseEventToFields.filter(o => o.CaseTypeID === "ET_EnglandWales")
-  const ewAuthorsationCaseFields = fields.AuthorisationCaseField.filter(o => o.CaseTypeId === "ET_EnglandWales")
-  const ewAuthorsationCaseEvents = fields.AuthorisationCaseEvent.filter(o => o.CaseTypeId === "ET_EnglandWales")
+  const ewCaseFields = fields.CaseField.filter(o => o.CaseTypeID.startsWith("ET_EnglandWales"))
+  const ewCaseEventToFields = fields.CaseEventToFields.filter(o => o.CaseTypeID.startsWith("ET_EnglandWales"))
+  const ewAuthorsationCaseFields = fields.AuthorisationCaseField.filter(o => o.CaseTypeId.startsWith("ET_EnglandWales"))
+  const ewAuthorsationCaseEvents = fields.AuthorisationCaseEvent.filter(o => o.CaseTypeId.startsWith("ET_EnglandWales"))
 
-  const scCaseFields = fields.CaseField.filter(o => o.CaseTypeID === "ET_Scotland")
-  const scCaseEventToFields = fields.CaseEventToFields.filter(o => o.CaseTypeID === "ET_Scotland")
-  const scAuthorsationCaseFields = fields.AuthorisationCaseField.filter(o => o.CaseTypeId === "ET_Scotland")
-  const scAuthorsationCaseEvents = fields.AuthorisationCaseEvent.filter(o => o.CaseTypeId === "ET_Scotland")
+  const scCaseFields = fields.CaseField.filter(o => o.CaseTypeID.startsWith("ET_Scotland"))
+  const scCaseEventToFields = fields.CaseEventToFields.filter(o => o.CaseTypeID.startsWith("ET_Scotland"))
+  const scAuthorsationCaseFields = fields.AuthorisationCaseField.filter(o => o.CaseTypeId.startsWith("ET_Scotland"))
+  const scAuthorsationCaseEvents = fields.AuthorisationCaseEvent.filter(o => o.CaseTypeId.startsWith("ET_Scotland"))
 
-  upsertFields<CaseField>(englandwales.CaseField, ewCaseFields, COMPOUND_KEYS.CaseField, () => englandwales.CaseField.findIndex(o => o.CaseTypeID.endsWith("_Listings")))
-  upsertFields<CaseEventToField>(englandwales.CaseEventToFields, ewCaseEventToFields, COMPOUND_KEYS.CaseEventToField, () => englandwales.CaseEventToFields.findIndex(o => o.CaseTypeID.endsWith("_Listings")))
-  upsertFields<AuthorisationCaseEvent>(englandwales.AuthorisationCaseEvent, ewAuthorsationCaseEvents, COMPOUND_KEYS.AuthorisationCaseEvent, () => englandwales.AuthorisationCaseEvent.findIndex(o => o.CaseTypeId.endsWith("_Listings")))
-  upsertFields<AuthorisationCaseField>(englandwales.AuthorisationCaseField, ewAuthorsationCaseFields, COMPOUND_KEYS.AuthorisationCaseField, () => englandwales.AuthorisationCaseField.findIndex(o => o.CaseTypeId.endsWith("_Listings")))
+  upsertFields(englandwales.CaseField, ewCaseFields, COMPOUND_KEYS.CaseField, (x, arr) => findLastIndex(arr, o => o.CaseTypeID === x.CaseTypeID) + 1)
+  upsertFields(englandwales.CaseEventToFields, ewCaseEventToFields, COMPOUND_KEYS.CaseEventToField, (x, arr) => findLastIndex(arr, o => o.CaseTypeID === x.CaseTypeID) + 1)
+  upsertFields(englandwales.AuthorisationCaseEvent, ewAuthorsationCaseEvents, COMPOUND_KEYS.AuthorisationCaseEvent, (x, arr) => findLastIndex(arr, o => o.CaseTypeId === x.CaseTypeId) + 1)
+  upsertFields(englandwales.AuthorisationCaseField, ewAuthorsationCaseFields, COMPOUND_KEYS.AuthorisationCaseField, (x, arr) => findLastIndex(arr, o => o.CaseTypeId === x.CaseTypeId) + 1)
 
-  upsertFields<EventToComplexType>(englandwales.EventToComplexTypes, fields.EventToComplexTypes, COMPOUND_KEYS.EventToComplexType)
+  upsertFields(englandwales.EventToComplexTypes, fields.EventToComplexTypes, COMPOUND_KEYS.EventToComplexType)
 
-  upsertFields<CaseField>(scotland.CaseField, scCaseFields, COMPOUND_KEYS.CaseField, () => scotland.CaseField.findIndex(o => o.CaseTypeID.endsWith("_Listings")))
-  upsertFields<CaseEventToField>(scotland.CaseEventToFields, scCaseEventToFields, COMPOUND_KEYS.CaseEventToField, () => scotland.CaseEventToFields.findIndex(o => o.CaseTypeID.endsWith("_Listings")))
-  upsertFields<AuthorisationCaseEvent>(scotland.AuthorisationCaseEvent, scAuthorsationCaseEvents, COMPOUND_KEYS.AuthorisationCaseEvent, () => scotland.AuthorisationCaseEvent.findIndex(o => o.CaseTypeId.endsWith("_Listings")))
-  upsertFields<AuthorisationCaseField>(scotland.AuthorisationCaseField, scAuthorsationCaseFields, COMPOUND_KEYS.AuthorisationCaseField, () => scotland.AuthorisationCaseField.findIndex(o => o.CaseTypeId.endsWith("_Listings")))
+  upsertFields(scotland.CaseField, scCaseFields, COMPOUND_KEYS.CaseField, (x, arr) => findLastIndex(arr, o => o.CaseTypeID === x.CaseTypeID) + 1)
+  upsertFields(scotland.CaseEventToFields, scCaseEventToFields, COMPOUND_KEYS.CaseEventToField, (x, arr) => findLastIndex(arr, o => o.CaseTypeID === x.CaseTypeID) + 1)
+  upsertFields(scotland.AuthorisationCaseEvent, scAuthorsationCaseEvents, COMPOUND_KEYS.AuthorisationCaseEvent, (x, arr) => findLastIndex(arr, o => o.CaseTypeId === x.CaseTypeId) + 1)
+  upsertFields(scotland.AuthorisationCaseField, scAuthorsationCaseFields, COMPOUND_KEYS.AuthorisationCaseField, (x, arr) => findLastIndex(arr, o => o.CaseTypeId === x.CaseTypeId) + 1)
 
-  upsertFields<EventToComplexType>(scotland.EventToComplexTypes, fields.EventToComplexTypes, COMPOUND_KEYS.EventToComplexType)
+  upsertFields(scotland.EventToComplexTypes, fields.EventToComplexTypes, COMPOUND_KEYS.EventToComplexType)
 
   addToSession({
     AuthorisationCaseField: ewAuthorsationCaseFields,

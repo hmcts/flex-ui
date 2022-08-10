@@ -1,24 +1,23 @@
 import { prompt } from "inquirer";
-import { findPreviousSessions, restorePreviousSession, session } from "app/session";
+import { session } from "app/session";
 import { CaseEventToFieldKeys, CaseFieldKeys, Journey } from "types/types";
-import { requestCaseTypeID } from "app/questions";
-import { createAuthorisationCaseEvent, createAuthorisationCaseFields, createNewCaseEvent, createNewCaseEventToField, createNewCaseField, trimCaseEventToField, trimCaseField } from "app/objects";
-import { addToInMemoryConfig, upsertNewCaseEvent } from "app/et/configs";
-import { askCaseEvent, askFirstOnPageQuestions } from "./createSingleField";
+import { askCaseTypeID } from "app/questions";
+import { createAuthorisationCaseFields, createNewCaseEventToField, createNewCaseField, trimCaseEventToField, trimCaseField } from "app/objects";
+import { addToInMemoryConfig } from "app/et/configs";
+import { askCaseEvent, askFirstOnPageQuestions, QUESTION_FIELD_SHOW_CONDITION, QUESTION_ID, QUESTION_PAGE_FIELD_DISPLAY_ORDER, QUESTION_PAGE_ID } from "./createSingleField";
 import { addOnDuplicateQuestion } from "./manageDuplicateField";
 
-export async function createCallbackPopulatedLabel() {
-  let answers = await prompt(
+export async function createCallbackPopulatedLabel(answers: any) {
+  answers = await askCaseTypeID(answers)
+  answers = await askCaseEvent(answers)
+
+  answers = await prompt(
     [
-      { name: CaseFieldKeys.ID, message: `What's the ID for this field?`, type: 'input' },
-      { name: CaseEventToFieldKeys.PageID, message: `What page will this field appear on?`, type: 'number', default: session.lastAnswers.PageID || 1 },
-      { name: CaseEventToFieldKeys.PageFieldDisplayOrder, message: `Whats the PageFieldDisplayOrder for this field?`, type: 'number', default: session.lastAnswers.PageFieldDisplayOrder + 1 || 1 },
-      { name: CaseEventToFieldKeys.FieldShowCondition, message: 'Enter a field show condition string (leave blank if not needed)', type: 'input' }
-    ],
-    {
-      ... await requestCaseTypeID(),
-      ... await askCaseEvent()
-    }
+      { name: CaseFieldKeys.ID, message: QUESTION_ID, type: 'input' },
+      { name: CaseEventToFieldKeys.PageID, message: QUESTION_PAGE_ID, type: 'number', default: session.lastAnswers.PageID || 1 },
+      { name: CaseEventToFieldKeys.PageFieldDisplayOrder, message: QUESTION_PAGE_FIELD_DISPLAY_ORDER, type: 'number', default: session.lastAnswers.PageFieldDisplayOrder + 1 || 1 },
+      { name: CaseEventToFieldKeys.FieldShowCondition, message: QUESTION_FIELD_SHOW_CONDITION, type: 'input' }
+    ], answers
   )
 
   if (answers[CaseEventToFieldKeys.PageFieldDisplayOrder] === 1) {

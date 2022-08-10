@@ -2,22 +2,13 @@ import 'source-map-support/register'
 import { config as envConfig } from 'dotenv'
 import { prompt, Separator, registerPrompt } from 'inquirer'
 import autocomplete from "inquirer-autocomplete-prompt"
-import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, ConfigSheets, Journey, Scrubbed, Session } from './types/types'
-import { createAuthorisationCaseEvent, createAuthorisationCaseFields, createNewCaseEvent, createNewCaseEventToField, createNewCaseField, createNewEventToComplexType, createNewSession, trimCaseEventToField, trimCaseField } from './objects'
-import { addNewScrubbed, addToInMemoryConfig, execGenerateSpreadsheet, getScrubbedOpts, upsertNewCaseEvent, readInCurrentConfig, saveBackToProject, getCaseEventIDOpts, execImportConfig, getConfigSheetsForCaseTypeId } from './et/configs'
-import { ensurePathExists, getFiles, upsertFields } from './helpers'
-import { findPreviousSessions, getFieldCount, getFieldsPerPage, getPageCount, restorePreviousSession, saveSession, session, SESSION_DIR } from './session'
-import { ensureUp, tearDown } from './setup'
-import { askYesNo, listOrFreeType, requestCaseTypeID } from './questions'
-import { CASE_FIELD_TYPES, DIST_JOURNEY_DIR, JOURNEY_DIR, NO_DUPLICATE } from './constants'
-import fuzzy from "fuzzy"
-import { readdir } from 'fs/promises'
-import { sep } from 'path'
+import { Journey } from './types/types'
+import { getConfigSheetsForCaseTypeId, readInCurrentConfig } from './et/configs'
+import { ensurePathExists, findLastIndex, getFiles } from './helpers'
+import { saveSession, session, SESSION_DIR } from './session'
+import { DIST_JOURNEY_DIR } from './constants'
 // https://dev.to/larswaechter/path-aliases-with-typescript-in-nodejs-4353
 import 'module-alias/register';
-import { addOnDuplicateQuestion } from './journeys/et/manageDuplicateField'
-import { getObjectsReferencedByCaseFields } from './et/duplicateCaseField'
-import { createNewCase } from './web'
 
 envConfig()
 
