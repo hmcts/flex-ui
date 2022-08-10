@@ -10,8 +10,8 @@ export function ensurePathExists(dir: string) {
   const normalized = dir.replace(/\\/g, '/')
   const parts = normalized.split('/')
   let builder = ''
-  for (let i = 0; i < parts.length; i++) {
-    const dirPart = parts[i]
+  for (const element of parts) {
+    const dirPart = element
     builder += dirPart + '/'
     if (!existsSync(builder)) {
       mkdirSync(builder)
@@ -36,11 +36,23 @@ export function deduplicateAddFields<T>(to: T[], from: T[], keys: (keyof (T))[])
   }
 }
 
+export function findMissing<T>(to: T[], from: T[], keys: (keyof (T))[]) {
+  const missing: T[] = []
+  for (const obj of from) {
+    const existingIndex = to.findIndex(o => matcher(o, obj, keys))
+    if (existingIndex === -1) {
+      missing.push(obj)
+    }
+  }
+  return missing
+}
+
+
 export function upsertFields<T>(to: T[], from: T[], keys: (keyof (T))[], spliceIndexFn?: () => number) {
   for (const obj of from) {
     const existingIndex = to.findIndex(o => matcher(o, obj, keys))
     if (existingIndex === -1) {
-      if (spliceIndexFn){
+      if (spliceIndexFn) {
         const chosenIndex = spliceIndexFn()
         to.splice(chosenIndex, 0, obj)
       } else {

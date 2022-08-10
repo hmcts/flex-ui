@@ -1,14 +1,14 @@
 import { prompt } from "inquirer";
 import { Journey } from "types/types";
 import { listOrFreeType, requestCaseTypeID } from "app/questions";
-import { getEnglandWales, getScotland } from "app/et/configs";
+import { getConfigSheetsForCaseTypeId } from "app/et/configs";
 import fuzzy from "fuzzy"
 import { doDuplicateCaseField } from "app/et/duplicateCaseField";
 import { NO_DUPLICATE } from "app/constants";
 
 async function duplicateCaseField() {
   const { CaseTypeID } = await requestCaseTypeID()
-  const region = CaseTypeID.startsWith("ET_EnglandWales") ? getEnglandWales() : getScotland()
+  const region = getConfigSheetsForCaseTypeId(CaseTypeID)
 
   let answers = await prompt([
     {

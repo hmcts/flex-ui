@@ -1,4 +1,4 @@
-import { addToInMemoryConfig, getEnglandWales, getScotland, upsertNewCaseEvent } from "app/et/configs"
+import { addToInMemoryConfig, getConfigSheetsForCaseTypeId, upsertNewCaseEvent } from "app/et/configs"
 import { CaseField, ConfigSheets } from "app/types/types"
 
 export function doDuplicateCaseField(fromCaseTypeId: string, caseFieldId: string, toCaseTypeId: string) {
@@ -43,7 +43,7 @@ function isFieldReferencedInField(caseField: CaseField, caseFieldId: string) {
 }
 
 function getObjectsReferencedByCaseField(caseTypeId: string, caseFieldId: string) {
-  const region = caseTypeId.startsWith("ET_EnglandWales") ? getEnglandWales() : getScotland()
+  const region = getConfigSheetsForCaseTypeId(caseTypeId)
 
   const caseField = region.CaseField.find(o => o.ID === caseFieldId)
 

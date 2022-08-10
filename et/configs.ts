@@ -14,12 +14,16 @@ function getJson(envvar: string, name: string) {
   return JSON.parse(readFileSync(`${envvar}${sep}definitions${sep}json${sep}${name}.json`).toString())
 }
 
-export function getEnglandWales() {
+function getEnglandWales() {
   return englandwales
 }
 
-export function getScotland() {
+function getScotland() {
   return scotland
+}
+
+export function getConfigSheetsForCaseTypeId(caseTypeId: string) {
+  return caseTypeId.startsWith("ET_EnglandWales") ? getEnglandWales() : getScotland()
 }
 
 export function getCaseEventIDOpts(defaultOption?: string) {
@@ -175,7 +179,7 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
   upsertFields<AuthorisationCaseField>(scotland.AuthorisationCaseField, scAuthorsationCaseFields, COMPOUND_KEYS.AuthorisationCaseField, () => scotland.AuthorisationCaseField.findIndex(o => o.CaseTypeId.endsWith("_Listings")))
 
   upsertFields<EventToComplexType>(scotland.EventToComplexTypes, fields.EventToComplexTypes, COMPOUND_KEYS.EventToComplexType)
- 
+
   addToSession({
     AuthorisationCaseField: ewAuthorsationCaseFields,
     CaseField: ewCaseFields,

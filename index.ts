@@ -2,9 +2,9 @@ import 'source-map-support/register'
 import { config as envConfig } from 'dotenv'
 import { prompt, Separator, registerPrompt } from 'inquirer'
 import autocomplete from "inquirer-autocomplete-prompt"
-import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, ConfigSheets, Journey,  Scrubbed, Session } from './types/types'
+import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, ConfigSheets, Journey, Scrubbed, Session } from './types/types'
 import { createAuthorisationCaseEvent, createAuthorisationCaseFields, createNewCaseEvent, createNewCaseEventToField, createNewCaseField, createNewEventToComplexType, createNewSession, trimCaseEventToField, trimCaseField } from './objects'
-import { addNewScrubbed, addToInMemoryConfig, execGenerateSpreadsheet, getScrubbedOpts, upsertNewCaseEvent, readInCurrentConfig, saveBackToProject, getCaseEventIDOpts, getEnglandWales, getScotland, execImportConfig } from './et/configs'
+import { addNewScrubbed, addToInMemoryConfig, execGenerateSpreadsheet, getScrubbedOpts, upsertNewCaseEvent, readInCurrentConfig, saveBackToProject, getCaseEventIDOpts, execImportConfig, getConfigSheetsForCaseTypeId } from './et/configs'
 import { ensurePathExists, getFiles, upsertFields } from './helpers'
 import { findPreviousSessions, getFieldCount, getFieldsPerPage, getPageCount, restorePreviousSession, saveSession, session, SESSION_DIR } from './session'
 import { ensureUp, tearDown } from './setup'
@@ -17,6 +17,7 @@ import { sep } from 'path'
 import 'module-alias/register';
 import { addOnDuplicateQuestion } from './journeys/et/manageDuplicateField'
 import { getObjectsReferencedByCaseFields } from './et/duplicateCaseField'
+import { createNewCase } from './web'
 
 envConfig()
 
@@ -49,33 +50,39 @@ async function discoverJourneys() {
   return files.map(o => require(o).default).filter(o => isJourneyValid(o)) as Journey[]
 }
 
+async function createMainMenuChoices() {
+  const remoteJourneys = await discoverJourneys()
+
+  let choices: Journey[] = []
+
+  remoteJourneys.forEach(o => choices.push(o))
+
+  choices.sort((a, b) => (a.group || 'default') > (b.group || 'default') ? -1 : 1)
+
+  for (let i = 1; i < choices.length; i++) {
+    const journey = choices[i]
+    const previous = choices[i - 1]
+
+    if (journey.group !== previous.group) {
+      choices.splice(i, 0, { text: new Separator() })
+      i++
+    }
+  }
+
+  return [
+    ...choices,
+    { group: 'program', text: 'Exit', fn: async () => { console.log(`Bye!`); process.exit(0) } },
+    { text: new Separator() }
+  ]
+}
+
 async function start() {
   ensurePathExists(SESSION_DIR)
   checkEnvVars()
   readInCurrentConfig()
 
-  const extraJourneys = await discoverJourneys()
-
   while (true) {
-    const journeySplitSessionOpt = `Split current session (${getFieldCount()} fields across ${getPageCount().length} pages)`
-
-    let choices: Journey[] = [
-      { group: 'program', text: 'Exit', fn: async () => { console.log(`Bye!`); process.exit(0) } },
-    ]
-
-    extraJourneys.forEach(o => choices.push(o))
-
-    choices.sort((a, b) => (a.group || 'default') > (b.group || 'default') ? -1 : 1)
-
-    for (let i = 1; i < choices.length; i++) {
-      const journey = choices[i]
-      const previous = choices[i - 1]
-
-      if (journey.group !== previous.group) {
-        choices.splice(i, 0, { text: new Separator() })
-        i++
-      }
-    }
+    let choices: Journey[] = await createMainMenuChoices()
 
     const answers = await prompt([
       {
@@ -89,51 +96,16 @@ async function start() {
     const selectedFn = choices.find(o => (typeof (o.text) === 'function' ? o.text() : o.text) === answers.Journey)
 
     if (!selectedFn) {
-      throw new Error(`Uh-oh, unable to find your selected option. Probably a dev error`)
+      throw new Error(`Unable to find a function for "${answers.Journey}"`)
     }
 
-    if (selectedFn.fn) {
-      await selectedFn.fn()
+    if (!selectedFn.fn || typeof (selectedFn.fn) !== 'function') {
+      throw new Error(`Journey ${answers.Journey} does not have a callable function attached to it`)
     }
+
+    await selectedFn.fn()
 
     saveSession(session)
-  }
-}
-
-async function journeyValidateAuthorisationCaseFields() {
-  const OTHER = "Other..."
-
-  const answers = await prompt(
-    [
-      { name: 'caseTypeId', message: `What is the caseTypeId?`, type: 'list', choices: ["ET_EnglandWales", "ET_Scotland", OTHER] },
-    ]
-  )
-
-  if (answers.caseTypeId === OTHER) {
-    const followup = await prompt(
-      [
-        { name: 'caseTypeId', message: `Enter a custom caseTypeId` },
-      ]
-    )
-    answers.caseTypeId = followup.caseTypeId
-  }
-
-  const region = answers.caseTypeId.startsWith("ET_EnglandWales") ? getEnglandWales() : getScotland()
-
-  const uniqueCaseFields = region.AuthorisationCaseField.filter(o => o.CaseTypeId === answers.caseTypeId).reduce((acc: any, obj) => {
-    acc[obj.CaseFieldID] = true
-    return acc
-  }, {})
-
-  const standardizedRoles = Object.keys(uniqueCaseFields).flatMap(o => createAuthorisationCaseFields(answers.caseTypeId, o))
-    .filter(o => o.UserRole === "caseworker-employment-legalrep-solicitor")
-
-  for (const auth of standardizedRoles) {
-    const alreadyExists = region.AuthorisationCaseField.find(o => o.CaseFieldID === auth.CaseFieldID && o.UserRole === auth.UserRole && o.CaseTypeId === auth.CaseTypeId)
-    if (alreadyExists) continue
-
-    const insertIndex = region.AuthorisationCaseField.findIndex(o => o.CaseFieldID === auth.CaseFieldID)
-    region.AuthorisationCaseField.splice(insertIndex, 0, auth)
   }
 }
 
