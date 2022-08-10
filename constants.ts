@@ -32,6 +32,16 @@ export const FIELD_TYPES_NO_PARAMETER = [
   'Number'
 ]
 
+export const FIELD_TYPES_NO_MIN_MAX = [
+  'Label',
+  'YesOrNo',
+  'FixedRadioList',
+  'FixedList',
+  'Document',
+  'DynamicList',
+  'DynamicRadioList'
+]
+
 export const FIELD_TYPES_NEED_PARAMETER = [
   'Collection',
   'DynamicList'

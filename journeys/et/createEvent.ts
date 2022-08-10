@@ -5,7 +5,7 @@ import { createAuthorisationCaseEvent, createNewCaseEvent } from "app/objects";
 import { addToInMemoryConfig, upsertNewCaseEvent } from "app/et/configs";
 import { Y_OR_N } from "app/constants";
 
-const QUESTION_NAME = 'Give the new event a name';
+const QUESTION_NAME = 'Give the new event a name (shows in the event dropdown)';
 const QUESTION_DESCRIPTION = 'Give the new event a description';
 const QUESTION_DISPLAY_ORDER = 'Where should this event appear in the caseEvent dropdown (DisplayOrder)?';
 const QUESTION_PRECONDITION_STATES = 'What state should the case be in to see this page? (PreConditionState(s))';
@@ -22,9 +22,9 @@ export async function createEvent(answers: any) {
   answers = await askCaseTypeID(answers)
   answers = await prompt(
     [
-      { name: 'Name', message: QUESTION_NAME, type: 'input' },
+      { name: 'Name', message: QUESTION_NAME, type: 'input', default: answers.ID },
       { name: 'Description', message: QUESTION_DESCRIPTION, type: 'input' },
-      { name: 'DisplayOrder', message: QUESTION_DISPLAY_ORDER, type: 'number' },
+      { name: 'DisplayOrder', message: QUESTION_DISPLAY_ORDER, type: 'number', default: 1 },
       { name: 'PreConditionState(s)', message: QUESTION_PRECONDITION_STATES, type: 'input', default: '*' },
       { name: 'PostConditionState', message: QUESTION_POST_CONDITION_STATE, type: 'input', default: '*' },
       { name: 'EventEnablingCondition', message: QUESTION_EVENT_ENABLING_CONDITION, type: 'input' },

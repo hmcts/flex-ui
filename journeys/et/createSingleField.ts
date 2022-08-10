@@ -2,7 +2,7 @@ import { prompt } from "inquirer";
 import { addToLastAnswers, session } from "app/session";
 import { CaseEventKeys, CaseEventToFieldKeys, CaseFieldKeys, Journey } from "types/types";
 import { askBasicFreeEntry, askCaseTypeID, fuzzySearch } from "app/questions";
-import { CUSTOM, DISPLAY_CONTEXT_OPTIONS, FIELD_TYPES_NO_PARAMETER, NONE } from "app/constants";
+import { CUSTOM, DISPLAY_CONTEXT_OPTIONS, FIELD_TYPES_NO_MIN_MAX, FIELD_TYPES_NO_PARAMETER, NONE, Y_OR_N } from "app/constants";
 import { addToInMemoryConfig, getCaseEventIDOpts, getKnownCaseFieldTypeParameters, getKnownCaseFieldTypes } from "app/et/configs";
 import { addOnDuplicateQuestion } from "./manageDuplicateField";
 import { createAuthorisationCaseFields, createNewCaseEventToField, createNewCaseField, trimCaseEventToField, trimCaseField } from "app/objects";
@@ -29,8 +29,10 @@ const QUESTION_PAGE_SHOW_CONDITION = 'Enter a page show condition string (option
 const QUESTION_CALLBACK_URL_MID_EVENT = 'Enter the callback url to hit before loading the next page (optional)';
 const QUESTION_REGULAR_EXPRESSION = "Do we need a RegularExpression for the field?";
 
-async function createSingleField() {
-  let answers = await askBasic({})
+export async function createSingleField(answers: any = {}) {
+  answers = await askBasic(answers)
+
+  answers = await askForPageIdAndDisplayOrder(answers)
 
   answers = await askFieldType(answers)
 
@@ -50,6 +52,10 @@ async function createSingleField() {
     answers = await askForRegularExpression(answers)
   }
 
+  if (!FIELD_TYPES_NO_MIN_MAX.includes(answers[CaseFieldKeys.FieldType])) {
+    answers = await askMinAndMax(answers)
+  }
+
   addToLastAnswers(answers)
 
   const caseField = createNewCaseField(answers)
@@ -63,6 +69,16 @@ async function createSingleField() {
   })
 
   await addOnDuplicateQuestion(answers as { CaseTypeID: string, ID: string })
+
+  return answers.ID
+}
+
+export function getDefaultForPageFieldDisplayOrder(answers: any) {
+  const pageId = CaseEventToFieldKeys.PageID
+  if (answers[pageId] === session.lastAnswers[pageId] && session.lastAnswers[pageId]) {
+    return session.lastAnswers[CaseEventToFieldKeys.PageFieldDisplayOrder] + 1
+  }
+  return 1
 }
 
 async function askBasic(answers: any = {}) {
@@ -71,24 +87,34 @@ async function askBasic(answers: any = {}) {
 
   return prompt(
     [
-      { name: CaseFieldKeys.ID, message: QUESTION_ID, type: 'input' },
-      { name: CaseFieldKeys.Label, message: QUESTION_LABEL, type: 'input' },
-      { name: CaseEventToFieldKeys.PageID, message: QUESTION_PAGE_ID, type: 'number', default: session.lastAnswers.PageID || 1 },
-      { name: CaseEventToFieldKeys.PageFieldDisplayOrder, message: QUESTION_PAGE_FIELD_DISPLAY_ORDER, type: 'number', default: session.lastAnswers.PageFieldDisplayOrder + 1 || 1 },
-      { name: CaseEventToFieldKeys.FieldShowCondition, message: QUESTION_FIELD_SHOW_CONDITION, type: 'input' }
-    ],
-    answers
+      { name: CaseFieldKeys.ID, message: QUESTION_ID, type: 'input', default: 'id' },
+      { name: CaseFieldKeys.Label, message: QUESTION_LABEL, type: 'input', default: 'text' },
+      { name: CaseEventToFieldKeys.FieldShowCondition, message: QUESTION_FIELD_SHOW_CONDITION, type: 'input' },
+    ], answers
   )
 }
 
+export async function askForPageIdAndDisplayOrder(answers: any = {}) {
+  answers = await prompt([{
+    name: CaseEventToFieldKeys.PageID,
+    message: QUESTION_PAGE_ID, type: 'number', default: session.lastAnswers.PageID || 1
+  }], answers)
 
-export async function askCaseEvent(answers: any = {}) {
+  return prompt([{
+    name: CaseEventToFieldKeys.PageFieldDisplayOrder,
+    message: QUESTION_PAGE_FIELD_DISPLAY_ORDER,
+    type: 'number',
+    default: getDefaultForPageFieldDisplayOrder(answers)
+  }], answers)
+}
+
+export async function askCaseEvent(answers: any = {}, message?: string) {
   const opts = Object.keys(getCaseEventIDOpts())
   const key = CaseEventToFieldKeys.CaseEventID
   answers = await prompt([
     {
       name: key,
-      message: QUESTION_CASE_EVENT_ID,
+      message: message || QUESTION_CASE_EVENT_ID,
       type: 'autocomplete',
       source: (_answers: any, input: string) => fuzzySearch([CUSTOM, ...opts], input)
     }
@@ -100,7 +126,6 @@ export async function askCaseEvent(answers: any = {}) {
 
   return answers
 }
-
 
 async function askFieldTypeParameter(answers: any = {}) {
   const opts = Object.keys(getKnownCaseFieldTypeParameters())
@@ -133,7 +158,8 @@ async function askFieldType(answers: any = {}) {
       name: key,
       message: QUESTION_FIELD_TYPE,
       type: 'autocomplete',
-      source: (_answers: any, input: string) => fuzzySearch([CUSTOM, ...opts], input)
+      source: (_answers: any, input: string) => fuzzySearch([CUSTOM, ...opts], input),
+      default: 'Label'
     }
   ], answers)
 
@@ -149,7 +175,12 @@ async function askNonLabelQuestions(answers: any = {}) {
   return prompt([
     { name: CaseFieldKeys.HintText, message: QUESTION_HINT_TEXT, type: 'input' },
     { name: CaseEventToFieldKeys.DisplayContext, message: QUESTION_DISPLAY_CONTEXT, type: 'list', choices: DISPLAY_CONTEXT_OPTIONS, default: DISPLAY_CONTEXT_OPTIONS[1] },
-    { name: CaseEventToFieldKeys.ShowSummaryChangeOption, message: QUESTION_SHOW_SUMMARY_CHANGE_OPTION, type: 'list', choices: ['Y', 'N'], default: 'Y' },
+    { name: CaseEventToFieldKeys.ShowSummaryChangeOption, message: QUESTION_SHOW_SUMMARY_CHANGE_OPTION, type: 'list', choices: Y_OR_N, default: 'Y' },
+  ], answers)
+}
+
+export async function askMinAndMax(answers: any = {}) {
+  return prompt([
     { name: CaseFieldKeys.Min, message: QUESTION_MIN, },
     { name: CaseFieldKeys.Max, message: QUESTION_MAX, },
   ], answers)
@@ -162,7 +193,6 @@ export async function askFirstOnPageQuestions(answers: any = {}) {
     { name: CaseEventToFieldKeys.CallBackURLMidEvent, message: QUESTION_CALLBACK_URL_MID_EVENT, type: 'input' }
   ], answers)
 }
-
 
 async function askForRegularExpression(answers: any = {}) {
   return prompt([

@@ -55,6 +55,10 @@ export function getKnownCaseTypeIds() {
   return getUniqueByKey([...englandwales.CaseField, ...scotland.CaseField], 'CaseTypeID')
 }
 
+export function getKnownCaseFieldIds() {
+  return getUniqueByKey([...englandwales.CaseField, ...scotland.CaseField], 'ID')
+}
+
 export function readInCurrentConfig() {
   englandwales = {
     AuthorisationCaseField: getJson(process.env.ENGWALES_DEF_DIR, "AuthorisationCaseField"),

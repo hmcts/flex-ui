@@ -1,11 +1,11 @@
 import { prompt } from "inquirer";
-import { session } from "app/session";
 import { CaseEventToFieldKeys, CaseFieldKeys, Journey } from "types/types";
 import { askCaseTypeID } from "app/questions";
 import { createAuthorisationCaseFields, createNewCaseEventToField, createNewCaseField, trimCaseEventToField, trimCaseField } from "app/objects";
 import { addToInMemoryConfig } from "app/et/configs";
-import { askCaseEvent, askFirstOnPageQuestions, QUESTION_FIELD_SHOW_CONDITION, QUESTION_ID, QUESTION_PAGE_FIELD_DISPLAY_ORDER, QUESTION_PAGE_ID } from "./createSingleField";
+import { askCaseEvent, askFirstOnPageQuestions, askForPageIdAndDisplayOrder, QUESTION_FIELD_SHOW_CONDITION, QUESTION_ID } from "./createSingleField";
 import { addOnDuplicateQuestion } from "./manageDuplicateField";
+import { addToLastAnswers } from "app/session";
 
 export async function createCallbackPopulatedLabel(answers: any) {
   answers = await askCaseTypeID(answers)
@@ -13,16 +13,18 @@ export async function createCallbackPopulatedLabel(answers: any) {
 
   answers = await prompt(
     [
-      { name: CaseFieldKeys.ID, message: QUESTION_ID, type: 'input' },
-      { name: CaseEventToFieldKeys.PageID, message: QUESTION_PAGE_ID, type: 'number', default: session.lastAnswers.PageID || 1 },
-      { name: CaseEventToFieldKeys.PageFieldDisplayOrder, message: QUESTION_PAGE_FIELD_DISPLAY_ORDER, type: 'number', default: session.lastAnswers.PageFieldDisplayOrder + 1 || 1 },
+      { name: CaseFieldKeys.ID, message: QUESTION_ID, type: 'input', default: 'id' },
       { name: CaseEventToFieldKeys.FieldShowCondition, message: QUESTION_FIELD_SHOW_CONDITION, type: 'input' }
     ], answers
   )
 
+  answers = await askForPageIdAndDisplayOrder(answers)
+
   if (answers[CaseEventToFieldKeys.PageFieldDisplayOrder] === 1) {
     answers = await askFirstOnPageQuestions(answers)
   }
+
+  addToLastAnswers(answers)
 
   const caseField = createNewCaseField({
     ...answers,
