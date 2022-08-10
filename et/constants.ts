@@ -1,6 +1,6 @@
 import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, EventToComplexType, Scrubbed } from "app/types/types";
 
-//TODO: Looking for a better name and way to declare this (tried Record<keyof(ConfigSheets), keyof(keyof(ConfigSheets))> but thats not supported).
+// TODO: Looking for a better name and way to declare this (tried Record<keyof(ConfigSheets), keyof(keyof(ConfigSheets))> but that's not supported).
 export const COMPOUND_KEYS: {
   AuthorisationCaseEvent: (keyof (AuthorisationCaseEvent))[],
   AuthorisationCaseField: (keyof (AuthorisationCaseField))[],

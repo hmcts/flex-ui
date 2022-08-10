@@ -1,4 +1,4 @@
-import { Answers, AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, EventToComplexType, Session } from './types/types'
+import { Answers, AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, EventToComplexType, Session } from 'types/types'
 
 export function createNewCaseEvent(answers?: Answers): CaseEvent {
   return {
@@ -202,62 +202,5 @@ export function createNewSession(name: string): Session {
       AuthorisationCaseEvent: [],
       EventToComplexTypes: [],
     }
-  }
-}
-
-function swapRegions(input: string) {
-  if (input.endsWith("englandwales")) {
-    return input.replace("englandwales", "scotland")
-  }
-  if (input.endsWith("scotland")) {
-    return input.replace("scotland", "englandwales")
-  }
-  return input
-}
-
-
-
-export function duplicateFieldsFor(caseTypeId: string, caseFields: CaseField[], caseEventToFields: CaseEventToField[], authorisationCaseFields: AuthorisationCaseField[], authorisationCaseEvents: AuthorisationCaseEvent[]) {
-  const newCaseFields = []
-  const newCaseFieldAuthorisations = []
-  const newCaseEventToFields = []
-  const newCaseEventAuthorisations = []
-
-  for (const caseField of caseFields) {
-    const newObj = Object.assign({}, caseField)
-    newObj.CaseTypeID = caseTypeId
-    newCaseFields.push(newObj)
-  }
-
-  for (const caseEventToField of caseEventToFields) {
-    const newObj = Object.assign({}, caseEventToField)
-    newObj.CaseTypeID = caseTypeId
-    newCaseEventToFields.push(newObj)
-  }
-
-  for (const auth of authorisationCaseFields) {
-    const newObj = Object.assign({}, auth)
-    newObj.CaseTypeId = caseTypeId
-    newObj.UserRole = swapRegions(newObj.UserRole)
-    newCaseFieldAuthorisations.push(newObj)
-  }
-
-  for (const auth of authorisationCaseEvents) {
-    const newObj = Object.assign({}, auth)
-    newObj.CaseTypeId = caseTypeId
-    newObj.UserRole = swapRegions(newObj.UserRole)
-    newCaseEventAuthorisations.push(newObj)
-  }
-
-  caseFields = caseFields.concat(newCaseFields)
-  caseEventToFields = caseEventToFields.concat(newCaseEventToFields)
-  authorisationCaseFields = authorisationCaseFields.concat(newCaseFieldAuthorisations)
-  authorisationCaseEvents = authorisationCaseEvents.concat(newCaseEventAuthorisations)
-
-  return {
-    caseFields,
-    caseEventToFields,
-    authorisationCaseFields,
-    authorisationCaseEvents
   }
 }

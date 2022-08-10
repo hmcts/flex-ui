@@ -5,12 +5,12 @@ import { addNewScrubbed, addToInMemoryConfig, upsertNewCaseEvent } from "./et/co
 import { COMPOUND_KEYS } from "./et/constants"
 import { upsertFields } from "./helpers"
 import { createNewSession, trimCaseEventToField, trimCaseField } from "./objects"
-import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, ConfigSheets, EventToComplexType, Scrubbed, Session } from "./types/types"
+import { Answers, ConfigSheets, Session } from "types/types"
 
 export const SESSION_DIR = 'sessions'
 export const SESSION_EXT = '.session.json'
 
-export const session: Session = createNewSession(`sesssion_${Date.now()}`)
+export const session: Session = createNewSession(`session_${Math.floor(Date.now() / 1000)}`)
 
 export function saveSession(session: Session) {
   writeFileSync(`${SESSION_DIR}${sep}${session.name}${SESSION_EXT}`, JSON.stringify(session, null, 2))
@@ -48,9 +48,8 @@ export function restorePreviousSession(sessionName: string) {
   if (!json.lastAnswers) return
 
   for (const key in json.lastAnswers) {
-    session.lastAnswers[key as keyof (Session['lastAnswers'])] = json.lastAnswers[key as keyof (Session['lastAnswers'])]
+    session.lastAnswers[key as keyof (Answers)] = json.lastAnswers[key as keyof (Answers)]
   }
-
 }
 
 export async function findPreviousSessions() {
@@ -60,31 +59,31 @@ export async function findPreviousSessions() {
 
 export function addToSession(fields: ConfigSheets) {
   if (fields.AuthorisationCaseField.length) {
-    upsertFields<AuthorisationCaseField>(session.added.AuthorisationCaseField, fields.AuthorisationCaseField, COMPOUND_KEYS.AuthorisationCaseField)
+    upsertFields(session.added.AuthorisationCaseField, fields.AuthorisationCaseField, COMPOUND_KEYS.AuthorisationCaseField)
   }
 
   if (fields.CaseField.length) {
-    upsertFields<CaseField>(session.added.CaseField, fields.CaseField, COMPOUND_KEYS.CaseField)
+    upsertFields(session.added.CaseField, fields.CaseField, COMPOUND_KEYS.CaseField)
   }
 
   if (fields.CaseEventToFields.length) {
-    upsertFields<CaseEventToField>(session.added.CaseEventToFields, fields.CaseEventToFields, COMPOUND_KEYS.CaseEventToField)
+    upsertFields(session.added.CaseEventToFields, fields.CaseEventToFields, COMPOUND_KEYS.CaseEventToField)
   }
 
   if (fields.Scrubbed.length) {
-    upsertFields<Scrubbed>(session.added.Scrubbed, fields.Scrubbed, COMPOUND_KEYS.Scrubbed)
+    upsertFields(session.added.Scrubbed, fields.Scrubbed, COMPOUND_KEYS.Scrubbed)
   }
 
   if (fields.CaseEvent.length) {
-    upsertFields<CaseEvent>(session.added.CaseEvent, fields.CaseEvent, COMPOUND_KEYS.CaseEvent)
+    upsertFields(session.added.CaseEvent, fields.CaseEvent, COMPOUND_KEYS.CaseEvent)
   }
 
   if (fields.AuthorisationCaseEvent.length) {
-    upsertFields<AuthorisationCaseEvent>(session.added.AuthorisationCaseEvent, fields.AuthorisationCaseEvent, COMPOUND_KEYS.AuthorisationCaseEvent)
+    upsertFields(session.added.AuthorisationCaseEvent, fields.AuthorisationCaseEvent, COMPOUND_KEYS.AuthorisationCaseEvent)
   }
 
   if (fields.EventToComplexTypes.length) {
-    upsertFields<EventToComplexType>(session.added.EventToComplexTypes, fields.EventToComplexTypes, COMPOUND_KEYS.EventToComplexType)
+    upsertFields(session.added.EventToComplexTypes, fields.EventToComplexTypes, COMPOUND_KEYS.EventToComplexType)
   }
 }
 

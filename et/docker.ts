@@ -46,7 +46,7 @@ function ccdComposeUp() {
 }
 
 function initEcm() {
-  return new Promise((resolve, reject) => {
+  return new Promise(resolve => {
     exec("./bin/ecm/init-ecm.sh", { cwd: process.env.ECM_DOCKER_DIR }, (error: any) => {
       if (error.message.indexOf("Empty reply from server") > -1) {
         console.log(`Failed with empty reply, waiting for 30s and trying again`)

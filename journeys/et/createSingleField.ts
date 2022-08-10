@@ -12,8 +12,8 @@ import { format } from "app/helpers";
 
 export const QUESTION_ID = `What's the ID for this field?`;
 const QUESTION_LABEL = 'What text (Label) should this field have?';
-export const QUESTION_PAGE_ID = `What page will this field appear on?`;
-export const QUESTION_PAGE_FIELD_DISPLAY_ORDER = `Whats the PageFieldDisplayOrder for this field?`;
+const QUESTION_PAGE_ID = `What page will this field appear on?`;
+const QUESTION_PAGE_FIELD_DISPLAY_ORDER = `Whats the PageFieldDisplayOrder for this field?`;
 export const QUESTION_FIELD_SHOW_CONDITION = 'Enter a field show condition string (optional)';
 const QUESTION_CASE_EVENT_ID = `What event does this new field belong to?`;
 const QUESTION_FIELD_TYPE_PARAMETER = "What's the parameter for this {0} field?"

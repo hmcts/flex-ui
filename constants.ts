@@ -1,17 +1,5 @@
 import { sep } from "path"
 
-export const CASE_FIELD_TYPES = [
-  'FixedList',
-  'FixedRadioList',
-  'MultiSelectList',
-  'Label',
-  'TextArea',
-  'YesOrNo',
-  'Text',
-  'Number',
-  'Collection'
-]
-
 export const DISPLAY_CONTEXT_OPTIONS = ['READONLY', 'OPTIONAL', 'MANDATORY', 'COMPLEX']
 
 export const YES = 'Yes'
@@ -40,17 +28,6 @@ export const FIELD_TYPES_NO_MIN_MAX = [
   'Document',
   'DynamicList',
   'DynamicRadioList'
-]
-
-export const FIELD_TYPES_NEED_PARAMETER = [
-  'Collection',
-  'DynamicList'
-]
-
-export const FIELD_TYPES_NEED_SCRUBBED = [
-  'FixedList',
-  'FixedRadioList',
-  'MultiSelectList',
 ]
 
 export const NONE = '<none>'

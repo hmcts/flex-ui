@@ -15,7 +15,7 @@ async function validateCaseFieldAuths() {
 
   const authsByCaseField = region.AuthorisationCaseField.filter(o => o.CaseTypeId === CaseTypeID)
     .reduce((acc: any, obj) => {
-      // Looks like CCD dopesn't care for trailing spaces, but check "subMultipleName" in ET's configs, some references have trailing spaces, others do not
+      // Looks like CCD doesn't care for trailing spaces, but check "subMultipleName" in ET's configs, some references have trailing spaces, others do not
       const trimmedKey = obj.CaseFieldID.trimEnd()
       if (!acc[trimmedKey]) {
         acc[trimmedKey] = []

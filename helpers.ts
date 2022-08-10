@@ -1,7 +1,6 @@
 import { existsSync, mkdirSync } from "fs"
 import { readdir } from "fs/promises"
 import { resolve } from "path"
-import fuzzy from "fuzzy"
 
 /**
  * Ensures a path exists by creating its parent directories and then itself
@@ -12,8 +11,7 @@ export function ensurePathExists(dir: string) {
   const parts = normalized.split('/')
   let builder = ''
   for (const element of parts) {
-    const dirPart = element
-    builder += dirPart + '/'
+    builder += element + '/'
     if (!existsSync(builder)) {
       mkdirSync(builder)
     }
@@ -29,25 +27,16 @@ export async function getFiles(dir: string) {
   return Array.prototype.concat(...files);
 }
 
-export function deduplicateAddFields<T>(to: T[], from: T[], keys: (keyof (T))[]) {
-  for (const obj of from) {
-    const existing = to.find(o => matcher(o, obj, keys))
-    if (existing) continue
-    to.push(obj)
-  }
-}
-
-export function findMissing<T>(to: T[], from: T[], keys: (keyof (T))[]) {
+export function findMissing<T>(list: T[], sublist: T[], keys: (keyof (T))[]) {
   const missing: T[] = []
-  for (const obj of from) {
-    const existingIndex = to.findIndex(o => matcher(o, obj, keys))
+  for (const obj of sublist) {
+    const existingIndex = list.findIndex(o => matcher(o, obj, keys))
     if (existingIndex === -1) {
       missing.push(obj)
     }
   }
   return missing
 }
-
 
 export function upsertFields<T>(to: T[], from: T[], keys: (keyof (T))[], spliceIndexFn?: (obj: T, arr: T[]) => number) {
   for (const obj of from) {
@@ -63,16 +52,6 @@ export function upsertFields<T>(to: T[], from: T[], keys: (keyof (T))[], spliceI
     }
     to.splice(existingIndex, 1, obj)
   }
-}
-
-export function findMissingItems<T>(superlist: T[], list: T[], keys: (keyof (T))[]) {
-  const missing = []
-  for (const obj of list) {
-    const existing = superlist.find(o => matcher(o, obj, keys))
-    if (existing) continue
-    missing.push(obj)
-  }
-  return missing
 }
 
 export function matcher<T>(item1: T, item2: T, keys: (keyof (T))[]) {

@@ -2,9 +2,9 @@ import 'source-map-support/register'
 import { config as envConfig } from 'dotenv'
 import { prompt, Separator, registerPrompt } from 'inquirer'
 import autocomplete from "inquirer-autocomplete-prompt"
-import { Journey } from './types/types'
-import { getConfigSheetsForCaseTypeId, readInCurrentConfig } from './et/configs'
-import { ensurePathExists, findLastIndex, getFiles } from './helpers'
+import { Journey } from 'types/types'
+import { readInCurrentConfig } from './et/configs'
+import { ensurePathExists, getFiles } from './helpers'
 import { saveSession, session, SESSION_DIR } from './session'
 import { DIST_JOURNEY_DIR } from './constants'
 // https://dev.to/larswaechter/path-aliases-with-typescript-in-nodejs-4353
@@ -22,18 +22,12 @@ function checkEnvVars() {
   }
 }
 
-const NEW = "New..."
-
 function isJourneyValid(journey: any) {
   if (!journey.text || !['function', 'string'].includes(typeof (journey.text))) {
     return false
   }
 
-  if (journey.fn && typeof (journey.fn) !== 'function') {
-    return false
-  }
-
-  return true
+  return typeof (journey.fn) === 'function';
 }
 
 async function discoverJourneys() {

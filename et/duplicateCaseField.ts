@@ -3,7 +3,6 @@ import { CaseField, ConfigSheets } from "app/types/types"
 
 export function doDuplicateCaseField(fromCaseTypeId: string, caseFieldId: string, toCaseTypeId: string) {
   const referenced = getObjectsReferencedByCaseField(fromCaseTypeId, caseFieldId)
-
   referenced.CaseEvent.forEach(o => upsertNewCaseEvent(duplicateInCaseType(toCaseTypeId, o)))
 
   addToInMemoryConfig({

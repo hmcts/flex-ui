@@ -1,9 +1,9 @@
 import { prompt } from "inquirer"
-import { CUSTOM, NO, YES } from "./constants"
-import { session } from "./session"
+import { CUSTOM } from "app/constants"
+import { session } from "app/session"
 import fuzzy from "fuzzy"
-import { CaseFieldKeys } from "./types/types"
-import { getKnownCaseTypeIds } from "./et/configs"
+import { CaseFieldKeys } from "types/types"
+import { getKnownCaseTypeIds } from "app/et/configs"
 
 export async function askCaseTypeID(answers: any = {}) {
   const opts = Object.keys(getKnownCaseTypeIds())
@@ -24,20 +24,6 @@ export async function askCaseTypeID(answers: any = {}) {
   }
 
   return answers
-}
-
-export async function askYesNo(answers: any, name: string, message: string) {
-  return list(answers, name, message, [YES, NO])
-}
-
-export async function askToDuplicate(answers: any) {
-  answers = await askYesNo(answers, 'duplicate', '?')
-
-  if (answers.duplicate === NO) {
-    return answers
-  }
-
-  return askCaseTypeID(answers)
 }
 
 async function list(answers: any, name: string, message: string, choices: string[], defaultValue?: any) {
