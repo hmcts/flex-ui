@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync } from "fs"
 import { readdir } from "fs/promises"
 import { sep } from "path"
 import { addNewScrubbed, addToInMemoryConfig, upsertNewCaseEvent } from "./et/configs"
+import { COMPOUND_KEYS } from "./et/constants"
 import { upsertFields } from "./helpers"
 import { createNewSession, trimCaseEventToField, trimCaseField } from "./objects"
 import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, ConfigSheets, EventToComplexType, Scrubbed, Session } from "./types/types"
@@ -59,31 +60,31 @@ export async function findPreviousSessions() {
 
 export function addToSession(fields: ConfigSheets) {
   if (fields.AuthorisationCaseField.length) {
-    upsertFields<AuthorisationCaseField>(session.added.AuthorisationCaseField, fields.AuthorisationCaseField, ['CaseFieldID', 'CaseTypeId', 'UserRole'])
+    upsertFields<AuthorisationCaseField>(session.added.AuthorisationCaseField, fields.AuthorisationCaseField, COMPOUND_KEYS.AuthorisationCaseField)
   }
 
   if (fields.CaseField.length) {
-    upsertFields<CaseField>(session.added.CaseField, fields.CaseField, ['ID', 'CaseTypeID'])
+    upsertFields<CaseField>(session.added.CaseField, fields.CaseField, COMPOUND_KEYS.CaseField)
   }
 
   if (fields.CaseEventToFields.length) {
-    upsertFields<CaseEventToField>(session.added.CaseEventToFields, fields.CaseEventToFields, ['CaseFieldID', 'CaseEventID', 'CaseTypeID'])
+    upsertFields<CaseEventToField>(session.added.CaseEventToFields, fields.CaseEventToFields, COMPOUND_KEYS.CaseEventToField)
   }
 
   if (fields.Scrubbed.length) {
-    upsertFields<Scrubbed>(session.added.Scrubbed, fields.Scrubbed, ['ID', 'ListElementCode'])
+    upsertFields<Scrubbed>(session.added.Scrubbed, fields.Scrubbed, COMPOUND_KEYS.Scrubbed)
   }
 
   if (fields.CaseEvent.length) {
-    upsertFields<CaseEvent>(session.added.CaseEvent, fields.CaseEvent, ['ID', 'CaseTypeID'])
+    upsertFields<CaseEvent>(session.added.CaseEvent, fields.CaseEvent, COMPOUND_KEYS.CaseEvent)
   }
 
   if (fields.AuthorisationCaseEvent.length) {
-    upsertFields<AuthorisationCaseEvent>(session.added.AuthorisationCaseEvent, fields.AuthorisationCaseEvent, ['CaseEventID', 'CaseTypeId', 'UserRole'])
+    upsertFields<AuthorisationCaseEvent>(session.added.AuthorisationCaseEvent, fields.AuthorisationCaseEvent, COMPOUND_KEYS.AuthorisationCaseEvent)
   }
 
   if (fields.EventToComplexTypes.length) {
-    upsertFields<EventToComplexType>(session.added.EventToComplexTypes, fields.EventToComplexTypes, ['ID', 'CaseEventID', 'CaseFieldID', 'ListElementCode'])
+    upsertFields<EventToComplexType>(session.added.EventToComplexTypes, fields.EventToComplexTypes, COMPOUND_KEYS.EventToComplexType)
   }
 }
 

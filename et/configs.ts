@@ -4,6 +4,7 @@ import { upsertFields } from "../helpers"
 import { addToSession } from "../session"
 const { exec } = require("child_process");
 import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, ConfigSheets, EventToComplexType, Scrubbed } from "../types/types"
+import { COMPOUND_KEYS } from "./constants";
 
 let englandwales: ConfigSheets
 
@@ -161,19 +162,19 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
   const scAuthorsationCaseFields = fields.AuthorisationCaseField.filter(o => o.CaseTypeId === "ET_Scotland")
   const scAuthorsationCaseEvents = fields.AuthorisationCaseEvent.filter(o => o.CaseTypeId === "ET_Scotland")
 
-  upsertFields<CaseField>(englandwales.CaseField, ewCaseFields, ['ID', 'CaseTypeID'], () => englandwales.CaseField.findIndex(o => o.CaseTypeID.endsWith("_Listings")))
-  upsertFields<CaseEventToField>(englandwales.CaseEventToFields, ewCaseEventToFields, ['CaseEventID', 'CaseFieldID', 'CaseTypeID'], () => englandwales.CaseEventToFields.findIndex(o => o.CaseTypeID.endsWith("_Listings")))
-  upsertFields<AuthorisationCaseEvent>(englandwales.AuthorisationCaseEvent, ewAuthorsationCaseEvents, ['CaseEventID', 'CaseTypeId', 'UserRole'], () => englandwales.AuthorisationCaseEvent.findIndex(o => o.CaseTypeId.endsWith("_Listings")))
-  upsertFields<AuthorisationCaseField>(englandwales.AuthorisationCaseField, ewAuthorsationCaseFields, ['CaseFieldID', 'CaseTypeId', 'UserRole'], () => englandwales.AuthorisationCaseField.findIndex(o => o.CaseTypeId.endsWith("_Listings")))
+  upsertFields<CaseField>(englandwales.CaseField, ewCaseFields, COMPOUND_KEYS.CaseField, () => englandwales.CaseField.findIndex(o => o.CaseTypeID.endsWith("_Listings")))
+  upsertFields<CaseEventToField>(englandwales.CaseEventToFields, ewCaseEventToFields, COMPOUND_KEYS.CaseEventToField, () => englandwales.CaseEventToFields.findIndex(o => o.CaseTypeID.endsWith("_Listings")))
+  upsertFields<AuthorisationCaseEvent>(englandwales.AuthorisationCaseEvent, ewAuthorsationCaseEvents, COMPOUND_KEYS.AuthorisationCaseEvent, () => englandwales.AuthorisationCaseEvent.findIndex(o => o.CaseTypeId.endsWith("_Listings")))
+  upsertFields<AuthorisationCaseField>(englandwales.AuthorisationCaseField, ewAuthorsationCaseFields, COMPOUND_KEYS.AuthorisationCaseField, () => englandwales.AuthorisationCaseField.findIndex(o => o.CaseTypeId.endsWith("_Listings")))
 
-  upsertFields<EventToComplexType>(englandwales.EventToComplexTypes, fields.EventToComplexTypes, ['ID', 'CaseEventID', 'CaseFieldID', 'ListElementCode'])
+  upsertFields<EventToComplexType>(englandwales.EventToComplexTypes, fields.EventToComplexTypes, COMPOUND_KEYS.EventToComplexType)
 
-  upsertFields<CaseField>(scotland.CaseField, scCaseFields, ['ID', 'CaseTypeID'], () => scotland.CaseField.findIndex(o => o.CaseTypeID.endsWith("_Listings")))
-  upsertFields<CaseEventToField>(scotland.CaseEventToFields, scCaseEventToFields, ['CaseEventID', 'CaseFieldID', 'CaseTypeID'], () => scotland.CaseEventToFields.findIndex(o => o.CaseTypeID.endsWith("_Listings")))
-  upsertFields<AuthorisationCaseEvent>(scotland.AuthorisationCaseEvent, scAuthorsationCaseEvents, ['CaseEventID', 'CaseTypeId', 'UserRole'], () => scotland.AuthorisationCaseEvent.findIndex(o => o.CaseTypeId.endsWith("_Listings")))
-  upsertFields<AuthorisationCaseField>(scotland.AuthorisationCaseField, scAuthorsationCaseFields, ['CaseFieldID', 'CaseTypeId', 'UserRole'], () => scotland.AuthorisationCaseField.findIndex(o => o.CaseTypeId.endsWith("_Listings")))
+  upsertFields<CaseField>(scotland.CaseField, scCaseFields, COMPOUND_KEYS.CaseField, () => scotland.CaseField.findIndex(o => o.CaseTypeID.endsWith("_Listings")))
+  upsertFields<CaseEventToField>(scotland.CaseEventToFields, scCaseEventToFields, COMPOUND_KEYS.CaseEventToField, () => scotland.CaseEventToFields.findIndex(o => o.CaseTypeID.endsWith("_Listings")))
+  upsertFields<AuthorisationCaseEvent>(scotland.AuthorisationCaseEvent, scAuthorsationCaseEvents, COMPOUND_KEYS.AuthorisationCaseEvent, () => scotland.AuthorisationCaseEvent.findIndex(o => o.CaseTypeId.endsWith("_Listings")))
+  upsertFields<AuthorisationCaseField>(scotland.AuthorisationCaseField, scAuthorsationCaseFields, COMPOUND_KEYS.AuthorisationCaseField, () => scotland.AuthorisationCaseField.findIndex(o => o.CaseTypeId.endsWith("_Listings")))
 
-  upsertFields<EventToComplexType>(scotland.EventToComplexTypes, fields.EventToComplexTypes, ['ID', 'CaseEventID', 'CaseFieldID', 'ListElementCode'])
+  upsertFields<EventToComplexType>(scotland.EventToComplexTypes, fields.EventToComplexTypes, COMPOUND_KEYS.EventToComplexType)
  
   addToSession({
     AuthorisationCaseField: ewAuthorsationCaseFields,

@@ -81,12 +81,6 @@ export interface Scrubbed {
   DisplayOrder: number
 }
 
-export enum SaveMode {
-  ENGLANDWALES = 1,
-  SCOTLAND = 2,
-  BOTH = 0
-}
-
 export type ConfigSheets = {
   CaseField: CaseField[],
   AuthorisationCaseField: AuthorisationCaseField[],
