@@ -6,8 +6,8 @@ import { createAuthorisationCaseEvent, createNewCaseEvent } from "app/objects";
 import { addToInMemoryConfig, upsertNewCaseEvent } from "app/et/configs";
 
 export async function createEvent(id: string) {
-  let answers = { ID: id } || await prompt([
-    { name: 'ID', message: "What's the name of the new Event?" }
+  let answers = id ? { ID: id } : await prompt([
+    { name: 'ID', message: "What's the ID of the new Event?" }
   ])
 
   answers = {
@@ -37,7 +37,7 @@ export async function createEvent(id: string) {
   addToInMemoryConfig({
     AuthorisationCaseEvent: authorisations
   })
-  
+
   return caseEvent.ID
 }
 

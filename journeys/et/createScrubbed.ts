@@ -4,7 +4,7 @@ import { prompt } from "inquirer";
 import { Journey, Scrubbed } from "types/types";
 
 export async function createScrubbed(id: string) {
-  const answers = { id } || await prompt([
+  const answers = id ? { id } : await prompt([
     { name: 'id', message: "What's the name of the new Scrubbed list?" }
   ])
 

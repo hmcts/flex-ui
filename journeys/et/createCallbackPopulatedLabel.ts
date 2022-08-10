@@ -52,7 +52,8 @@ export async function createCallbackPopulatedLabel() {
     DisplayContext: 'READONLY',
     RetainHiddenValue: 'No',
     CaseFieldID: `${answers.ID}Label`,
-    PageFieldDisplayOrder: answers.PageFieldDisplayOrder + 1
+    PageFieldDisplayOrder: answers.PageFieldDisplayOrder + 1,
+    PageShowCondition: ''
   })
 
   const authorisations = [
