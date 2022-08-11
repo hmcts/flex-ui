@@ -1,3 +1,5 @@
+// TODO: Split this file up into seperate types
+
 export interface CaseField {
   CaseTypeID: string
   ID: string
@@ -111,6 +113,8 @@ export type Journey = {
   fn?: () => Promise<any>
 }
 
+// Use these enums when referencing keys, they shouldn't change in CCD but it does provide some type safety
+
 export enum CaseFieldKeys {
   CaseTypeID = 'CaseTypeID',
   ID = 'ID',
@@ -193,4 +197,3 @@ export enum ScrubbedKeys {
   ListElement = 'ListElement',
   DisplayOrder = 'DisplayOrder',
 }
-

@@ -95,10 +95,10 @@ async function start() {
     ])
 
     const selectedFn = choices.find(o => {
-      if (o.matchText?.(answers.Journey)) {
+      if ((typeof (o.text) === 'function' ? o.text() : o.text) === answers.Journey) {
         return true
       }
-      return (typeof (o.text) === 'function' ? o.text() : o.text) === answers.Journey
+      return o.matchText?.(answers.Journey)
     })
 
     if (!selectedFn) {
