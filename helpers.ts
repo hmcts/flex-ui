@@ -1,3 +1,4 @@
+import { exec } from "child_process"
 import { existsSync, mkdirSync } from "fs"
 import { readdir } from "fs/promises"
 import { resolve } from "path"
@@ -77,4 +78,19 @@ export function format(template: string, ...args: (string | number)[]) {
   }
 
   return template
+}
+
+export function execCommand(command: string, cwd?: string, alias?: string, ignoreError = false) {
+  return new Promise((resolve, reject) => {
+    exec(command, { cwd }, function (error: any, stdout: string, stderr: string) {
+      if (!ignoreError && (error || stderr)) {
+        console.error(`${alias || command} failed with ${error || stderr}`)
+        const err: Record<string, string> & Error = new Error(error || stderr) as any
+        err.stderr = stderr 
+        return reject(err)
+      }
+      console.log(`${alias || command} executed`)
+      return resolve(stdout)
+    });
+  })
 }

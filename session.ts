@@ -1,23 +1,35 @@
 import { readFileSync, writeFileSync } from "fs"
 import { readdir } from "fs/promises"
 import { sep } from "path"
-import { addNewScrubbed, addToInMemoryConfig, upsertNewCaseEvent } from "./et/configs"
-import { COMPOUND_KEYS } from "./et/constants"
-import { upsertFields } from "./helpers"
-import { createNewSession, trimCaseEventToField, trimCaseField } from "./objects"
+import { addNewScrubbed, addToInMemoryConfig, upsertNewCaseEvent } from "app/et/configs"
+import { COMPOUND_KEYS } from "app/constants"
+import { upsertFields } from "app/helpers"
+import { trimCaseEventToField, trimCaseField } from "app/objects"
 import { Answers, ConfigSheets, Session } from "types/types"
 
 export const SESSION_DIR = 'sessions'
 export const SESSION_EXT = '.session.json'
 
 export const session: Session = createNewSession(`session_${Math.floor(Date.now() / 1000)}`)
+saveSession(session)
 
 export function saveSession(session: Session) {
   writeFileSync(`${SESSION_DIR}${sep}${session.name}${SESSION_EXT}`, JSON.stringify(session, null, 2))
 }
 
-export function restorePreviousSession(sessionName: string) {
-  const read = readFileSync(`${SESSION_DIR}${sep}${sessionName}`)
+export function createAndLoadNewSession(name: string) {
+  const newSession = createNewSession(name)
+
+  for (const key in newSession) {
+    session[key] = newSession[key]
+  }
+
+  saveSession(session)
+  return session
+}
+
+export function restorePreviousSession(sessionFileName: string) {
+  const read = readFileSync(`${SESSION_DIR}${sep}${sessionFileName}`)
   const json: Session = JSON.parse(read.toString())
 
   session.added = {
@@ -109,5 +121,22 @@ export function addToLastAnswers(answers: any) {
   session.lastAnswers = {
     ...session.lastAnswers,
     ...answers
+  }
+}
+
+export function createNewSession(name: string): Session {
+  return {
+    name,
+    date: new Date(),
+    lastAnswers: {},
+    added: {
+      AuthorisationCaseField: [],
+      CaseEventToFields: [],
+      CaseField: [],
+      Scrubbed: [],
+      CaseEvent: [],
+      AuthorisationCaseEvent: [],
+      EventToComplexTypes: [],
+    }
   }
 }

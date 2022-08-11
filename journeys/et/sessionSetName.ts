@@ -4,7 +4,7 @@ import { Journey } from "types/types";
 
 const QUESTION_NAME = "What should we called this session?";
 
-async function setSessionName() {
+export async function setSessionName() {
   const answers = await prompt([{ name: 'name', message: QUESTION_NAME }])
 
   session.name = answers.name

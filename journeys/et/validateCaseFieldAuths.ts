@@ -3,7 +3,7 @@ import { askCaseTypeID } from "app/questions";
 import { getConfigSheetsForCaseTypeId } from "app/et/configs";
 import { createAuthorisationCaseFields } from "app/objects";
 import { findMissing, matcher } from "app/helpers";
-import { COMPOUND_KEYS } from "app/et/constants";
+import { COMPOUND_KEYS } from "app/constants";
 import { writeFileSync } from "fs";
 import { resolve } from "path";
 

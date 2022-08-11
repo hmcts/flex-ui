@@ -1,4 +1,4 @@
-import { Answers, AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, EventToComplexType, Session } from 'types/types'
+import { Answers, AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, EventToComplexType } from 'types/types'
 
 export function createNewCaseEvent(answers?: Answers): CaseEvent {
   return {
@@ -186,21 +186,4 @@ export function createAuthorisationCaseFields(caseTypeId: string = "ET_EnglandWa
       "CRUD": "CRUD"
     },
   ]
-}
-
-export function createNewSession(name: string): Session {
-  return {
-    name,
-    date: new Date(),
-    lastAnswers: {},
-    added: {
-      AuthorisationCaseField: [],
-      CaseEventToFields: [],
-      CaseField: [],
-      Scrubbed: [],
-      CaseEvent: [],
-      AuthorisationCaseEvent: [],
-      EventToComplexTypes: [],
-    }
-  }
 }

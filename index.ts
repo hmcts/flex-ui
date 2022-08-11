@@ -1,17 +1,16 @@
 import 'source-map-support/register'
+// https://dev.to/larswaechter/path-aliases-with-typescript-in-nodejs-4353
+import 'module-alias/register';
 import { config as envConfig } from 'dotenv'
 import { prompt, Separator, registerPrompt } from 'inquirer'
 import autocomplete from "inquirer-autocomplete-prompt"
 import { Journey } from 'types/types'
-import { readInCurrentConfig } from './et/configs'
-import { ensurePathExists, getFiles } from './helpers'
-import { saveSession, session, SESSION_DIR } from './session'
-import { DIST_JOURNEY_DIR } from './constants'
-// https://dev.to/larswaechter/path-aliases-with-typescript-in-nodejs-4353
-import 'module-alias/register';
+import { readInCurrentConfig } from 'app/et/configs'
+import { ensurePathExists, getFiles } from 'app/helpers'
+import { saveSession, session, SESSION_DIR } from 'app/session'
+import { DIST_JOURNEY_DIR } from 'app/constants'
 
 envConfig()
-
 registerPrompt('autocomplete', autocomplete);
 
 function checkEnvVars() {
@@ -78,7 +77,12 @@ async function start() {
       }
     ])
 
-    const selectedFn = choices.find(o => (typeof (o.text) === 'function' ? o.text() : o.text) === answers.Journey)
+    const selectedFn = choices.find(o => {
+      if (o.matchText?.(answers.Journey)) {
+        return true
+      }
+      return (typeof (o.text) === 'function' ? o.text() : o.text) === answers.Journey
+    })
 
     if (!selectedFn) {
       throw new Error(`Unable to find a function for "${answers.Journey}"`)

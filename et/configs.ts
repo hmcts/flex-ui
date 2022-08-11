@@ -1,16 +1,21 @@
 import { readFileSync, writeFileSync } from "fs"
 import { sep } from "path"
-import { findLastIndex, upsertFields } from "../helpers"
-import { addToSession } from "../session"
+import { findLastIndex, upsertFields } from "app/helpers"
+import { addToSession } from "app/session"
 import { exec } from "child_process";
 import { CaseEvent, ConfigSheets, Scrubbed } from "types/types"
-import { COMPOUND_KEYS } from "./constants";
+import { COMPOUND_KEYS } from "app/constants";
 
+let readTime: number = 0
 let englandwales: ConfigSheets
 let scotland: ConfigSheets
 
 function getJson(envvar: string, name: string) {
   return JSON.parse(readFileSync(`${envvar}${sep}definitions${sep}json${sep}${name}.json`).toString())
+}
+
+export function getReadTime() {
+  return readTime
 }
 
 function getEnglandWales() {
@@ -80,6 +85,8 @@ export function readInCurrentConfig() {
     AuthorisationCaseEvent: getJson(process.env.SCOTLAND_DEF_DIR, "AuthorisationCaseEvent"),
     EventToComplexTypes: getJson(process.env.SCOTLAND_DEF_DIR, "EventToComplexTypes")
   }
+
+  readTime = Date.now()
 }
 
 export function upsertNewCaseEvent(caseEvent: CaseEvent) {
@@ -231,56 +238,6 @@ export async function saveBackToProject() {
   writeFileSync(`${process.env.SCOTLAND_DEF_DIR}${sep}definitions${sep}json${sep}CaseEvent.json`, JSON.stringify(scotland.CaseEvent, null, 2))
   writeFileSync(`${process.env.SCOTLAND_DEF_DIR}${sep}definitions${sep}json${sep}AuthorisationCaseEvent.json`, JSON.stringify(scotland.AuthorisationCaseEvent, null, 2))
   writeFileSync(`${process.env.SCOTLAND_DEF_DIR}${sep}definitions${sep}json${sep}EventToComplexTypes.json`, JSON.stringify(scotland.EventToComplexTypes, null, 2))
-
-  return execGenerateSpreadsheet()
-}
-
-export function execImportConfig() {
-  return new Promise((resolve, reject) => {
-    exec(`${process.env.ECM_DOCKER_DIR}/bin/ccd-import-definition.sh ${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}xlsx${sep}et-englandwales-ccd-config-local.xlsx`,
-      { cwd: process.env.ECM_DOCKER_DIR }
-      , function (error: any, stdout: any, stderr: any) {
-        console.log(`${error}\r\n${stdout}\r\n${stderr}`)
-        if (error) {
-          reject(new Error(`Failed to import EnglandWales defs`))
-        }
-
-        exec(`${process.env.ECM_DOCKER_DIR}/bin/ccd-import-definition.sh ${process.env.SCOTLAND_DEF_DIR}${sep}definitions${sep}xlsx${sep}et-scotland-ccd-config-local.xlsx`,
-          { cwd: process.env.ECM_DOCKER_DIR }
-          , function (error: any, stdout: any, stderr: any) {
-            console.log(`${error}\r\n${stdout}\r\n${stderr}`)
-            if (error) {
-              reject(new Error(`Failed to import scotland defs`))
-            }
-            resolve(null)
-          }
-        );
-      }
-    );
-  })
-}
-
-export function execGenerateSpreadsheet() {
-  return new Promise((resolve, reject) => {
-    exec("yarn generate-excel-local", { cwd: process.env.ENGWALES_DEF_DIR },
-      function (error: any, stdout: any, stderr: any) {
-        console.log(`${error}\r\n${stdout}\r\n${stderr}`)
-        if (error) {
-          reject(new Error('Failed to generate spreadsheet for engwales'))
-        }
-
-        exec("yarn generate-excel-local", { cwd: process.env.SCOTLAND_DEF_DIR },
-          function (error: any, stdout: any, stderr: any) {
-            console.log(`${error}\r\n${stdout}\r\n${stderr}`)
-            if (error) {
-              reject(new Error('Failed to generate spreadsheet for scotland'))
-            }
-
-            resolve(null)
-          });
-      });
-  })
-
 }
 
 export function getUniqueCaseFields(region: string) {

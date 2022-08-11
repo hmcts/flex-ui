@@ -1,10 +1,9 @@
 import { prompt, Separator } from "inquirer";
-import { getFieldCount, getFieldsPerPage, getPageCount, saveSession, session } from "app/session";
+import { createNewSession, getFieldCount, getFieldsPerPage, getPageCount, saveSession, session } from "app/session";
 import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, Journey, Scrubbed, Session } from "types/types";
-import { createNewSession } from "app/objects";
 import { getObjectsReferencedByCaseFields } from "app/et/duplicateCaseField";
 import { format, upsertFields } from "app/helpers";
-import { COMPOUND_KEYS } from "app/et/constants";
+import { COMPOUND_KEYS } from "app/constants";
 
 const QUESTION_PAGE_ID = `Export fields from what page?`;
 const QUESTION_PAGE_ID_START = 'Starting from (including) what page ID?';

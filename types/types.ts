@@ -103,6 +103,7 @@ export type Answers = Partial<Record<keyof (CaseField) | keyof (CaseEventToField
 export type Journey = {
   group?: string
   text: string | object | (() => string)
+  matchText?: (text: string) => boolean
   fn?: () => Promise<any>
 }
 

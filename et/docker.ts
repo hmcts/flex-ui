@@ -1,3 +1,4 @@
+import { execCommand } from "app/helpers";
 const { exec } = require("child_process");
 
 export async function ensureUp() {
@@ -14,19 +15,6 @@ export async function tearDown() {
   await dockerRmAll()
   await dockerSystemPrune()
   await dockerImageRm()
-}
-
-function execCommand(command: string, cwd?: string, alias?: string, ignoreError = false) {
-  return new Promise((resolve, reject) => {
-    exec(command, { cwd }, function (error: any, stdout: string) {
-      if (!ignoreError && error) {
-        console.error(`${alias || command} failed with ${error}`)
-        return reject(new Error(error))
-      }
-      console.log(`${alias || command} success`)
-      return resolve(stdout)
-    });
-  })
 }
 
 async function ccdLogin() {
