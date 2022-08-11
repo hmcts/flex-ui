@@ -38,7 +38,7 @@ function initEcm() {
     exec("./bin/ecm/init-ecm.sh", { cwd: process.env.ECM_DOCKER_DIR }, (error: any) => {
       if (error.message.indexOf("Empty reply from server") > -1) {
         console.log(`Failed with empty reply, waiting for 30s and trying again`)
-        return setTimeout(() => initEcm().then(() => resolve('')).catch(() => { }), 1000 * 30)
+        return setTimeout(() => initEcm().then(() => resolve('')).catch(() => undefined), 1000 * 30)
       }
       resolve('')
     });

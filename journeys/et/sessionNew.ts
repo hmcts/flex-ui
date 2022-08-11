@@ -1,4 +1,3 @@
-import { prompt } from "inquirer";
 import { createAndLoadNewSession} from "app/session";
 import { Journey } from "types/types";
 import { setSessionName } from "./sessionSetName";

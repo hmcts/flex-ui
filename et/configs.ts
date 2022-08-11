@@ -2,7 +2,6 @@ import { readFileSync, writeFileSync } from "fs"
 import { sep } from "path"
 import { findLastIndex, upsertFields } from "app/helpers"
 import { addToSession } from "app/session"
-import { exec } from "child_process";
 import { CaseEvent, ConfigSheets, Scrubbed } from "types/types"
 import { COMPOUND_KEYS } from "app/constants";
 
