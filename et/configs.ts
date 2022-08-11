@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync } from "fs"
 import { sep } from "path"
-import { findLastIndex, upsertFields } from "app/helpers"
+import { findLastIndex, getUniqueByKey, getUniqueByKeyAsArray, upsertFields } from "app/helpers"
 import { addToSession } from "app/session"
 import { CaseEvent, ConfigSheets, Scrubbed } from "types/types"
 import { COMPOUND_KEYS } from "app/constants";
@@ -9,61 +9,81 @@ let readTime: number = 0
 let englandwales: ConfigSheets
 let scotland: ConfigSheets
 
-function getJson(envvar: string, name: string) {
-  return JSON.parse(readFileSync(`${envvar}${sep}definitions${sep}json${sep}${name}.json`).toString())
+/**
+ * Gets the parsed JSON file contents
+ * @param regionDir repo folder that contains definitions (ie, et-ccd-definitions-scotland)
+ * @param name of the JSON file (ie, CaseField)
+ * @returns parsed JSON file
+ */
+function getJson(regionDir: string, name: string) {
+  return JSON.parse(readFileSync(`${regionDir}${sep}definitions${sep}json${sep}${name}.json`).toString())
 }
 
+/** Getter for readTime */
 export function getReadTime() {
   return readTime
 }
 
+/** Getter for englandwales */
 function getEnglandWales() {
   return englandwales
 }
 
+/** Getter for scotland */
 function getScotland() {
   return scotland
 }
 
+/**
+ * Mapper function for deciding where to write objects depending on CaseTypeID
+ * @param caseTypeId a caseTypeID value
+ * @returns either englandwales or scotland
+ */
 export function getConfigSheetsForCaseTypeId(caseTypeId: string) {
   return caseTypeId.startsWith("ET_EnglandWales") ? getEnglandWales() : getScotland()
 }
 
-function getUniqueByKey<T>(arr: T[], key: keyof (T), defaultOption?: string) {
-  return arr.reduce((acc: Record<string, any>, obj: T) => {
-    const accKey = String(obj[key])
-    if (!acc[accKey]) {
-      acc[accKey] = true
-    }
-    return acc
-  }, defaultOption ? { [defaultOption]: true } : {})
+/**
+ * Get all defined CaseEvent IDs in englandwales and scotland configs
+ */
+export function getCaseEventIDOpts() {
+  return getUniqueByKeyAsArray([...englandwales.CaseEvent, ...scotland.CaseEvent], 'ID')
 }
 
-export function getCaseEventIDOpts(defaultOption?: string) {
-  return getUniqueByKey([...englandwales.CaseEvent, ...scotland.CaseEvent], 'ID', defaultOption)
+/**
+ * Get all currently known FieldType IDs in englandwales and scotland configs (FieldTypes that are referenced by at least one CaseField)
+ */
+export function getKnownCaseFieldTypes() {
+  return getUniqueByKeyAsArray([...englandwales.CaseField, ...scotland.CaseField], 'FieldType')
 }
 
-export function getKnownCaseFieldTypes(defaultOption?: string) {
-  return getUniqueByKey([...englandwales.CaseField, ...scotland.CaseField], 'FieldType', defaultOption)
+/**
+ * Gets (most) options for FieldTypeParameters in englandwales and scotland configs by looking at existing CaseField FieldTypeParameters and getting all scrubbed ID options
+ * TOOD: When ComplexTypes JSON support is added. Add it here
+ */
+export function getKnownCaseFieldTypeParameters() {
+  const inUse = getUniqueByKey([...englandwales.CaseField, ...scotland.CaseField], 'FieldTypeParameter')
+  const scrubbed = getUniqueByKey([...englandwales.Scrubbed, ...scotland.Scrubbed], 'ID')
+  return Object.keys({ ...inUse, ...scrubbed })
 }
 
-export function getKnownCaseFieldTypeParameters(defaultOption?: string) {
-  return {
-    // Get what's currently in use by other fields (will include ComplexType references)
-    ...getUniqueByKey([...englandwales.CaseField, ...scotland.CaseField], 'FieldTypeParameter', defaultOption),
-    // Get ALL scrubbed IDs
-    ...getUniqueByKey([...englandwales.Scrubbed, ...scotland.Scrubbed], 'ID', defaultOption)
-  }
-}
-
+/**
+ * Get all defined CaseType IDs in englandwales and scotland configs
+ */
 export function getKnownCaseTypeIds() {
-  return getUniqueByKey([...englandwales.CaseField, ...scotland.CaseField], 'CaseTypeID')
+  return getUniqueByKeyAsArray([...englandwales.CaseField, ...scotland.CaseField], 'CaseTypeID')
 }
 
+/**
+ * Get all defined CaseField IDs in englandwales and scotland configs
+ */
 export function getKnownCaseFieldIds() {
-  return getUniqueByKey([...englandwales.CaseField, ...scotland.CaseField], 'ID')
+  return getUniqueByKeyAsArray([...englandwales.CaseField, ...scotland.CaseField], 'ID')
 }
 
+/**
+ * Replace in-memory configs by reading in both englandwales and scotland configs from their repo folders.
+ */
 export function readInCurrentConfig() {
   englandwales = {
     AuthorisationCaseField: getJson(process.env.ENGWALES_DEF_DIR, "AuthorisationCaseField"),
@@ -88,6 +108,12 @@ export function readInCurrentConfig() {
   readTime = Date.now()
 }
 
+/**
+ * Upserts a CaseEvent into the correct region's config and into the current session. 
+ * Inserts according to DisplayOrder, modifying other CaseEvent DisplayOrders where necessary.
+ * Will replace where necessary, so changed non-compound keys will get updated
+ * @param caseEvent to upsert
+ */
 export function upsertNewCaseEvent(caseEvent: CaseEvent) {
   const configSheets = getConfigSheetsForCaseTypeId(caseEvent.CaseTypeID)
   const existIndex = configSheets.CaseEvent.findIndex(o => o.ID === caseEvent.ID)
@@ -116,6 +142,11 @@ export function upsertNewCaseEvent(caseEvent: CaseEvent) {
   })
 }
 
+/**
+ * Upserts Scrubbed items into the correct region's config and into the current session. 
+ * Will replace where necessary, so changed non-compound keys will get updated (ie, ListElement)
+ * @param opts scrubbed options to upsert
+ */
 export function addNewScrubbed(opts: Scrubbed[]) {
   for (const item of opts) {
     const ewExistIndex = englandwales.Scrubbed.findIndex(o => o.ID === item.ID && o.ListElementCode === item.ListElementCode)
@@ -146,6 +177,10 @@ export function addNewScrubbed(opts: Scrubbed[]) {
   })
 }
 
+/**
+ * Upserts new fields into the in-memory configs and current session. Does NOT touch the original JSON files.
+ * See TODOs in body. This is functional but ordering is not necessarily ideal
+ */
 export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
   const keys: (keyof ConfigSheets)[] = ['AuthorisationCaseEvent', 'AuthorisationCaseField', 'CaseEvent', 'CaseEventToFields', 'CaseField', 'EventToComplexTypes', 'Scrubbed']
 
@@ -221,6 +256,9 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
   })
 }
 
+/**
+ * Save the in-memory configs back to their JSON files
+ */
 export async function saveBackToProject() {
   writeFileSync(`${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}json${sep}CaseField.json`, JSON.stringify(englandwales.CaseField, null, 2))
   writeFileSync(`${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}json${sep}AuthorisationCaseField.json`, JSON.stringify(englandwales.AuthorisationCaseField, null, 2))
@@ -237,9 +275,4 @@ export async function saveBackToProject() {
   writeFileSync(`${process.env.SCOTLAND_DEF_DIR}${sep}definitions${sep}json${sep}CaseEvent.json`, JSON.stringify(scotland.CaseEvent, null, 2))
   writeFileSync(`${process.env.SCOTLAND_DEF_DIR}${sep}definitions${sep}json${sep}AuthorisationCaseEvent.json`, JSON.stringify(scotland.AuthorisationCaseEvent, null, 2))
   writeFileSync(`${process.env.SCOTLAND_DEF_DIR}${sep}definitions${sep}json${sep}EventToComplexTypes.json`, JSON.stringify(scotland.EventToComplexTypes, null, 2))
-}
-
-export function getUniqueCaseFields(region: string) {
-  const set = region.startsWith("ET_EnglandWales") ? getEnglandWales() : getScotland()
-  return set.CaseField.map(o => o.ID)
 }

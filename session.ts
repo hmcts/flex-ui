@@ -13,10 +13,18 @@ export const SESSION_EXT = '.session.json'
 export const session: Session = createNewSession(`session_${Math.floor(Date.now() / 1000)}`)
 saveSession(session)
 
+/**
+ * Save session to the sessions folder
+ */
 export function saveSession(session: Session) {
   writeFileSync(`${SESSION_DIR}${sep}${session.name}${SESSION_EXT}`, JSON.stringify(session, null, 2))
 }
 
+/**
+ * Creates a new session and sets singleton
+ * @param name Name for the session (don't include the extension)
+ * @returns the new session
+ */
 export function createAndLoadNewSession(name: string) {
   const newSession = createNewSession(name)
 
@@ -28,6 +36,10 @@ export function createAndLoadNewSession(name: string) {
   return session
 }
 
+/**
+ * Reads specific session file from file and loads it into the singleton. Loads contents into in-memory configs
+ * @param sessionFileName Name of the session on disk (must include the extension)
+ */
 export function restorePreviousSession(sessionFileName: string) {
   const read = readFileSync(`${SESSION_DIR}${sep}${sessionFileName}`)
   const json: Session = JSON.parse(read.toString())
@@ -64,11 +76,19 @@ export function restorePreviousSession(sessionFileName: string) {
   }
 }
 
+/**
+ * Finds all saved session files in the session folder
+ * @returns array of session file names
+ */
 export async function findPreviousSessions() {
   const files = await readdir(SESSION_DIR, { withFileTypes: true })
   return files.filter(o => o.name.endsWith(SESSION_EXT)).map(o => o.name)
 }
 
+/**
+ * Upserts objects into the current session
+ * @param fields object containing supported ccd config fields
+ */
 export function addToSession(fields: ConfigSheets) {
   if (fields.AuthorisationCaseField.length) {
     upsertFields(session.added.AuthorisationCaseField, fields.AuthorisationCaseField, COMPOUND_KEYS.AuthorisationCaseField)
@@ -99,10 +119,16 @@ export function addToSession(fields: ConfigSheets) {
   }
 }
 
+/**
+ * Gets the count of CaseFields in the current session
+ */
 export function getFieldCount() {
   return session.added.CaseField.length
 }
 
+/**
+ * Gets a record of Fields by Page
+ */
 export function getFieldsPerPage(): Record<number, number> {
   return session.added.CaseEventToFields.reduce((acc: any, obj) => {
     if (!acc[obj.PageID]) {
@@ -113,10 +139,16 @@ export function getFieldsPerPage(): Record<number, number> {
   }, {})
 }
 
+/**
+ * Gets a count of pages in the current session
+ */
 export function getPageCount() {
   return Object.keys(getFieldsPerPage())
 }
 
+/**
+ * Adds to the lastAnswers object for this session
+ */
 export function addToLastAnswers(answers: any) {
   session.lastAnswers = {
     ...session.lastAnswers,
@@ -124,6 +156,9 @@ export function addToLastAnswers(answers: any) {
   }
 }
 
+/**
+ * Creates a new blank object for a session
+ */
 export function createNewSession(name: string): Session {
   return {
     name,

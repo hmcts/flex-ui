@@ -7,6 +7,10 @@ import { COMPOUND_KEYS } from "app/constants";
 import { writeFileSync } from "fs";
 import { resolve } from "path";
 
+/**
+ * Checks over every CaseField for missing or unexpected authorisations.
+ * Generates a json report with fields and their extra, missing and/or different authorisations
+ */
 async function validateCaseFieldAuths() {
   const { CaseTypeID } = await askCaseTypeID()
   const region = getConfigSheetsForCaseTypeId(CaseTypeID)
@@ -43,6 +47,12 @@ async function validateCaseFieldAuths() {
   }
 }
 
+/**
+ * Generates a suggested authorisation array for a field, then checks against the current array to find differences
+ * @param field to check for
+ * @param existingAuths the authorisations currently stored for this field
+ * @returns a record of fields and their extra, missing and/or different auths
+ */
 function checkFieldForAuths(field: CaseField, existingAuths: AuthorisationCaseField[]) {
   const generatedAuths = createAuthorisationCaseFields(field.CaseTypeID, field.ID)
 

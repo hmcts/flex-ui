@@ -1,6 +1,6 @@
 import { prompt, Separator } from "inquirer";
 import { createNewSession, getFieldCount, getFieldsPerPage, getPageCount, saveSession, session } from "app/session";
-import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, Journey, Scrubbed, Session } from "types/types";
+import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, ConfigSheets, Journey, Scrubbed, Session } from "types/types";
 import { getObjectsReferencedByCaseFields } from "app/et/duplicateCaseField";
 import { format, upsertFields } from "app/helpers";
 import { COMPOUND_KEYS } from "app/constants";
@@ -12,6 +12,9 @@ const QUESTION_NAME = "What's the name of the session to export {0} fields to?"
 const QUESTION_NAME_BY_PAGE = `What's the name of the session to export page {0} ({1} fields) to?`
 const QUESTION_NAME_NO_COUNT = 'Whats the name for this session file?';
 
+/**
+ * Asks how the current session file should be split
+ */
 async function splitSession() {
   const ALL = "ALL"
   const RANGE = "RANGE"
@@ -50,6 +53,9 @@ async function splitSession() {
   createSessionFromPage(answers.PageID, followup.sessionName)
 }
 
+/**
+ * Flow for splitting each page into its own session file
+ */
 async function splitPageByPage(fieldCountByPage: Record<number, number>) {
   const totalPages = Object.keys(fieldCountByPage).length
 
@@ -64,6 +70,9 @@ async function splitPageByPage(fieldCountByPage: Record<number, number>) {
   }
 }
 
+/**
+ * Flow for splitting a range of pages into one session file
+ */
 async function splitRangePage(pageChoices: { name: string; value: number; }[]) {
   let answers = await prompt([
     { name: 'startPage', message: QUESTION_PAGE_ID_START, type: 'list', choices: pageChoices },
@@ -83,6 +92,9 @@ async function splitRangePage(pageChoices: { name: string; value: number; }[]) {
   }
 }
 
+/**
+ * Creates a new session from a single page
+ */
 function createSessionFromPage(pageId: number, sessionName: string) {
   const full: Session['added'] = JSON.parse(JSON.stringify(session.added))
 
@@ -95,8 +107,11 @@ function createSessionFromPage(pageId: number, sessionName: string) {
   saveSession(newSession)
 }
 
+/**
+ * Adds a page's fields and related objects from the current session to a passed in session
+ */
 function addPageToSession(pageId: number, newSession: Session) {
-  const full: Session['added'] = JSON.parse(JSON.stringify(session.added))
+  const full: ConfigSheets = JSON.parse(JSON.stringify(session.added))
 
   const fieldsOnPage = full.CaseEventToFields.filter(o => o.PageID === pageId)
 
@@ -140,7 +155,6 @@ function addPageToSession(pageId: number, newSession: Session) {
 
   saveSession(newSession)
 }
-
 
 function getText() {
   return `Split current session (${getFieldCount()} fields across ${getPageCount().length} pages)`

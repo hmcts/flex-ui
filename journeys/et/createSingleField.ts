@@ -109,7 +109,7 @@ export async function askForPageIdAndDisplayOrder(answers: any = {}) {
 }
 
 export async function askCaseEvent(answers: any = {}, message?: string) {
-  const opts = Object.keys(getCaseEventIDOpts())
+  const opts = getCaseEventIDOpts()
   const key = CaseEventToFieldKeys.CaseEventID
   answers = await prompt([
     {
@@ -128,7 +128,7 @@ export async function askCaseEvent(answers: any = {}, message?: string) {
 }
 
 async function askFieldTypeParameter(answers: any = {}) {
-  const opts = Object.keys(getKnownCaseFieldTypeParameters())
+  const opts = getKnownCaseFieldTypeParameters()
   const key = CaseFieldKeys.FieldTypeParameter
   answers = await prompt([
     {
@@ -151,7 +151,7 @@ async function askFieldTypeParameter(answers: any = {}) {
 
 
 async function askFieldType(answers: any = {}) {
-  const opts = Object.keys(getKnownCaseFieldTypes())
+  const opts = getKnownCaseFieldTypes()
   const key = CaseFieldKeys.FieldType
   answers = await prompt([
     {

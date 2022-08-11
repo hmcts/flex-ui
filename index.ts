@@ -13,6 +13,10 @@ import { DIST_JOURNEY_DIR } from 'app/constants'
 envConfig()
 registerPrompt('autocomplete', autocomplete);
 
+/**
+ * Check required environment variables are present.
+ * TOOD: This is ET specific logic and should be refactored
+ */
 function checkEnvVars() {
   const needed = [process.env.ENGWALES_DEF_DIR, process.env.SCOTLAND_DEF_DIR]
   const missing = needed.filter(o => !o)
@@ -21,6 +25,9 @@ function checkEnvVars() {
   }
 }
 
+/**
+ * Checks that a journey is well-formed (has a "text" string/function and a "fn" function)
+ */
 function isJourneyValid(journey: any) {
   if (!journey.text || !['function', 'string'].includes(typeof (journey.text))) {
     return false
@@ -29,11 +36,17 @@ function isJourneyValid(journey: any) {
   return typeof (journey.fn) === 'function';
 }
 
+/**
+ * Search the journeys folder for valid journeys to use on the main menu
+ */
 async function discoverJourneys() {
   const files = (await getFiles(DIST_JOURNEY_DIR)).filter(o => o.endsWith('.js'))
   return files.map(o => require(o).default).filter(o => isJourneyValid(o)) as Journey[]
 }
 
+/**
+ * Create the main menu question containing all discovered journeys
+ */
 async function createMainMenuChoices() {
   const remoteJourneys = await discoverJourneys()
 
@@ -60,9 +73,13 @@ async function createMainMenuChoices() {
   ]
 }
 
+/**
+ * The main program loop. Initializes program and asks questions until "Exit" is selected
+ */
 async function start() {
   ensurePathExists(SESSION_DIR)
   checkEnvVars()
+  // TODO: This is ET specific logic and exists in its own journey, but its here now for convenience 
   readInCurrentConfig()
 
   while (true) {

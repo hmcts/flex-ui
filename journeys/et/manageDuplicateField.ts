@@ -33,9 +33,11 @@ async function duplicateCaseField() {
   doDuplicateCaseField(CaseTypeID, answers.ID, answers.CaseTypeID)
 }
 
-
+/**
+ * Convenience method for adding on the duplicate question to a journey
+ */
 export async function addOnDuplicateQuestion(answers: { CaseTypeID: string, ID: string } & Record<string, any>) {
-  const opts = [NO_DUPLICATE, ...Object.keys(getKnownCaseTypeIds())]
+  const opts = [NO_DUPLICATE, ...getKnownCaseTypeIds()]
   answers = await listOrFreeType(answers, 'duplicate', QUESTION_DUPLICATE_ADDON, opts)
 
   if (answers.duplicate === NO_DUPLICATE) {

@@ -1,5 +1,8 @@
 import { Answers, AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, EventToComplexType } from 'types/types'
 
+/**
+ * Creates a new CaseEvent object using answers provided or defaults
+ */
 export function createNewCaseEvent(answers?: Answers): CaseEvent {
   return {
     CaseTypeID: answers?.CaseTypeID || '',
@@ -19,6 +22,9 @@ export function createNewCaseEvent(answers?: Answers): CaseEvent {
   }
 }
 
+/**
+ * Creates a new CaseField object using answers provided or defaults
+ */
 export function createNewCaseField(answers?: Answers): CaseField {
   return {
     CaseTypeID: answers?.CaseTypeID || '',
@@ -34,6 +40,9 @@ export function createNewCaseField(answers?: Answers): CaseField {
   }
 }
 
+/**
+ * Creates a new CaseEventToField object using answers provided or defaults
+ */
 export function createNewCaseEventToField(answers?: Answers): CaseEventToField {
   return {
     CaseTypeID: answers?.CaseTypeID || 'ET_EnglandWales',
@@ -55,6 +64,9 @@ export function createNewCaseEventToField(answers?: Answers): CaseEventToField {
   }
 }
 
+/**
+ * Creates a new EventToCompledType object using answers provided or defaults
+ */
 export function createNewEventToComplexType(answers?: Answers): EventToComplexType {
   return {
     ID: answers?.ID || '',
@@ -68,6 +80,9 @@ export function createNewEventToComplexType(answers?: Answers): EventToComplexTy
   }
 }
 
+/**
+ * Removes default values from CaseEventToField to rely on ccd defaults
+ */
 export function trimCaseEventToField(obj: CaseEventToField): CaseEventToField {
   const json: Record<string, any> = {}
   for (const key in obj) {
@@ -95,6 +110,9 @@ export function trimCaseEventToField(obj: CaseEventToField): CaseEventToField {
   return json as CaseEventToField
 }
 
+/**
+ * Removes default values from CaseField to rely on ccd defaults
+ */
 export function trimCaseField(obj: CaseField): CaseField {
   const json: Record<string, any> = {}
   for (const key in obj) {
@@ -110,6 +128,10 @@ export function trimCaseField(obj: CaseField): CaseField {
   return json as CaseField
 }
 
+/**
+ * Creates an array of AuthorisationCaseEvent objects.
+ * TODO: Refactor so its not specific to ET
+ */
 export function createAuthorisationCaseEvent(caseTypeId: string = "ET_EnglandWales", eventId: string): AuthorisationCaseEvent[] {
   const userRoleRegion = caseTypeId === "ET_EnglandWales" ? "englandwales" : "scotland"
   return [
@@ -146,6 +168,10 @@ export function createAuthorisationCaseEvent(caseTypeId: string = "ET_EnglandWal
   ]
 }
 
+/**
+ * Creates an array of AuthorisationCaseFields objects.
+ * TODO: Refactor so its not specific to ET
+ */
 export function createAuthorisationCaseFields(caseTypeId: string = "ET_EnglandWales", fieldId: string): AuthorisationCaseField[] {
   const userRoleRegion = caseTypeId === "ET_EnglandWales" ? "englandwales" : "scotland"
   return [

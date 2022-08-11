@@ -5,8 +5,12 @@ import fuzzy from "fuzzy"
 import { CaseFieldKeys } from "types/types"
 import { getKnownCaseTypeIds } from "app/et/configs"
 
+/**
+ * Asks the user for a CaseTypeID. Allows for creation if <custom> is selected.
+ * @returns extended answers object as passed in
+ */
 export async function askCaseTypeID(answers: any = {}) {
-  const opts = Object.keys(getKnownCaseTypeIds())
+  const opts = getKnownCaseTypeIds()
   const key = CaseFieldKeys.CaseTypeID
 
   answers = await prompt([
@@ -26,10 +30,18 @@ export async function askCaseTypeID(answers: any = {}) {
   return answers
 }
 
+/**
+ * Asks for generic input selecting from a list
+ * @returns extended answers object as passed in
+ */
 async function list(answers: any, name: string, message: string, choices: string[], defaultValue?: any) {
   return prompt([{ name, message, type: 'list', choices, default: defaultValue }], answers)
 }
 
+/**
+ * Asks for generic input select from a list AND allowing free typing
+ * @returns extended answers object as passed in
+ */
 export async function listOrFreeType(answers: any, name: string, message: string, choices: string[], defaultValue?: any) {
   answers = await list(answers, name, message, [CUSTOM, ...choices], defaultValue)
 
@@ -42,10 +54,21 @@ export async function listOrFreeType(answers: any, name: string, message: string
   return prompt([{ name, message: `Enter a custom value` }], answers)
 }
 
+
+/**
+ * Asks for basic text entry given a question
+ * @returns extended answers object as passed in
+ */
 export async function askBasicFreeEntry(answers: any, name: string, message?: string, defaultValue?: any) {
   return prompt([{ name, message: message || `What's the ${name}?`, default: defaultValue || session.lastAnswers[name] }], answers || {})
 }
 
+/**
+ * Generic fuzzy search for use with autocomplete questions
+ * @param choices list of options
+ * @param input their current input from terminal
+ * @returns a list of suggestions that match the input text
+ */
 export function fuzzySearch(choices: string[], input = '') {
   return fuzzy.filter(input, [...choices].sort()).map((el) => el.original)
 }

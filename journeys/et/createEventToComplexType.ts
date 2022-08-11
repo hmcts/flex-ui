@@ -40,7 +40,7 @@ async function createEventToComplexType(answers: any) {
 }
 
 async function askCaseFieldId(answers: any = {}) {
-  const opts = Object.keys(getKnownCaseFieldIds())
+  const opts = getKnownCaseFieldIds()
   const key = EventToComplexTypeKeys.CaseFieldID
   answers = await prompt([
     {
