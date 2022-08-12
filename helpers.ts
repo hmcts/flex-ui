@@ -111,20 +111,18 @@ export function format(template: string, ...args: (string | number)[]) {
 }
 
 /**
- * Executes a command in a child process. Waits until the child has exited and returns if there were no errors or data in stderr
+ * Executes a command in a child process. Waits until the child has exited
  * TODO: Work around the "debugger attached" messages that vscode spits out when debugging
+ * @returns an object with stdout, stderr and the exit code
  */
-export function execCommand(command: string, cwd?: string, alias?: string, ignoreError = false) {
+export function execCommand(command: string, cwd?: string, rejectOnNonZeroExitCode = true) {
   return new Promise((resolve, reject) => {
-    exec(command, { cwd }, function (error: any, stdout: string, stderr: string) {
-      if (!ignoreError && (error || stderr)) {
-        console.error(`${alias || command} failed with ${error || stderr}`)
-        const err: Record<string, string> & Error = new Error(error || stderr) as any
-        err.stderr = stderr
-        return reject(err)
+    const child = exec(command, { cwd }, (err, stdout, stderr) => {
+      const out = { err, stdout, stderr, code: child.exitCode }
+      if (rejectOnNonZeroExitCode && child.exitCode > 0) {
+        return reject(out)
       }
-      console.log(`${alias || command} executed`)
-      return resolve(stdout)
+      return resolve(out)
     })
   })
 }
@@ -147,4 +145,13 @@ export function getUniqueByKey<T>(arr: T[], key: keyof (T), defaultOption?: stri
  */
 export function getUniqueByKeyAsArray<T>(arr: T[], key: keyof (T), defaultOption?: string) {
   return Object.keys(getUniqueByKey(arr, key, defaultOption))
+}
+
+export function temporaryLog(message: string) {
+  clearCurrentLine()
+  process.stdout.write(message)
+}
+
+export function clearCurrentLine() {
+  process.stdout.write('\r\x1b[K')
 }

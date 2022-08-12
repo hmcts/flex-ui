@@ -13,9 +13,9 @@ function getDefinitionPath(region: "EnglandWales" | "Scotland", env: string = "l
 
 export async function ccdImport(region: "EnglandWales" | "Scotland", env: string = "local") {
   const definitionFile = getDefinitionPath(region, env)
-  const stdout = await execCommand(`${IMPORT_SCRIPT} ${definitionFile}`) as string
-  if (!stdout.includes("Case Definition data successfully imported")) {
-    console.error(stdout)
+  const res = await execCommand(`${IMPORT_SCRIPT} ${definitionFile}`) as any
+  if (!res.stdout?.includes("Case Definition data successfully imported")) {
+    console.error(res.stdout)
   }
 }
 

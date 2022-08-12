@@ -1,8 +1,8 @@
-import { ensureUp, tearDown } from "app/et/docker"
+import { ensureUp, destroyEverything } from "app/et/docker"
 import { Journey } from "types/types"
 
 async function tearDownAndFreshStart() {
-  await tearDown()
+  await destroyEverything()
   await ensureUp()
 }
 

@@ -17,7 +17,7 @@ registerPrompt('autocomplete', autocomplete)
  * Check required environment variables are present.
  * TOOD: This is ET specific logic and should be refactored
  */
- export function checkEnvVars() {
+export function checkEnvVars() {
   const needed = ['ENGWALES_DEF_DIR', 'SCOTLAND_DEF_DIR']
   const missing = needed.filter(o => !process.env[o])
   if (missing.length) {
@@ -66,30 +66,34 @@ async function discoverJourneys() {
 /**
  * Create the main menu question containing all discovered journeys
  */
-async function createMainMenuChoices() {
-  const remoteJourneys = await discoverJourneys()
-
+async function createMainMenuChoices(remoteJourneys: Journey[]) {
   let choices: Journey[] = []
 
   remoteJourneys.forEach(o => choices.push(o))
 
   choices.sort((a, b) => (a.group || 'default') > (b.group || 'default') ? -1 : 1)
 
+  const menu = [...choices]
+  let addedSeparators = 0
   for (let i = 1; i < choices.length; i++) {
     const journey = choices[i]
     const previous = choices[i - 1]
 
     if (journey.group !== previous.group) {
-      choices.splice(i, 0, { text: new Separator() })
-      i++
+      menu.splice(i + addedSeparators++, 0, { text: new Separator() })
     }
   }
 
-  return [
-    ...choices,
-    { group: 'program', text: 'Exit', fn: async () => { console.log(`Bye!`); process.exit(0) } },
-    { text: new Separator() }
-  ]
+  return menu
+}
+
+function findSelectedJourney(choices: Journey[], selected: string) {
+  return choices.find(o => {
+    if ((typeof (o.text) === 'function' ? o.text() : o.text) === selected) {
+      return true
+    }
+    return o.matchText?.(selected)
+  })
 }
 
 /**
@@ -102,23 +106,27 @@ async function start() {
   readInCurrentConfig()
 
   while (true) {
-    let choices: Journey[] = await createMainMenuChoices()
+    const discovered = await discoverJourneys()
+    let choices: Journey[] = await createMainMenuChoices(discovered)
 
     const answers = await prompt([
       {
         name: 'Journey',
         message: "What do you want to do?",
         type: 'list',
-        choices: choices.map(o => typeof (o.text) === 'function' ? o.text() : o.text)
+        choices: [
+          ...choices.map(o => typeof (o.text) === 'function' ? o.text() : o.text),
+          'Exit',
+          new Separator()
+        ]
       }
     ])
 
-    const selectedFn = choices.find(o => {
-      if ((typeof (o.text) === 'function' ? o.text() : o.text) === answers.Journey) {
-        return true
-      }
-      return o.matchText?.(answers.Journey)
-    })
+    if (answers.Journey === "Exit") {
+      break
+    }
+
+    const selectedFn = findSelectedJourney(choices, answers.Journey)
 
     if (!selectedFn) {
       throw new Error(`Unable to find a function for "${answers.Journey}"`)
@@ -128,10 +136,16 @@ async function start() {
       throw new Error(`Journey ${answers.Journey} does not have a callable function attached to it`)
     }
 
-    await selectedFn.fn()
+    try { await selectedFn.fn() }
+    catch (e) {
+      console.error(`An error occured on the selected journey:`)
+      console.error(e)
+      break
+    }
 
     saveSession(session)
   }
+  console.log("Bye!")
 }
 
 start()
