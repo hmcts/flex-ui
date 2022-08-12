@@ -6,7 +6,7 @@ import { prompt, Separator, registerPrompt } from 'inquirer'
 import autocomplete from "inquirer-autocomplete-prompt"
 import { Journey } from 'types/types'
 import { readInCurrentConfig } from 'app/et/configs'
-import { ensurePathExists, getFiles } from 'app/helpers'
+import { ensurePathExists, format, getFiles } from 'app/helpers'
 import { saveSession, session, SESSION_DIR } from 'app/session'
 import { DIST_JOURNEY_DIR } from 'app/constants'
 
@@ -28,12 +28,28 @@ function checkEnvVars() {
 /**
  * Checks that a journey is well-formed (has a "text" string/function and a "fn" function)
  */
-function isJourneyValid(journey: any) {
+function isJourneyValid(journey: any, fileName: string) {
+  const excludeMessage = `Excluding ${fileName.replace(__dirname, "")} because {0}`
+  if (typeof (journey.text) === 'function') {
+    try {
+      journey.text()
+    } catch (e) {
+      console.warn(format(excludeMessage, `its text function threw ${e}`))
+      return false
+    }
+  }
+
   if (!journey.text || !['function', 'string'].includes(typeof (journey.text))) {
+    console.warn(format(excludeMessage, 'its text property was not a string or a function'))
     return false
   }
 
-  return typeof (journey.fn) === 'function'
+  if (typeof (journey.fn) !== 'function') {
+    console.warn(format(excludeMessage, "it doesn't have a valid fn function"))
+    return false
+  }
+
+  return true
 }
 
 /**
@@ -41,7 +57,10 @@ function isJourneyValid(journey: any) {
  */
 async function discoverJourneys() {
   const files = (await getFiles(DIST_JOURNEY_DIR)).filter(o => o.endsWith('.js'))
-  return files.map(o => require(o).default).filter(o => isJourneyValid(o)) as Journey[]
+  return files.map(o => {
+    const module = require(o).default
+    return module && isJourneyValid(module, o) ? module : undefined
+  }).filter(o => o) as Journey[]
 }
 
 /**
