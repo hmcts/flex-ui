@@ -1,33 +1,33 @@
-import { prompt } from "inquirer";
-import { addToLastAnswers, session } from "app/session";
-import { CaseEventKeys, CaseEventToFieldKeys, CaseFieldKeys, Journey } from "types/types";
-import { askBasicFreeEntry, askCaseTypeID, fuzzySearch } from "app/questions";
-import { CUSTOM, DISPLAY_CONTEXT_OPTIONS, FIELD_TYPES_NO_MIN_MAX, FIELD_TYPES_NO_PARAMETER, NONE, Y_OR_N } from "app/constants";
-import { addToInMemoryConfig, getCaseEventIDOpts, getKnownCaseFieldTypeParameters, getKnownCaseFieldTypes } from "app/et/configs";
-import { addOnDuplicateQuestion } from "./manageDuplicateField";
-import { createAuthorisationCaseFields, createNewCaseEventToField, createNewCaseField, trimCaseEventToField, trimCaseField } from "app/objects";
-import { createScrubbed } from "./createScrubbed";
-import { createEvent } from "./createEvent";
-import { format } from "app/helpers";
+import { prompt } from "inquirer"
+import { addToLastAnswers, session } from "app/session"
+import { CaseEventKeys, CaseEventToFieldKeys, CaseFieldKeys, Journey } from "types/types"
+import { askBasicFreeEntry, askCaseTypeID, fuzzySearch } from "app/questions"
+import { CUSTOM, DISPLAY_CONTEXT_OPTIONS, FIELD_TYPES_NO_MIN_MAX, FIELD_TYPES_NO_PARAMETER, NONE, Y_OR_N } from "app/constants"
+import { addToInMemoryConfig, getCaseEventIDOpts, getKnownCaseFieldTypeParameters, getKnownCaseFieldTypes } from "app/et/configs"
+import { addOnDuplicateQuestion } from "./manageDuplicateField"
+import { createAuthorisationCaseFields, createNewCaseEventToField, createNewCaseField, trimCaseEventToField, trimCaseField } from "app/objects"
+import { createScrubbed } from "./createScrubbed"
+import { createEvent } from "./createEvent"
+import { format } from "app/helpers"
 
-export const QUESTION_ID = `What's the ID for this field?`;
-const QUESTION_LABEL = 'What text (Label) should this field have?';
-const QUESTION_PAGE_ID = `What page will this field appear on?`;
-const QUESTION_PAGE_FIELD_DISPLAY_ORDER = `Whats the PageFieldDisplayOrder for this field?`;
-export const QUESTION_FIELD_SHOW_CONDITION = 'Enter a field show condition string (optional)';
-const QUESTION_CASE_EVENT_ID = `What event does this new field belong to?`;
+export const QUESTION_ID = `What's the ID for this field?`
+const QUESTION_LABEL = 'What text (Label) should this field have?'
+const QUESTION_PAGE_ID = `What page will this field appear on?`
+const QUESTION_PAGE_FIELD_DISPLAY_ORDER = `Whats the PageFieldDisplayOrder for this field?`
+export const QUESTION_FIELD_SHOW_CONDITION = 'Enter a field show condition string (optional)'
+const QUESTION_CASE_EVENT_ID = `What event does this new field belong to?`
 const QUESTION_FIELD_TYPE_PARAMETER = "What's the parameter for this {0} field?"
-const QUESTION_FIELD_TYPE = "What's the type of this field?";
-const QUESTION_FIELD_TYPE_CUSTOM = "What's the name of the FieldType?";
-const QUESTION_HINT_TEXT = 'What HintText should this field have? (optional)';
-const QUESTION_DISPLAY_CONTEXT = 'Is this field READONLY, OPTIONAL, MANDATORY or COMPLEX?';
-const QUESTION_SHOW_SUMMARY_CHANGE_OPTION = 'Should this field appear on the CYA page?';
-const QUESTION_MIN = 'Enter a min for this field (optional)';
-const QUESTION_MAX = 'Enter a max for this field (optional)';
-const QUESTION_PAGE_LABEL = 'Does this page have a custom title? (optional)';
-const QUESTION_PAGE_SHOW_CONDITION = 'Enter a page show condition string (optional)';
-const QUESTION_CALLBACK_URL_MID_EVENT = 'Enter the callback url to hit before loading the next page (optional)';
-const QUESTION_REGULAR_EXPRESSION = "Do we need a RegularExpression for the field?";
+const QUESTION_FIELD_TYPE = "What's the type of this field?"
+const QUESTION_FIELD_TYPE_CUSTOM = "What's the name of the FieldType?"
+const QUESTION_HINT_TEXT = 'What HintText should this field have? (optional)'
+const QUESTION_DISPLAY_CONTEXT = 'Is this field READONLY, OPTIONAL, MANDATORY or COMPLEX?'
+const QUESTION_SHOW_SUMMARY_CHANGE_OPTION = 'Should this field appear on the CYA page?'
+const QUESTION_MIN = 'Enter a min for this field (optional)'
+const QUESTION_MAX = 'Enter a max for this field (optional)'
+const QUESTION_PAGE_LABEL = 'Does this page have a custom title? (optional)'
+const QUESTION_PAGE_SHOW_CONDITION = 'Enter a page show condition string (optional)'
+const QUESTION_CALLBACK_URL_MID_EVENT = 'Enter the callback url to hit before loading the next page (optional)'
+const QUESTION_REGULAR_EXPRESSION = "Do we need a RegularExpression for the field?"
 
 export async function createSingleField(answers: any = {}) {
   answers = await askBasic(answers)

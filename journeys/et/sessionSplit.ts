@@ -1,16 +1,16 @@
-import { prompt, Separator } from "inquirer";
-import { createNewSession, getFieldCount, getFieldsPerPage, getPageCount, saveSession, session } from "app/session";
-import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, ConfigSheets, Journey, Scrubbed, Session } from "types/types";
-import { getObjectsReferencedByCaseFields } from "app/et/duplicateCaseField";
-import { format, upsertFields } from "app/helpers";
-import { COMPOUND_KEYS } from "app/constants";
+import { prompt, Separator } from "inquirer"
+import { createNewSession, getFieldCount, getFieldsPerPage, getPageCount, saveSession, session } from "app/session"
+import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, ConfigSheets, Journey, Scrubbed, Session } from "types/types"
+import { getObjectsReferencedByCaseFields } from "app/et/duplicateCaseField"
+import { format, upsertFields } from "app/helpers"
+import { COMPOUND_KEYS } from "app/constants"
 
-const QUESTION_PAGE_ID = `Export fields from what page?`;
-const QUESTION_PAGE_ID_START = 'Starting from (including) what page ID?';
-const QUESTION_PAGE_ID_END = `Up to (including) what page ID?`;
+const QUESTION_PAGE_ID = `Export fields from what page?`
+const QUESTION_PAGE_ID_START = 'Starting from (including) what page ID?'
+const QUESTION_PAGE_ID_END = `Up to (including) what page ID?`
 const QUESTION_NAME = "What's the name of the session to export {0} fields to?"
 const QUESTION_NAME_BY_PAGE = `What's the name of the session to export page {0} ({1} fields) to?`
-const QUESTION_NAME_NO_COUNT = 'Whats the name for this session file?';
+const QUESTION_NAME_NO_COUNT = 'Whats the name for this session file?'
 
 /**
  * Asks how the current session file should be split

@@ -1,6 +1,6 @@
 import 'source-map-support/register'
 // https://dev.to/larswaechter/path-aliases-with-typescript-in-nodejs-4353
-import 'module-alias/register';
+import 'module-alias/register'
 import { config as envConfig } from 'dotenv'
 import { prompt, Separator, registerPrompt } from 'inquirer'
 import autocomplete from "inquirer-autocomplete-prompt"
@@ -11,7 +11,7 @@ import { saveSession, session, SESSION_DIR } from 'app/session'
 import { DIST_JOURNEY_DIR } from 'app/constants'
 
 envConfig()
-registerPrompt('autocomplete', autocomplete);
+registerPrompt('autocomplete', autocomplete)
 
 /**
  * Check required environment variables are present.
@@ -33,7 +33,7 @@ function isJourneyValid(journey: any) {
     return false
   }
 
-  return typeof (journey.fn) === 'function';
+  return typeof (journey.fn) === 'function'
 }
 
 /**

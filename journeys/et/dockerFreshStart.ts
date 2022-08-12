@@ -1,5 +1,5 @@
-import { ensureUp, tearDown } from "app/et/docker";
-import { Journey } from "types/types";
+import { ensureUp, tearDown } from "app/et/docker"
+import { Journey } from "types/types"
 
 async function tearDownAndFreshStart() {
   await tearDown()

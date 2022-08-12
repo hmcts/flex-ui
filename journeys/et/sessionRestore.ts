@@ -1,8 +1,8 @@
-import { prompt } from "inquirer";
-import { findPreviousSessions, restorePreviousSession } from "app/session";
-import { Journey } from "types/types";
+import { prompt } from "inquirer"
+import { findPreviousSessions, restorePreviousSession } from "app/session"
+import { Journey } from "types/types"
 
-const QUESTION_PREVIOUS_SESSION = "Select a previous session";
+const QUESTION_PREVIOUS_SESSION = "Select a previous session"
 
 async function restoreSession() {
   const prevSessions = await findPreviousSessions()

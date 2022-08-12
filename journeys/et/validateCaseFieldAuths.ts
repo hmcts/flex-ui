@@ -1,11 +1,11 @@
-import { AuthorisationCaseField, CaseField, Journey } from "types/types";
-import { askCaseTypeID } from "app/questions";
-import { getConfigSheetsForCaseTypeId } from "app/et/configs";
-import { createAuthorisationCaseFields } from "app/objects";
-import { findMissing, matcher } from "app/helpers";
-import { COMPOUND_KEYS } from "app/constants";
-import { writeFileSync } from "fs";
-import { resolve } from "path";
+import { AuthorisationCaseField, CaseField, Journey } from "types/types"
+import { askCaseTypeID } from "app/questions"
+import { getConfigSheetsForCaseTypeId } from "app/et/configs"
+import { createAuthorisationCaseFields } from "app/objects"
+import { findMissing, matcher } from "app/helpers"
+import { COMPOUND_KEYS } from "app/constants"
+import { writeFileSync } from "fs"
+import { resolve } from "path"
 
 /**
  * Checks over every CaseField for missing or unexpected authorisations.

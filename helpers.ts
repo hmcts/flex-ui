@@ -23,12 +23,12 @@ export function ensurePathExists(dir: string) {
  * Recursively reads files in a directory. Returns as an array of files relative to the start dir
  */
 export async function getFiles(dir: string) {
-  const dirents = await readdir(dir, { withFileTypes: true });
+  const dirents = await readdir(dir, { withFileTypes: true })
   const files: any[] = await Promise.all(dirents.map((dirent: any) => {
-    const res = resolve(dir, dirent.name);
-    return dirent.isDirectory() ? getFiles(res) : res;
-  }));
-  return Array.prototype.concat(...files);
+    const res = resolve(dir, dirent.name)
+    return dirent.isDirectory() ? getFiles(res) : res
+  }))
+  return Array.prototype.concat(...files)
 }
 
 /**
@@ -103,7 +103,7 @@ export function findLastIndex<T>(arr: T[], predicate: (value: T, index: number, 
  */
 export function format(template: string, ...args: (string | number)[]) {
   for (let i = 0; i < args.length; i++) {
-    const arg = args[i];
+    const arg = args[i]
     template = template.replace(new RegExp(`\\{${i}\\}`, 'g'), String(arg))
   }
 
@@ -125,7 +125,7 @@ export function execCommand(command: string, cwd?: string, alias?: string, ignor
       }
       console.log(`${alias || command} executed`)
       return resolve(stdout)
-    });
+    })
   })
 }
 

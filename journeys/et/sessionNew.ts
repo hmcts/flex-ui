@@ -1,6 +1,6 @@
-import { createAndLoadNewSession} from "app/session";
-import { Journey } from "types/types";
-import { setSessionName } from "./sessionSetName";
+import { createAndLoadNewSession} from "app/session"
+import { Journey } from "types/types"
+import { setSessionName } from "./sessionSetName"
 
 async function newSession() {
   createAndLoadNewSession('temp')

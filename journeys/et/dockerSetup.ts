@@ -1,5 +1,5 @@
-import { ensureUp } from "app/et/docker";
-import { Journey } from "types/types";
+import { ensureUp } from "app/et/docker"
+import { Journey } from "types/types"
 
 export default {
   group: 'et-docker',

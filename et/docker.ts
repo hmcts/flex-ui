@@ -1,5 +1,5 @@
-import { execCommand } from "app/helpers";
-import { exec } from "child_process";
+import { execCommand } from "app/helpers"
+import { exec } from "child_process"
 
 /**
  * Commands for ensuring all docker containers are spun up
@@ -67,7 +67,7 @@ function initEcm() {
         return setTimeout(() => initEcm().then(() => resolve('')).catch(() => undefined), 1000 * 30)
       }
       resolve('')
-    });
+    })
   })
 }
 

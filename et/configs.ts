@@ -3,7 +3,7 @@ import { sep } from "path"
 import { findLastIndex, getUniqueByKey, getUniqueByKeyAsArray, upsertFields } from "app/helpers"
 import { addToSession } from "app/session"
 import { CaseEvent, ConfigSheets, Scrubbed } from "types/types"
-import { COMPOUND_KEYS } from "app/constants";
+import { COMPOUND_KEYS } from "app/constants"
 
 let readTime: number = 0
 let englandwales: ConfigSheets
@@ -123,7 +123,7 @@ export function upsertNewCaseEvent(caseEvent: CaseEvent) {
     configSheets.CaseEvent.splice(ewInsertIndex, 0, caseEvent)
 
     for (let i = ewInsertIndex + 1; i < configSheets.CaseEvent.length; i++) {
-      const event = configSheets.CaseEvent[i];
+      const event = configSheets.CaseEvent[i]
       if (event.CaseTypeID !== caseEvent.CaseTypeID) continue
       event.DisplayOrder++
     }

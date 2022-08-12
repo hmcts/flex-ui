@@ -1,5 +1,5 @@
-import { tearDown } from "app/et/docker";
-import { Journey } from "types/types";
+import { tearDown } from "app/et/docker"
+import { Journey } from "types/types"
 
 export default {
   group: 'et-docker',
