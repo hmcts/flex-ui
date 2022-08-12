@@ -1,17 +1,17 @@
 import { prompt } from "inquirer"
 import { Journey } from "types/types"
 import { askCaseTypeID, fuzzySearch, listOrFreeType } from "app/questions"
-import { getConfigSheetsForCaseTypeId, getKnownCaseTypeIds } from "app/et/configs"
+import { getConfigSheetsForCaseTypeID, getKnownCaseTypeIDs } from "app/et/configs"
 import { doDuplicateCaseField } from "app/et/duplicateCaseField"
 import { CANCEL, NO_DUPLICATE } from "app/constants"
 import { getIdealSizeForInquirer } from "app/helpers"
 
 const QUESTION_DUPLICATE = "What's the ID of the field to duplicate?"
-const QUESTION_DUPLICATE_ADDON = "Do we need this field duplicated under another caseTypeId?"
+const QUESTION_DUPLICATE_ADDON = "Do we need this field duplicated under another caseTypeID?"
 
 async function duplicateCaseField() {
   const { CaseTypeID } = await askCaseTypeID()
-  const region = getConfigSheetsForCaseTypeId(CaseTypeID)
+  const region = getConfigSheetsForCaseTypeID(CaseTypeID)
 
   let answers = await prompt([
     {
@@ -39,7 +39,7 @@ async function duplicateCaseField() {
  * Convenience method for adding on the duplicate question to a journey
  */
 export async function addOnDuplicateQuestion(answers: { CaseTypeID: string, ID: string } & Record<string, any>) {
-  const opts = [NO_DUPLICATE, ...getKnownCaseTypeIds()]
+  const opts = [NO_DUPLICATE, ...getKnownCaseTypeIDs()]
   answers = await listOrFreeType(answers, 'duplicate', QUESTION_DUPLICATE_ADDON, opts)
 
   if (answers.duplicate === NO_DUPLICATE) {

@@ -1,22 +1,22 @@
-import { addToInMemoryConfig, getConfigSheetsForCaseTypeId, upsertNewCaseEvent } from "app/et/configs"
+import { addToInMemoryConfig, getConfigSheetsForCaseTypeID, upsertNewCaseEvent } from "app/et/configs"
 import { CaseField, ConfigSheets } from "app/types/types"
 
 /**
  * Duplicates a field and all related objects under a different CaseTypeID
- * @param fromCaseTypeId CaseTypeID of the field to copy
- * @param caseFieldId CaseFieldID of the field to copy
- * @param toCaseTypeId create a copy with this CaseTypeID
+ * @param fromCaseTypeID CaseTypeID of the field to copy
+ * @param caseFieldID CaseFieldID of the field to copy
+ * @param toCaseTypeID create a copy with this CaseTypeID
  */
-export function doDuplicateCaseField(fromCaseTypeId: string, caseFieldId: string, toCaseTypeId: string) {
-  const referenced = getObjectsReferencedByCaseField(fromCaseTypeId, caseFieldId)
-  referenced.CaseEvent.forEach(o => upsertNewCaseEvent(duplicateInCaseType(toCaseTypeId, o)))
+export function doDuplicateCaseField(fromCaseTypeID: string, caseFieldID: string, toCaseTypeID: string) {
+  const referenced = getObjectsReferencedByCaseField(fromCaseTypeID, caseFieldID)
+  referenced.CaseEvent.forEach(o => upsertNewCaseEvent(duplicateInCaseType(toCaseTypeID, o)))
 
   addToInMemoryConfig({
-    AuthorisationCaseEvent: referenced.AuthorisationCaseEvent.map(o => duplicateAuthorisationInCaseType(toCaseTypeId, o)),
-    AuthorisationCaseField: referenced.AuthorisationCaseField.map(o => duplicateAuthorisationInCaseType(toCaseTypeId, o)),
-    CaseEvent: referenced.CaseEvent.map(o => duplicateInCaseType(toCaseTypeId, o)),
-    CaseEventToFields: referenced.CaseEventToFields.map(o => duplicateInCaseType(toCaseTypeId, o)),
-    CaseField: referenced.CaseField.map(o => duplicateInCaseType(toCaseTypeId, o)),
+    AuthorisationCaseEvent: referenced.AuthorisationCaseEvent.map(o => duplicateAuthorisationInCaseType(toCaseTypeID, o)),
+    AuthorisationCaseField: referenced.AuthorisationCaseField.map(o => duplicateAuthorisationInCaseType(toCaseTypeID, o)),
+    CaseEvent: referenced.CaseEvent.map(o => duplicateInCaseType(toCaseTypeID, o)),
+    CaseEventToFields: referenced.CaseEventToFields.map(o => duplicateInCaseType(toCaseTypeID, o)),
+    CaseField: referenced.CaseField.map(o => duplicateInCaseType(toCaseTypeID, o)),
   })
 }
 
@@ -55,17 +55,17 @@ export function duplicateAuthorisationInCaseType<T extends { CaseTypeId: string,
 /**
  * Checks if a field references the other in either Label or HintText properties
  */
-function isFieldReferencedInField(caseField: CaseField, caseFieldId: string) {
-  return caseField.Label?.includes(`{${caseFieldId}}`) || caseField.HintText?.includes(`{${caseFieldId}}`)
+function isFieldReferencedInField(caseField: CaseField, caseFieldID: string) {
+  return caseField.Label?.includes(`{${caseFieldID}}`) || caseField.HintText?.includes(`{${caseFieldID}}`)
 }
 
 /**
  * Gets ALL objects needed to support a specific CaseField (checks all supported JSONs)
  */
-function getObjectsReferencedByCaseField(caseTypeId: string, caseFieldId: string) {
-  const region = getConfigSheetsForCaseTypeId(caseTypeId)
+function getObjectsReferencedByCaseField(caseTypeID: string, caseFieldID: string) {
+  const region = getConfigSheetsForCaseTypeID(caseTypeID)
 
-  const caseField = region.CaseField.find(o => o.ID === caseFieldId)
+  const caseField = region.CaseField.find(o => o.ID === caseFieldID)
 
   return getObjectsReferencedByCaseFields(region, [caseField])
 }

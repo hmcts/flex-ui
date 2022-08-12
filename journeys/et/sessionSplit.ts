@@ -95,10 +95,10 @@ async function splitRangePage(pageChoices: { name: string; value: number; }[]) {
 /**
  * Creates a new session from a single page
  */
-function createSessionFromPage(pageId: number, sessionName: string) {
+function createSessionFromPage(pageID: number, sessionName: string) {
   const full: Session['added'] = JSON.parse(JSON.stringify(session.added))
 
-  const fieldsOnPage = full.CaseEventToFields.filter(o => o.PageID === pageId)
+  const fieldsOnPage = full.CaseEventToFields.filter(o => o.PageID === pageID)
   const newSession = createNewSession(sessionName)
 
   newSession.added = getObjectsReferencedByCaseFields(full, full.CaseField.filter(o => fieldsOnPage.find(x => x.CaseFieldID === o.ID)))
@@ -110,10 +110,10 @@ function createSessionFromPage(pageId: number, sessionName: string) {
 /**
  * Adds a page's fields and related objects from the current session to a passed in session
  */
-function addPageToSession(pageId: number, newSession: Session) {
+function addPageToSession(pageID: number, newSession: Session) {
   const full: ConfigSheets = JSON.parse(JSON.stringify(session.added))
 
-  const fieldsOnPage = full.CaseEventToFields.filter(o => o.PageID === pageId)
+  const fieldsOnPage = full.CaseEventToFields.filter(o => o.PageID === pageID)
 
   upsertFields<AuthorisationCaseEvent>(
     newSession.added.AuthorisationCaseEvent,

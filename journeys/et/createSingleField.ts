@@ -3,7 +3,7 @@ import { addToLastAnswers, session } from "app/session"
 import { CaseEventKeys, CaseEventToFieldKeys, CaseFieldKeys, Journey } from "types/types"
 import { askBasicFreeEntry, askCaseTypeID, fuzzySearch } from "app/questions"
 import { CUSTOM, DISPLAY_CONTEXT_OPTIONS, FIELD_TYPES_NO_MIN_MAX, FIELD_TYPES_NO_PARAMETER, NONE, Y_OR_N } from "app/constants"
-import { addToInMemoryConfig, getCaseEventIDOpts, getKnownCaseFieldTypeParameters, getKnownCaseFieldTypes, getNextPageFieldIdForPage } from "app/et/configs"
+import { addToInMemoryConfig, getCaseEventIDOpts, getKnownCaseFieldTypeParameters, getKnownCaseFieldTypes, getNextPageFieldIDForPage } from "app/et/configs"
 import { addOnDuplicateQuestion } from "./manageDuplicateField"
 import { createAuthorisationCaseFields, createNewCaseEventToField, createNewCaseField, trimCaseEventToField, trimCaseField } from "app/objects"
 import { createScrubbed } from "./createScrubbed"
@@ -32,7 +32,7 @@ const QUESTION_REGULAR_EXPRESSION = "Do we need a RegularExpression for the fiel
 export async function createSingleField(answers: any = {}) {
   answers = await askBasic(answers)
 
-  answers = await askForPageIdAndDisplayOrder(answers)
+  answers = await askForPageIDAndDisplayOrder(answers)
 
   answers = await askFieldType(answers)
 
@@ -74,15 +74,15 @@ export async function createSingleField(answers: any = {}) {
 }
 
 export function getDefaultForPageFieldDisplayOrder(answers: any) {
-  const pageId = CaseEventToFieldKeys.PageID
-  if (answers[pageId] && answers[CaseEventToFieldKeys.CaseEventID] && answers[CaseEventToFieldKeys.CaseTypeID]) {
-    return getNextPageFieldIdForPage(
+  const pageID = CaseEventToFieldKeys.PageID
+  if (answers[pageID] && answers[CaseEventToFieldKeys.CaseEventID] && answers[CaseEventToFieldKeys.CaseTypeID]) {
+    return getNextPageFieldIDForPage(
       answers[CaseEventToFieldKeys.CaseTypeID],
       answers[CaseEventToFieldKeys.CaseEventID],
-      answers[pageId]
+      answers[pageID]
     )
   }
-  if (answers[pageId] === session.lastAnswers[pageId] && session.lastAnswers[pageId]) {
+  if (answers[pageID] === session.lastAnswers[pageID] && session.lastAnswers[pageID]) {
     return session.lastAnswers[CaseEventToFieldKeys.PageFieldDisplayOrder] + 1
   }
   return 1
@@ -101,7 +101,7 @@ async function askBasic(answers: any = {}) {
   )
 }
 
-export async function askForPageIdAndDisplayOrder(answers: any = {}) {
+export async function askForPageIDAndDisplayOrder(answers: any = {}) {
   answers = await prompt([{
     name: CaseEventToFieldKeys.PageID,
     message: QUESTION_PAGE_ID,

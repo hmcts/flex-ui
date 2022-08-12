@@ -1,6 +1,6 @@
 import { AuthorisationCaseField, CaseField, Journey } from "types/types"
 import { askCaseTypeID } from "app/questions"
-import { getConfigSheetsForCaseTypeId } from "app/et/configs"
+import { getConfigSheetsForCaseTypeID } from "app/et/configs"
 import { createAuthorisationCaseFields } from "app/objects"
 import { findMissing, matcher } from "app/helpers"
 import { COMPOUND_KEYS } from "app/constants"
@@ -13,7 +13,7 @@ import { resolve } from "path"
  */
 async function validateCaseFieldAuths() {
   const { CaseTypeID } = await askCaseTypeID()
-  const region = getConfigSheetsForCaseTypeId(CaseTypeID)
+  const region = getConfigSheetsForCaseTypeID(CaseTypeID)
 
   const caseFieldsForType = region.CaseField.filter(o => o.CaseTypeID === CaseTypeID)
 
@@ -30,7 +30,7 @@ async function validateCaseFieldAuths() {
 
 
   const report = caseFieldsForType.map(o => checkFieldForAuths(o, authsByCaseField[o.ID.trim()] || []))
-    .sort((a, b) => a.fieldId > b.fieldId ? 1 : -1)
+    .sort((a, b) => a.fieldID > b.fieldID ? 1 : -1)
 
   const summary = report.reduce((acc, obj) => {
     if (obj.missingAuths.length || obj.differentAuths.length || obj.extraAuths.length) {
@@ -63,7 +63,7 @@ function checkFieldForAuths(field: CaseField, existingAuths: AuthorisationCaseFi
     if (found && found.CRUD !== o.CRUD) return { ...o, currentCRUD: o.CRUD, suggestedCRUD: found.CRUD }
   }).filter(o => o)
 
-  return { fieldId: field.ID, extraAuths, missingAuths, differentAuths }
+  return { fieldID: field.ID, extraAuths, missingAuths, differentAuths }
 }
 
 export default {

@@ -3,7 +3,7 @@ import { CUSTOM } from "app/constants"
 import { session } from "app/session"
 import fuzzy from "fuzzy"
 import { CaseFieldKeys } from "types/types"
-import { getKnownCaseTypeIds } from "app/et/configs"
+import { getKnownCaseTypeIDs } from "app/et/configs"
 import { getIdealSizeForInquirer } from "./helpers"
 
 /**
@@ -11,7 +11,7 @@ import { getIdealSizeForInquirer } from "./helpers"
  * @returns extended answers object as passed in
  */
 export async function askCaseTypeID(answers: any = {}) {
-  const opts = getKnownCaseTypeIds()
+  const opts = getKnownCaseTypeIDs()
   const key = CaseFieldKeys.CaseTypeID
 
   answers = await prompt([

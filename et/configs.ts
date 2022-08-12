@@ -51,11 +51,11 @@ function getScotland() {
 
 /**
  * Mapper function for deciding where to write objects depending on CaseTypeID
- * @param caseTypeId a caseTypeID value
+ * @param caseTypeID a caseTypeID value
  * @returns either englandwales or scotland
  */
-export function getConfigSheetsForCaseTypeId(caseTypeId: string) {
-  return caseTypeId.startsWith("ET_EnglandWales") ? getEnglandWales() : getScotland()
+export function getConfigSheetsForCaseTypeID(caseTypeID: string) {
+  return caseTypeID.startsWith("ET_EnglandWales") ? getEnglandWales() : getScotland()
 }
 
 /**
@@ -85,23 +85,23 @@ export function getKnownCaseFieldTypeParameters() {
 /**
  * Get all defined CaseType IDs in englandwales and scotland configs
  */
-export function getKnownCaseTypeIds() {
+export function getKnownCaseTypeIDs() {
   return getUniqueByKeyAsArray([...englandwales.CaseField, ...scotland.CaseField], 'CaseTypeID')
 }
 
 /**
  * Get all defined CaseField IDs in englandwales and scotland configs
  */
-export function getKnownCaseFieldIds() {
+export function getKnownCaseFieldIDs() {
   return getUniqueByKeyAsArray([...englandwales.CaseField, ...scotland.CaseField], 'ID')
 }
 
 /**
  * Gets the highest PageFieldDisplayOrder number from fields on a certain page
  */
-export function getNextPageFieldIdForPage(caseTypeID: string, caseEventId: string, pageId: number) {
-  const region = getConfigSheetsForCaseTypeId(caseTypeID)
-  const fieldsOnPage = region.CaseEventToFields.filter(o => o.CaseEventID === caseEventId && o.PageID === pageId)
+export function getNextPageFieldIDForPage(caseTypeID: string, caseEventID: string, pageID: number) {
+  const region = getConfigSheetsForCaseTypeID(caseTypeID)
+  const fieldsOnPage = region.CaseEventToFields.filter(o => o.CaseEventID === caseEventID && o.PageID === pageID)
   const fieldOrders = fieldsOnPage.map(o => Number(o.PageFieldDisplayOrder))
   return fieldsOnPage.length ? Math.max(...fieldOrders) + 1 : 1
 }
@@ -137,7 +137,7 @@ export function readInCurrentConfig() {
  * @param caseEvent to upsert
  */
 export function upsertNewCaseEvent(caseEvent: CaseEvent) {
-  const configSheets = getConfigSheetsForCaseTypeId(caseEvent.CaseTypeID)
+  const configSheets = getConfigSheetsForCaseTypeID(caseEvent.CaseTypeID)
   const existIndex = configSheets.CaseEvent.findIndex(o => o.ID === caseEvent.ID)
 
   if (existIndex === -1) {

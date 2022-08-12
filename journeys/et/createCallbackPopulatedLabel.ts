@@ -3,7 +3,7 @@ import { CaseEventToFieldKeys, CaseFieldKeys, Journey } from "types/types"
 import { askCaseTypeID } from "app/questions"
 import { createAuthorisationCaseFields, createNewCaseEventToField, createNewCaseField, trimCaseEventToField, trimCaseField } from "app/objects"
 import { addToInMemoryConfig } from "app/et/configs"
-import { askCaseEvent, askFirstOnPageQuestions, askForPageIdAndDisplayOrder, QUESTION_FIELD_SHOW_CONDITION, QUESTION_ID } from "./createSingleField"
+import { askCaseEvent, askFirstOnPageQuestions, askForPageIDAndDisplayOrder, QUESTION_FIELD_SHOW_CONDITION, QUESTION_ID } from "./createSingleField"
 import { addOnDuplicateQuestion } from "./manageDuplicateField"
 import { addToLastAnswers } from "app/session"
 
@@ -18,7 +18,7 @@ export async function createCallbackPopulatedLabel(answers: any) {
     ], answers
   )
 
-  answers = await askForPageIdAndDisplayOrder(answers)
+  answers = await askForPageIDAndDisplayOrder(answers)
 
   if (answers[CaseEventToFieldKeys.PageFieldDisplayOrder] === 1) {
     answers = await askFirstOnPageQuestions(answers)

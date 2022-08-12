@@ -132,36 +132,36 @@ export function trimCaseField(obj: CaseField): CaseField {
  * Creates an array of AuthorisationCaseEvent objects.
  * TODO: Refactor so its not specific to ET
  */
-export function createAuthorisationCaseEvent(caseTypeId: string = "ET_EnglandWales", eventId: string): AuthorisationCaseEvent[] {
-  const userRoleRegion = caseTypeId === "ET_EnglandWales" ? "englandwales" : "scotland"
+export function createAuthorisationCaseEvent(caseTypeID: string = "ET_EnglandWales", eventID: string): AuthorisationCaseEvent[] {
+  const userRoleRegion = caseTypeID === "ET_EnglandWales" ? "englandwales" : "scotland"
   return [
     {
-      "CaseTypeId": caseTypeId,
-      "CaseEventID": eventId,
+      "CaseTypeId": caseTypeID,
+      "CaseEventID": eventID,
       "UserRole": "caseworker-employment",
       "CRUD": "R"
     },
     {
-      "CaseTypeId": caseTypeId,
-      "CaseEventID": eventId,
+      "CaseTypeId": caseTypeID,
+      "CaseEventID": eventID,
       "UserRole": "caseworker-employment-etjudge",
       "CRUD": "R"
     },
     {
-      "CaseTypeId": caseTypeId,
-      "CaseEventID": eventId,
+      "CaseTypeId": caseTypeID,
+      "CaseEventID": eventID,
       "UserRole": `caseworker-employment-${userRoleRegion}`,
       "CRUD": "CRU"
     },
     {
-      "CaseTypeId": caseTypeId,
-      "CaseEventID": eventId,
+      "CaseTypeId": caseTypeID,
+      "CaseEventID": eventID,
       "UserRole": `caseworker-employment-etjudge-${userRoleRegion}`,
       "CRUD": "CRU"
     },
     {
-      "CaseTypeId": caseTypeId,
-      "CaseEventID": eventId,
+      "CaseTypeId": caseTypeID,
+      "CaseEventID": eventID,
       "UserRole": "caseworker-employment-api",
       "CRUD": "CRUD"
     }
@@ -172,42 +172,42 @@ export function createAuthorisationCaseEvent(caseTypeId: string = "ET_EnglandWal
  * Creates an array of AuthorisationCaseFields objects.
  * TODO: Refactor so its not specific to ET
  */
-export function createAuthorisationCaseFields(caseTypeId: string = "ET_EnglandWales", fieldId: string): AuthorisationCaseField[] {
-  const userRoleRegion = caseTypeId === "ET_EnglandWales" ? "englandwales" : "scotland"
+export function createAuthorisationCaseFields(caseTypeID: string = "ET_EnglandWales", fieldID: string): AuthorisationCaseField[] {
+  const userRoleRegion = caseTypeID === "ET_EnglandWales" ? "englandwales" : "scotland"
   return [
     {
-      "CaseTypeId": caseTypeId,
-      "CaseFieldID": fieldId,
+      "CaseTypeId": caseTypeID,
+      "CaseFieldID": fieldID,
       "UserRole": "caseworker-employment",
       "CRUD": "R"
     },
     {
-      "CaseTypeId": caseTypeId,
-      "CaseFieldID": fieldId,
+      "CaseTypeId": caseTypeID,
+      "CaseFieldID": fieldID,
       "UserRole": "caseworker-employment-etjudge",
       "CRUD": "R"
     },
     {
-      "CaseTypeId": caseTypeId,
-      "CaseFieldID": fieldId,
+      "CaseTypeId": caseTypeID,
+      "CaseFieldID": fieldID,
       "UserRole": `caseworker-employment-${userRoleRegion}`,
       "CRUD": "CRU"
     },
     {
-      "CaseTypeId": caseTypeId,
-      "CaseFieldID": fieldId,
+      "CaseTypeId": caseTypeID,
+      "CaseFieldID": fieldID,
       "UserRole": `caseworker-employment-etjudge-${userRoleRegion}`,
       "CRUD": "CRU"
     },
     {
-      "CaseTypeId": caseTypeId,
-      "CaseFieldID": fieldId,
+      "CaseTypeId": caseTypeID,
+      "CaseFieldID": fieldID,
       "UserRole": `caseworker-employment-legalrep-solicitor`,
       "CRUD": "CRU"
     },
     {
-      "CaseTypeId": caseTypeId,
-      "CaseFieldID": fieldId,
+      "CaseTypeId": caseTypeID,
+      "CaseFieldID": fieldID,
       "UserRole": "caseworker-employment-api",
       "CRUD": "CRUD"
     },

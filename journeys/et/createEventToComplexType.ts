@@ -2,7 +2,7 @@ import { prompt } from "inquirer"
 import { CaseEventToFieldKeys, CaseFieldKeys, EventToComplexTypeKeys, Journey } from "types/types"
 import { createSingleField, askCaseEvent } from "./createSingleField"
 import { createNewEventToComplexType } from "app/objects"
-import { addToInMemoryConfig, getKnownCaseFieldIds } from "app/et/configs"
+import { addToInMemoryConfig, getKnownCaseFieldIDs } from "app/et/configs"
 import { fuzzySearch } from "app/questions"
 import { CUSTOM } from "app/constants"
 import { session } from "app/session"
@@ -23,7 +23,7 @@ async function createEventToComplexType(answers: any) {
 
   answers = await prompt([{ name: 'ID', message: QUESTION_ID, type: 'input', default: session.lastAnswers.ID }], answers)
 
-  answers = await askCaseFieldId(answers)
+  answers = await askCaseFieldID(answers)
 
   answers = await prompt([
     { name: 'ListElementCode', message: QUESTION_LIST_ELEMENT_CODE, type: 'input' },
@@ -40,8 +40,8 @@ async function createEventToComplexType(answers: any) {
   })
 }
 
-async function askCaseFieldId(answers: any = {}) {
-  const opts = getKnownCaseFieldIds()
+async function askCaseFieldID(answers: any = {}) {
+  const opts = getKnownCaseFieldIDs()
   const key = EventToComplexTypeKeys.CaseFieldID
   answers = await prompt([
     {
