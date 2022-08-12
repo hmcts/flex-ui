@@ -3,12 +3,12 @@ import { addToLastAnswers, session } from "app/session"
 import { CaseEventKeys, CaseEventToFieldKeys, CaseFieldKeys, Journey } from "types/types"
 import { askBasicFreeEntry, askCaseTypeID, fuzzySearch } from "app/questions"
 import { CUSTOM, DISPLAY_CONTEXT_OPTIONS, FIELD_TYPES_NO_MIN_MAX, FIELD_TYPES_NO_PARAMETER, NONE, Y_OR_N } from "app/constants"
-import { addToInMemoryConfig, getCaseEventIDOpts, getKnownCaseFieldTypeParameters, getKnownCaseFieldTypes } from "app/et/configs"
+import { addToInMemoryConfig, getCaseEventIDOpts, getKnownCaseFieldTypeParameters, getKnownCaseFieldTypes, getNextPageFieldIdForPage } from "app/et/configs"
 import { addOnDuplicateQuestion } from "./manageDuplicateField"
 import { createAuthorisationCaseFields, createNewCaseEventToField, createNewCaseField, trimCaseEventToField, trimCaseField } from "app/objects"
 import { createScrubbed } from "./createScrubbed"
 import { createEvent } from "./createEvent"
-import { format } from "app/helpers"
+import { format, getIdealSizeForInquirer } from "app/helpers"
 
 export const QUESTION_ID = `What's the ID for this field?`
 const QUESTION_LABEL = 'What text (Label) should this field have?'
@@ -75,6 +75,13 @@ export async function createSingleField(answers: any = {}) {
 
 export function getDefaultForPageFieldDisplayOrder(answers: any) {
   const pageId = CaseEventToFieldKeys.PageID
+  if (answers[pageId] && answers[CaseEventToFieldKeys.CaseEventID] && answers[CaseEventToFieldKeys.CaseTypeID]) {
+    return getNextPageFieldIdForPage(
+      answers[CaseEventToFieldKeys.CaseTypeID],
+      answers[CaseEventToFieldKeys.CaseEventID],
+      answers[pageId]
+    )
+  }
   if (answers[pageId] === session.lastAnswers[pageId] && session.lastAnswers[pageId]) {
     return session.lastAnswers[CaseEventToFieldKeys.PageFieldDisplayOrder] + 1
   }
@@ -97,7 +104,9 @@ async function askBasic(answers: any = {}) {
 export async function askForPageIdAndDisplayOrder(answers: any = {}) {
   answers = await prompt([{
     name: CaseEventToFieldKeys.PageID,
-    message: QUESTION_PAGE_ID, type: 'number', default: session.lastAnswers.PageID || 1
+    message: QUESTION_PAGE_ID,
+    type: 'number',
+    default: session.lastAnswers.PageID || 1
   }], answers)
 
   return prompt([{
@@ -116,7 +125,9 @@ export async function askCaseEvent(answers: any = {}, message?: string) {
       name: key,
       message: message || QUESTION_CASE_EVENT_ID,
       type: 'autocomplete',
-      source: (_answers: any, input: string) => fuzzySearch([CUSTOM, ...opts], input)
+      source: (_answers: any, input: string) => fuzzySearch([CUSTOM, ...opts], input),
+      default: session.lastAnswers[key],
+      pageSize: getIdealSizeForInquirer()
     }
   ], answers)
 
@@ -135,7 +146,8 @@ async function askFieldTypeParameter(answers: any = {}) {
       name: key,
       message: format(QUESTION_FIELD_TYPE_PARAMETER, answers[CaseFieldKeys.FieldType]),
       type: 'autocomplete',
-      source: (_answers: any, input: string) => fuzzySearch([NONE, CUSTOM, ...opts], input)
+      source: (_answers: any, input: string) => fuzzySearch([NONE, CUSTOM, ...opts], input),
+      pageSize: getIdealSizeForInquirer()
     }
   ], answers)
 
@@ -159,7 +171,8 @@ async function askFieldType(answers: any = {}) {
       message: QUESTION_FIELD_TYPE,
       type: 'autocomplete',
       source: (_answers: any, input: string) => fuzzySearch([CUSTOM, ...opts], input),
-      default: 'Label'
+      default: 'Label',
+      pageSize: getIdealSizeForInquirer()
     }
   ], answers)
 

@@ -147,11 +147,18 @@ export function getUniqueByKeyAsArray<T>(arr: T[], key: keyof (T), defaultOption
   return Object.keys(getUniqueByKey(arr, key, defaultOption))
 }
 
+/** Clears the current terminal line and writes a new message with no ending newline */
 export function temporaryLog(message: string) {
   clearCurrentLine()
-  process.stdout.write(message)
+  process.stdout.write(`${new Date().toLocaleTimeString()} || ${message}`)
 }
 
+/** Clears the current line by sending a special character command */
 export function clearCurrentLine() {
   process.stdout.write('\r\x1b[K')
+}
+
+/** Gets height of terminal minus a couple of lines for the question and answer */
+export function getIdealSizeForInquirer() {
+  return process.stdout.rows - 2
 }

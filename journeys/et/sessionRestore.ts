@@ -12,6 +12,18 @@ async function restoreSession() {
     return
   }
 
+  // Sink unnamed sessions to the end (keeping them alpha)
+  prevSessions.sort((a, b) => {
+    const aDefault = !!a.match(/^session_\d+/)
+    const bDefault = !!b.match(/^session_\d+/)
+
+    if (aDefault === bDefault) {
+      return a.toLowerCase() > b.toLowerCase() ? 1 : -1
+    }
+
+    return aDefault ? 1 : -1
+  })
+
   const answers = await prompt([
     { name: 'name', message: QUESTION_PREVIOUS_SESSION, type: 'list', choices: ['Cancel', ...prevSessions] }
   ])

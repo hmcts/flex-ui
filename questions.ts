@@ -4,6 +4,7 @@ import { session } from "app/session"
 import fuzzy from "fuzzy"
 import { CaseFieldKeys } from "types/types"
 import { getKnownCaseTypeIds } from "app/et/configs"
+import { getIdealSizeForInquirer } from "./helpers"
 
 /**
  * Asks the user for a CaseTypeID. Allows for creation if <custom> is selected.
@@ -18,7 +19,9 @@ export async function askCaseTypeID(answers: any = {}) {
       name: key,
       message: "Select the CaseTypeID",
       type: 'autocomplete',
-      source: (_answers: any, input: string) => fuzzySearch([CUSTOM, ...opts], input)
+      source: (_answers: any, input: string) => fuzzySearch([CUSTOM, ...opts], input),
+      default: session.lastAnswers[key],
+      pageSize: getIdealSizeForInquirer()
     }
   ], answers)
 
@@ -35,7 +38,7 @@ export async function askCaseTypeID(answers: any = {}) {
  * @returns extended answers object as passed in
  */
 async function list(answers: any, name: string, message: string, choices: string[], defaultValue?: any) {
-  return prompt([{ name, message, type: 'list', choices, default: defaultValue }], answers)
+  return prompt([{ name, message, type: 'list', choices, default: defaultValue, pageSize: getIdealSizeForInquirer() }], answers)
 }
 
 /**

@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync } from "fs"
 import { sep } from "path"
-import { findLastIndex, getUniqueByKey, getUniqueByKeyAsArray, upsertFields } from "app/helpers"
+import { findLastIndex, format, getUniqueByKey, getUniqueByKeyAsArray, upsertFields } from "app/helpers"
 import { addToSession } from "app/session"
 import { CaseEvent, ConfigSheets, Scrubbed } from "types/types"
 import { COMPOUND_KEYS } from "app/constants"
@@ -79,6 +79,16 @@ export function getKnownCaseTypeIds() {
  */
 export function getKnownCaseFieldIds() {
   return getUniqueByKeyAsArray([...englandwales.CaseField, ...scotland.CaseField], 'ID')
+}
+
+/**
+ * Gets the highest PageFieldDisplayOrder number from fields on a certain page
+ */
+export function getNextPageFieldIdForPage(caseTypeID: string, caseEventId: string, pageId: number) {
+  const region = getConfigSheetsForCaseTypeId(caseTypeID)
+  const fieldsOnPage = region.CaseEventToFields.filter(o => o.CaseEventID === caseEventId && o.PageID === pageId)
+  const fieldOrders = fieldsOnPage.map(o => Number(o.PageFieldDisplayOrder))
+  return fieldsOnPage.length ? Math.max(...fieldOrders) + 1 : 1
 }
 
 /**
@@ -260,19 +270,22 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
  * Save the in-memory configs back to their JSON files
  */
 export async function saveBackToProject() {
-  writeFileSync(`${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}json${sep}CaseField.json`, JSON.stringify(englandwales.CaseField, null, 2))
-  writeFileSync(`${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}json${sep}AuthorisationCaseField.json`, JSON.stringify(englandwales.AuthorisationCaseField, null, 2))
-  writeFileSync(`${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}json${sep}CaseEventToFields.json`, JSON.stringify(englandwales.CaseEventToFields, null, 2))
-  writeFileSync(`${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}json${sep}EnglandWales Scrubbed.json`, JSON.stringify(englandwales.Scrubbed, null, 2))
-  writeFileSync(`${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}json${sep}CaseEvent.json`, JSON.stringify(englandwales.CaseEvent, null, 2))
-  writeFileSync(`${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}json${sep}AuthorisationCaseEvent.json`, JSON.stringify(englandwales.AuthorisationCaseEvent, null, 2))
-  writeFileSync(`${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}json${sep}EventToComplexTypes.json`, JSON.stringify(englandwales.EventToComplexTypes, null, 2))
+  const sheets: (keyof (ConfigSheets))[] = [
+    'AuthorisationCaseEvent',
+    'AuthorisationCaseField',
+    'CaseEvent',
+    'CaseEventToFields',
+    'CaseField',
+    'EventToComplexTypes',
+  ]
 
-  writeFileSync(`${process.env.SCOTLAND_DEF_DIR}${sep}definitions${sep}json${sep}CaseField.json`, JSON.stringify(scotland.CaseField, null, 2))
-  writeFileSync(`${process.env.SCOTLAND_DEF_DIR}${sep}definitions${sep}json${sep}AuthorisationCaseField.json`, JSON.stringify(scotland.AuthorisationCaseField, null, 2))
-  writeFileSync(`${process.env.SCOTLAND_DEF_DIR}${sep}definitions${sep}json${sep}CaseEventToFields.json`, JSON.stringify(scotland.CaseEventToFields, null, 2))
-  writeFileSync(`${process.env.SCOTLAND_DEF_DIR}${sep}definitions${sep}json${sep}Scotland Scrubbed.json`, JSON.stringify(scotland.Scrubbed, null, 2))
-  writeFileSync(`${process.env.SCOTLAND_DEF_DIR}${sep}definitions${sep}json${sep}CaseEvent.json`, JSON.stringify(scotland.CaseEvent, null, 2))
-  writeFileSync(`${process.env.SCOTLAND_DEF_DIR}${sep}definitions${sep}json${sep}AuthorisationCaseEvent.json`, JSON.stringify(scotland.AuthorisationCaseEvent, null, 2))
-  writeFileSync(`${process.env.SCOTLAND_DEF_DIR}${sep}definitions${sep}json${sep}EventToComplexTypes.json`, JSON.stringify(scotland.EventToComplexTypes, null, 2))
+  const templatePath = `{0}${sep}definitions${sep}json${sep}{1}.json`
+
+  for (const sheet of sheets) {
+    writeFileSync(format(templatePath, process.env.ENGWALES_DEF_DIR, sheet), JSON.stringify(englandwales[sheet], null, 2))
+    writeFileSync(format(templatePath, process.env.SCOTLAND_DEF_DIR, sheet), JSON.stringify(scotland[sheet], null, 2))
+  }
+
+  writeFileSync(format(templatePath, process.env.ENGWALES_DEF_DIR, 'EnglandWales Scrubbed'), JSON.stringify(englandwales.Scrubbed, null, 2))
+  writeFileSync(format(templatePath, process.env.SCOTLAND_DEF_DIR, 'Scotland Scrubbed'), JSON.stringify(scotland.Scrubbed, null, 2))
 }

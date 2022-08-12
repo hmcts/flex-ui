@@ -6,8 +6,8 @@ import { prompt, Separator, registerPrompt } from 'inquirer'
 import autocomplete from "inquirer-autocomplete-prompt"
 import { Journey } from 'types/types'
 import { readInCurrentConfig } from 'app/et/configs'
-import { ensurePathExists, format, getFiles } from 'app/helpers'
-import { saveSession, session, SESSION_DIR } from 'app/session'
+import { ensurePathExists, format, getFiles, getIdealSizeForInquirer } from 'app/helpers'
+import { cleanupEmptySessions, saveSession, session, SESSION_DIR } from 'app/session'
 import { DIST_JOURNEY_DIR } from 'app/constants'
 
 envConfig()
@@ -104,6 +104,7 @@ async function start() {
   checkEnvVars()
   // TODO: This is ET specific logic and exists in its own journey, but its here now for convenience 
   readInCurrentConfig()
+  cleanupEmptySessions()
 
   while (true) {
     const discovered = await discoverJourneys()
@@ -115,10 +116,12 @@ async function start() {
         message: "What do you want to do?",
         type: 'list',
         choices: [
+          new Separator(),
           ...choices.map(o => typeof (o.text) === 'function' ? o.text() : o.text),
           'Exit',
           new Separator()
-        ]
+        ],
+        pageSize: getIdealSizeForInquirer()
       }
     ])
 

@@ -6,6 +6,7 @@ import { addToInMemoryConfig, getKnownCaseFieldIds } from "app/et/configs"
 import { fuzzySearch } from "app/questions"
 import { CUSTOM } from "app/constants"
 import { session } from "app/session"
+import { getIdealSizeForInquirer } from "app/helpers"
 
 const QUESTION_CASE_EVENT_ID = "What event does this belong to?"
 const QUESTION_ID = "What's the ID of this EventToComplexType?"
@@ -47,7 +48,8 @@ async function askCaseFieldId(answers: any = {}) {
       name: key,
       message: QUESTION_CASE_FIELD_ID,
       type: 'autocomplete',
-      source: (_answers: any, input: string) => fuzzySearch([CUSTOM, ...opts], input)
+      source: (_answers: any, input: string) => fuzzySearch([CUSTOM, ...opts], input),
+      pageSize: getIdealSizeForInquirer()
     }
   ], answers)
 

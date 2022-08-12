@@ -60,7 +60,7 @@ function initEcm() {
     return new Promise(resolve => {
       exec("./bin/ecm/init-ecm.sh", { cwd: process.env.ECM_DOCKER_DIR }, (error: any) => {
         if (error.message.indexOf("Empty reply from server") > -1) {
-          temporaryLog(`${new Date().toLocaleTimeString()} || init-ecm.sh failed with empty reply, waiting for 30s and trying again\r`)
+          temporaryLog(`init-ecm.sh failed with empty reply, waiting for 30s and trying again\r`)
           return setTimeout(() => promise().then(() => resolve('')).catch(() => undefined), 1000 * 30)
         }
         temporaryLog(`init-ecm.sh successful`)
@@ -146,7 +146,7 @@ function ccdComposePull() {
         return
       }
       lastProgress = progressJson
-      temporaryLog(`${new Date().toLocaleTimeString()} || pulling images... ${Object.values(progress).filter(o => o !== "done").length} left`)
+      temporaryLog(`pulling images... ${Object.values(progress).filter(o => o !== "done").length} left`)
     }, 10000)
 
     const cleanupAndExit = (fn: () => any) => {

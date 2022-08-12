@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from "fs"
+import { readFileSync, rmSync, writeFileSync } from "fs"
 import { readdir } from "fs/promises"
 import { sep } from "path"
 import { addNewScrubbed, addToInMemoryConfig, upsertNewCaseEvent } from "app/et/configs"
@@ -173,5 +173,24 @@ export function createNewSession(name: string): Session {
       AuthorisationCaseEvent: [],
       EventToComplexTypes: [],
     }
+  }
+}
+
+/** Deletes empty previous sessions */
+export async function cleanupEmptySessions() {
+  const previous = await findPreviousSessions()
+
+  for (const prev of previous) {
+    const filename = `${SESSION_DIR}${sep}${prev}`
+    const loaded: Session = JSON.parse(readFileSync(filename, 'utf-8'))
+
+    if (loaded.name === session.name) continue
+
+    // if any array inside session.added is not empty - don't delete
+    if (Object.values(loaded.added).some(o => o.length)) {
+      continue
+    }
+
+    rmSync(filename)
   }
 }
