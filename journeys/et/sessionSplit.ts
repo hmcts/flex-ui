@@ -136,7 +136,7 @@ function addPageToSession(pageId: number, newSession: Session) {
   upsertFields<CaseEventToField>(
     newSession.added.CaseEventToFields,
     fieldsOnPage,
-    COMPOUND_KEYS.CaseEventToField
+    COMPOUND_KEYS.CaseEventToFields
   )
 
   upsertFields<CaseField>(

@@ -9,6 +9,21 @@ let readTime: number = 0
 let englandwales: ConfigSheets
 let scotland: ConfigSheets
 
+enum Region {
+  EnglandWales = "EnglandWales",
+  Scotland = "Scotland"
+}
+
+export const sheets: (keyof (ConfigSheets))[] = [
+  'AuthorisationCaseEvent',
+  'AuthorisationCaseField',
+  'CaseEvent',
+  'CaseEventToFields',
+  'CaseField',
+  'EventToComplexTypes',
+  'Scrubbed'
+]
+
 /**
  * Gets the parsed JSON file contents
  * @param regionDir repo folder that contains definitions (ie, et-ccd-definitions-scotland)
@@ -91,29 +106,26 @@ export function getNextPageFieldIdForPage(caseTypeID: string, caseEventId: strin
   return fieldsOnPage.length ? Math.max(...fieldOrders) + 1 : 1
 }
 
+export function getConfigSheetName(region: Region, configSheet: keyof (ConfigSheets)) {
+  if (configSheet === "Scrubbed") {
+    return `${region.toString()} Scrubbed`
+  }
+  return configSheet
+}
+
 /**
  * Replace in-memory configs by reading in both englandwales and scotland configs from their repo folders.
  */
 export function readInCurrentConfig() {
-  englandwales = {
-    AuthorisationCaseField: getJson(process.env.ENGWALES_DEF_DIR, "AuthorisationCaseField"),
-    CaseEventToFields: getJson(process.env.ENGWALES_DEF_DIR, "CaseEventToFields"),
-    CaseField: getJson(process.env.ENGWALES_DEF_DIR, "CaseField"),
-    Scrubbed: getJson(process.env.ENGWALES_DEF_DIR, "EnglandWales Scrubbed"),
-    CaseEvent: getJson(process.env.ENGWALES_DEF_DIR, "CaseEvent"),
-    AuthorisationCaseEvent: getJson(process.env.ENGWALES_DEF_DIR, "AuthorisationCaseEvent"),
-    EventToComplexTypes: getJson(process.env.ENGWALES_DEF_DIR, "EventToComplexTypes")
+  const builder = (envVar: string, region: Region) => {
+    return sheets.reduce((acc, sheetName) => {
+      acc[sheetName] = getJson(envVar, getConfigSheetName(region, sheetName))
+      return acc
+    }, {}) as ConfigSheets
   }
 
-  scotland = {
-    AuthorisationCaseField: getJson(process.env.SCOTLAND_DEF_DIR, "AuthorisationCaseField"),
-    CaseEventToFields: getJson(process.env.SCOTLAND_DEF_DIR, "CaseEventToFields"),
-    CaseField: getJson(process.env.SCOTLAND_DEF_DIR, "CaseField"),
-    Scrubbed: getJson(process.env.SCOTLAND_DEF_DIR, "Scotland Scrubbed"),
-    CaseEvent: getJson(process.env.SCOTLAND_DEF_DIR, "CaseEvent"),
-    AuthorisationCaseEvent: getJson(process.env.SCOTLAND_DEF_DIR, "AuthorisationCaseEvent"),
-    EventToComplexTypes: getJson(process.env.SCOTLAND_DEF_DIR, "EventToComplexTypes")
-  }
+  englandwales = builder(process.env.ENGWALES_DEF_DIR, Region.EnglandWales)
+  scotland = builder(process.env.SCOTLAND_DEF_DIR, Region.Scotland)
 
   readTime = Date.now()
 }
@@ -141,15 +153,7 @@ export function upsertNewCaseEvent(caseEvent: CaseEvent) {
     configSheets.CaseEvent.splice(existIndex, 1, caseEvent)
   }
 
-  addToSession({
-    AuthorisationCaseField: [],
-    CaseEventToFields: [],
-    Scrubbed: [],
-    CaseField: [],
-    CaseEvent: [caseEvent],
-    AuthorisationCaseEvent: [],
-    EventToComplexTypes: [],
-  })
+  addToSession({ CaseEvent: [caseEvent] })
 }
 
 /**
@@ -176,15 +180,7 @@ export function addNewScrubbed(opts: Scrubbed[]) {
     }
   }
 
-  addToSession({
-    AuthorisationCaseEvent: [],
-    AuthorisationCaseField: [],
-    CaseEvent: [],
-    CaseEventToFields: [],
-    CaseField: [],
-    Scrubbed: opts,
-    EventToComplexTypes: []
-  })
+  addToSession({ Scrubbed: opts })
 }
 
 /**
@@ -192,9 +188,7 @@ export function addNewScrubbed(opts: Scrubbed[]) {
  * See TODOs in body. This is functional but ordering is not necessarily ideal
  */
 export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
-  const keys: (keyof ConfigSheets)[] = ['AuthorisationCaseEvent', 'AuthorisationCaseField', 'CaseEvent', 'CaseEventToFields', 'CaseField', 'EventToComplexTypes', 'Scrubbed']
-
-  for (const key of keys) {
+  for (const key of sheets) {
     if (!fields[key]) {
       fields[key] = []
     }
@@ -216,7 +210,7 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
     (x, arr) => findLastIndex(arr, o => o.CaseTypeID === x.CaseTypeID) + 1
   )
 
-  upsertFields(englandwales.CaseEventToFields, ewCaseEventToFields, COMPOUND_KEYS.CaseEventToField,
+  upsertFields(englandwales.CaseEventToFields, ewCaseEventToFields, COMPOUND_KEYS.CaseEventToFields,
     (x, arr) => findLastIndex(arr, o => o.CaseTypeID === x.CaseTypeID) + 1
   )
 
@@ -228,12 +222,12 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
     (x, arr) => findLastIndex(arr, o => o.CaseTypeId === x.CaseTypeId) + 1
   )
 
-  upsertFields(englandwales.EventToComplexTypes, fields.EventToComplexTypes, COMPOUND_KEYS.EventToComplexType)
+  upsertFields(englandwales.EventToComplexTypes, fields.EventToComplexTypes, COMPOUND_KEYS.EventToComplexTypes)
 
   upsertFields(scotland.CaseField, scCaseFields, COMPOUND_KEYS.CaseField,
     (x, arr) => findLastIndex(arr, o => o.CaseTypeID === x.CaseTypeID) + 1
   )
-  upsertFields(scotland.CaseEventToFields, scCaseEventToFields, COMPOUND_KEYS.CaseEventToField,
+  upsertFields(scotland.CaseEventToFields, scCaseEventToFields, COMPOUND_KEYS.CaseEventToFields,
     (x, arr) => findLastIndex(arr, o => o.CaseTypeID === x.CaseTypeID) + 1
   )
   upsertFields(scotland.AuthorisationCaseEvent, scAuthorisationCaseEvents, COMPOUND_KEYS.AuthorisationCaseEvent,
@@ -243,14 +237,12 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
     (x, arr) => findLastIndex(arr, o => o.CaseTypeId === x.CaseTypeId) + 1
   )
 
-  upsertFields(scotland.EventToComplexTypes, fields.EventToComplexTypes, COMPOUND_KEYS.EventToComplexType)
+  upsertFields(scotland.EventToComplexTypes, fields.EventToComplexTypes, COMPOUND_KEYS.EventToComplexTypes)
 
   addToSession({
     AuthorisationCaseField: ewAuthorisationCaseFields,
     CaseField: ewCaseFields,
     CaseEventToFields: ewCaseEventToFields,
-    Scrubbed: [],
-    CaseEvent: [],
     AuthorisationCaseEvent: ewAuthorisationCaseEvents,
     EventToComplexTypes: fields.EventToComplexTypes
   })
@@ -259,8 +251,6 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
     AuthorisationCaseField: scAuthorisationCaseFields,
     CaseField: scCaseFields,
     CaseEventToFields: scCaseEventToFields,
-    Scrubbed: [],
-    CaseEvent: [],
     AuthorisationCaseEvent: scAuthorisationCaseEvents,
     EventToComplexTypes: fields.EventToComplexTypes
   })
@@ -270,22 +260,13 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
  * Save the in-memory configs back to their JSON files
  */
 export async function saveBackToProject() {
-  const sheets: (keyof (ConfigSheets))[] = [
-    'AuthorisationCaseEvent',
-    'AuthorisationCaseField',
-    'CaseEvent',
-    'CaseEventToFields',
-    'CaseField',
-    'EventToComplexTypes',
-  ]
-
   const templatePath = `{0}${sep}definitions${sep}json${sep}{1}.json`
 
   for (const sheet of sheets) {
-    writeFileSync(format(templatePath, process.env.ENGWALES_DEF_DIR, sheet), JSON.stringify(englandwales[sheet], null, 2))
-    writeFileSync(format(templatePath, process.env.SCOTLAND_DEF_DIR, sheet), JSON.stringify(scotland[sheet], null, 2))
-  }
+    const eng = format(templatePath, process.env.ENGWALES_DEF_DIR, getConfigSheetName(Region.EnglandWales, sheet))
+    writeFileSync(eng, JSON.stringify(englandwales[sheet], null, 2))
 
-  writeFileSync(format(templatePath, process.env.ENGWALES_DEF_DIR, 'EnglandWales Scrubbed'), JSON.stringify(englandwales.Scrubbed, null, 2))
-  writeFileSync(format(templatePath, process.env.SCOTLAND_DEF_DIR, 'Scotland Scrubbed'), JSON.stringify(scotland.Scrubbed, null, 2))
+    const scot = format(templatePath, process.env.SCOTLAND_DEF_DIR, getConfigSheetName(Region.Scotland, sheet))
+    writeFileSync(scot, JSON.stringify(scotland[sheet], null, 2))
+  }
 }

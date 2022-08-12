@@ -1,10 +1,9 @@
 import { readFileSync, rmSync, writeFileSync } from "fs"
 import { readdir } from "fs/promises"
 import { sep } from "path"
-import { addNewScrubbed, addToInMemoryConfig, upsertNewCaseEvent } from "app/et/configs"
+import { addNewScrubbed, addToInMemoryConfig, sheets, upsertNewCaseEvent } from "app/et/configs"
 import { COMPOUND_KEYS } from "app/constants"
 import { upsertFields } from "app/helpers"
-import { trimCaseEventToField, trimCaseField } from "app/objects"
 import { Answers, ConfigSheets, Session } from "types/types"
 
 export const SESSION_DIR = 'sessions'
@@ -44,25 +43,16 @@ export function restorePreviousSession(sessionFileName: string) {
   const read = readFileSync(`${SESSION_DIR}${sep}${sessionFileName}`)
   const json: Session = JSON.parse(read.toString())
 
-  session.added = {
-    AuthorisationCaseField: json.added.AuthorisationCaseField || [],
-    CaseEvent: json.added.CaseEvent || [],
-    CaseEventToFields: json.added.CaseEventToFields.map(o => trimCaseEventToField(o)) || [],
-    CaseField: json.added.CaseField.map(o => trimCaseField(o)) || [],
-    Scrubbed: json.added.Scrubbed || [],
-    AuthorisationCaseEvent: json.added.AuthorisationCaseEvent || [],
-    EventToComplexTypes: json.added.EventToComplexTypes || []
+  for (const sheet of sheets) {
+    //@ts-ignore - TODO: Please fix this - the types should match
+    session.added[sheet] = json.added[sheet] || []
   }
+
   session.date = json.date
   session.name = json.name
 
-  addToInMemoryConfig({
-    AuthorisationCaseField: session.added.AuthorisationCaseField,
-    CaseField: session.added.CaseField,
-    CaseEventToFields: session.added.CaseEventToFields,
-    AuthorisationCaseEvent: session.added.AuthorisationCaseEvent,
-    EventToComplexTypes: session.added.EventToComplexTypes,
-  })
+  addToInMemoryConfig(session.added)
+
   addNewScrubbed(session.added.Scrubbed)
 
   for (const event of session.added.CaseEvent) {
@@ -89,34 +79,14 @@ export async function findPreviousSessions() {
  * Upserts objects into the current session
  * @param fields object containing supported ccd config fields
  */
-export function addToSession(fields: ConfigSheets) {
-  if (fields.AuthorisationCaseField.length) {
-    upsertFields(session.added.AuthorisationCaseField, fields.AuthorisationCaseField, COMPOUND_KEYS.AuthorisationCaseField)
+export function addToSession(fields: Partial<ConfigSheets>) {
+  for (const sheet of sheets) {
+    if (fields[sheet]?.length) {
+      //@ts-ignore - TODO: Please fix this, not sure why the types don't align here
+      upsertFields(session.added[sheet], fields[sheet], COMPOUND_KEYS[sheet])
+    }
   }
 
-  if (fields.CaseField.length) {
-    upsertFields(session.added.CaseField, fields.CaseField, COMPOUND_KEYS.CaseField)
-  }
-
-  if (fields.CaseEventToFields.length) {
-    upsertFields(session.added.CaseEventToFields, fields.CaseEventToFields, COMPOUND_KEYS.CaseEventToField)
-  }
-
-  if (fields.Scrubbed.length) {
-    upsertFields(session.added.Scrubbed, fields.Scrubbed, COMPOUND_KEYS.Scrubbed)
-  }
-
-  if (fields.CaseEvent.length) {
-    upsertFields(session.added.CaseEvent, fields.CaseEvent, COMPOUND_KEYS.CaseEvent)
-  }
-
-  if (fields.AuthorisationCaseEvent.length) {
-    upsertFields(session.added.AuthorisationCaseEvent, fields.AuthorisationCaseEvent, COMPOUND_KEYS.AuthorisationCaseEvent)
-  }
-
-  if (fields.EventToComplexTypes.length) {
-    upsertFields(session.added.EventToComplexTypes, fields.EventToComplexTypes, COMPOUND_KEYS.EventToComplexType)
-  }
 }
 
 /**

@@ -1,6 +1,7 @@
 import { prompt } from "inquirer"
 import { findPreviousSessions, restorePreviousSession } from "app/session"
 import { Journey } from "types/types"
+import { getIdealSizeForInquirer } from "app/helpers"
 
 const QUESTION_PREVIOUS_SESSION = "Select a previous session"
 
@@ -25,7 +26,7 @@ async function restoreSession() {
   })
 
   const answers = await prompt([
-    { name: 'name', message: QUESTION_PREVIOUS_SESSION, type: 'list', choices: ['Cancel', ...prevSessions] }
+    { name: 'name', message: QUESTION_PREVIOUS_SESSION, type: 'list', choices: ['Cancel', ...prevSessions], pageSize: getIdealSizeForInquirer() }
   ])
 
   if (answers.name === 'Cancel') {
