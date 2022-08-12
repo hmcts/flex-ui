@@ -17,9 +17,9 @@ registerPrompt('autocomplete', autocomplete)
  * Check required environment variables are present.
  * TOOD: This is ET specific logic and should be refactored
  */
-function checkEnvVars() {
-  const needed = [process.env.ENGWALES_DEF_DIR, process.env.SCOTLAND_DEF_DIR]
-  const missing = needed.filter(o => !o)
+ export function checkEnvVars() {
+  const needed = ['ENGWALES_DEF_DIR', 'SCOTLAND_DEF_DIR']
+  const missing = needed.filter(o => !process.env[o])
   if (missing.length) {
     throw new Error(`Env vars are missing: ${missing.join(', ')}`)
   }
