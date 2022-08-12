@@ -52,7 +52,7 @@ function ccdComposeUp() {
 /**
  * Run the init-ecm command responsible for creating roles and loading data. 
  * This command will automatically retry every 30 seconds (if the usual error messages occur)
- * until it is successful (can takes 5 mins depending on hardware)
+ * until it is successful (can take around 5 mins depending on hardware)
  */
 function initEcm() {
   temporaryLog("Running init-ecm.sh")
