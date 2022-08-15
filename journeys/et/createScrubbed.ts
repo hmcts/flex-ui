@@ -1,7 +1,7 @@
 import { YES_OR_NO } from "app/constants"
 import { addNewScrubbed } from "app/et/configs"
 import { prompt } from "inquirer"
-import { Scrubbed } from "types/ccd"
+import { AllCCDKeys, Scrubbed } from "types/ccd"
 import { Journey } from "types/journey"
 
 const QUESTION_ID = "What's the name of the new Scrubbed list?"
@@ -10,7 +10,7 @@ const QUESTION_LIST_ELEMENT_CODE = `Give a ListElementCode for this item`
 const QUESTION_DISPLAY_ORDER = `Whats the DisplayOrder for this item?`
 const QUESTION_ADD_ANOTHER = `Add another?`
 
-export async function createScrubbed(answers: any) {
+export async function createScrubbed(answers: AllCCDKeys & Record<string, any> = {}) {
   answers = await prompt([{ name: 'ID', message: QUESTION_ID }], answers)
 
   let createdItems: Scrubbed[] = []

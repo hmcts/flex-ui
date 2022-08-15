@@ -1,10 +1,9 @@
 import { prompt, Separator } from "inquirer"
-import { createNewSession, getFieldCount, getFieldsPerPage, getPageCount, saveSession, session } from "app/session"
+import { createNewSession, getFieldCount, getFieldsPerPage, getPageCount, saveSession, session, Session } from "app/session"
 import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, ConfigSheets, Scrubbed } from "types/ccd"
 import { getObjectsReferencedByCaseFields } from "app/et/duplicateCaseField"
 import { format, upsertFields } from "app/helpers"
 import { COMPOUND_KEYS } from "app/constants"
-import { Session } from "types/types"
 import { Journey } from "types/journey"
 
 const QUESTION_PAGE_ID = `Export fields from what page?`

@@ -4,8 +4,14 @@ import { sep } from "path"
 import { addNewScrubbed, addToInMemoryConfig, upsertNewCaseEvent } from "app/et/configs"
 import { COMPOUND_KEYS } from "app/constants"
 import { getUniqueByKey, upsertFields } from "app/helpers"
-import { Answers, Session } from "types/types"
-import { ConfigSheets, sheets } from "./types/ccd"
+import { AllCCDKeys, ConfigSheets, sheets } from "./types/ccd"
+
+export type Session = {
+  name: string
+  date: Date | string
+  added: ConfigSheets
+  lastAnswers: AllCCDKeys & Record<string, any>
+}
 
 export const SESSION_DIR = 'sessions'
 export const SESSION_EXT = '.session.json'
@@ -63,7 +69,7 @@ export function restorePreviousSession(sessionFileName: string) {
   if (!json.lastAnswers) return
 
   for (const key in json.lastAnswers) {
-    session.lastAnswers[key as keyof (Answers)] = json.lastAnswers[key as keyof (Answers)]
+    session.lastAnswers[key] = json.lastAnswers[key]
   }
 }
 
@@ -114,7 +120,7 @@ export function getPageCount() {
 /**
  * Adds to the lastAnswers object for this session
  */
-export function addToLastAnswers(answers: any) {
+export function addToLastAnswers(answers: AllCCDKeys & Record<string, any> = {}) {
   session.lastAnswers = {
     ...session.lastAnswers,
     ...answers

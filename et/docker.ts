@@ -86,7 +86,7 @@ function initDb() {
 function dockerKillAll() {
   const command = 'docker kill $(docker ps -qa)'
   temporaryLog(`Running ${command}`)
-  return execCommand(command, null, false)
+  return execCommand(command, undefined, false)
 }
 
 /**
@@ -95,7 +95,7 @@ function dockerKillAll() {
  */
 function dockerRmAll() {
   const command = 'docker rm $(docker ps -qa)'
-  return execCommand(command, null, false)
+  return execCommand(command, undefined, false)
 }
 
 /**
@@ -104,7 +104,7 @@ function dockerRmAll() {
  */
 function dockerSystemPrune() {
   const command = 'docker system prune --volumes -f'
-  return execCommand(command, null, false)
+  return execCommand(command, undefined, false)
 }
 
 /**
@@ -113,7 +113,7 @@ function dockerSystemPrune() {
  */
 function dockerImageRm() {
   const command = 'docker image rm \$(docker image ls)'
-  return execCommand(command, null, false)
+  return execCommand(command, undefined, false)
 }
 
 /**
@@ -122,8 +122,8 @@ function dockerImageRm() {
 function ccdComposePull() {
   const command = './ccd compose pull'
   return new Promise((resolve, reject) => {
-    let stdout = []
-    let stderr = []
+    let stdout: string[] = []
+    let stderr: string[] = []
     let timeout = 6
 
     let progress: { [image: string]: string } = {}
@@ -170,11 +170,11 @@ function ccdComposePull() {
       return cleanupAndExit(() => resolve(null))
     }))
 
-    child.stdout.on('data', data => {
+    child.stdout?.on('data', data => {
       stdout.push(data)
     })
 
-    child.stderr.on('data', data => {
+    child.stderr?.on('data', data => {
       const results = regex.exec(data)
       if (results) {
         progress[results[1]] = results[2]

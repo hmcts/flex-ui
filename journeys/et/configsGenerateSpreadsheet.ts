@@ -2,7 +2,7 @@ import { execCommand } from "app/helpers"
 import { prompt } from "inquirer"
 import { Journey } from "types/journey"
 
-const QUESTION_ENV = "WHat environment are we generating for?"
+const QUESTION_ENV = "What environment are we generating for?"
 
 async function journeyGenerateSpreadsheets() {
   const answers = await prompt([{ name: 'env', message: QUESTION_ENV, default: 'local' }])

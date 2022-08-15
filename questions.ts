@@ -2,7 +2,7 @@ import { prompt } from "inquirer"
 import { CUSTOM } from "app/constants"
 import { session } from "app/session"
 import fuzzy from "fuzzy"
-import { CaseFieldKeys } from "types/ccd"
+import { AllCCDKeys, CaseFieldKeys } from "types/ccd"
 import { getKnownCaseTypeIDs } from "app/et/configs"
 import { getIdealSizeForInquirer } from "app/helpers"
 
@@ -10,7 +10,7 @@ import { getIdealSizeForInquirer } from "app/helpers"
  * Asks the user for a CaseTypeID. Allows for creation if <custom> is selected.
  * @returns extended answers object as passed in
  */
-export async function askCaseTypeID(answers: any = {}) {
+export async function askCaseTypeID(answers: AllCCDKeys & Record<string, any> = {}) {
   const opts = getKnownCaseTypeIDs()
   const key = CaseFieldKeys.CaseTypeID
 
@@ -19,14 +19,15 @@ export async function askCaseTypeID(answers: any = {}) {
       name: key,
       message: "Select the CaseTypeID",
       type: 'autocomplete',
-      source: (_answers: any, input: string) => fuzzySearch([CUSTOM, ...opts], input),
+      source: (_answers: unknown, input: string) => fuzzySearch([CUSTOM, ...opts], input),
       default: session.lastAnswers[key],
       pageSize: getIdealSizeForInquirer()
     }
   ], answers)
 
   if (answers[key] === CUSTOM) {
-    answers = await askBasicFreeEntry({}, key, "Enter a custom value for CaseTypeID")
+    const newEventTypeAnswers = await askBasicFreeEntry({}, key, "Enter a custom value for CaseTypeID")
+    answers[key] = newEventTypeAnswers[key]
     //TODO: There's no support for CaseType.json yet so theres no flow to create one. But we could...
   }
 
@@ -37,7 +38,7 @@ export async function askCaseTypeID(answers: any = {}) {
  * Asks for generic input selecting from a list
  * @returns extended answers object as passed in
  */
-async function list(answers: any, name: string, message: string, choices: string[], defaultValue?: any) {
+async function list(answers: AllCCDKeys & Record<string, any> = {}, name: string, message: string, choices: string[], defaultValue?: any) {
   return prompt([{ name, message, type: 'list', choices, default: defaultValue, pageSize: getIdealSizeForInquirer() }], answers)
 }
 
@@ -45,7 +46,7 @@ async function list(answers: any, name: string, message: string, choices: string
  * Asks for generic input select from a list AND allowing free typing
  * @returns extended answers object as passed in
  */
-export async function listOrFreeType(answers: any, name: string, message: string, choices: string[], defaultValue?: any) {
+export async function listOrFreeType(answers: AllCCDKeys & Record<string, any> = {}, name: string, message: string, choices: string[], defaultValue?: any) {
   answers = await list(answers, name, message, [CUSTOM, ...choices], defaultValue)
 
   if (answers[name] !== CUSTOM) {
@@ -62,7 +63,7 @@ export async function listOrFreeType(answers: any, name: string, message: string
  * Asks for basic text entry given a question
  * @returns extended answers object as passed in
  */
-export async function askBasicFreeEntry(answers: any, name: string, message?: string, defaultValue?: any) {
+export async function askBasicFreeEntry(answers: AllCCDKeys & Record<string, any> = {}, name: string, message?: string, defaultValue?: any) {
   return prompt([{ name, message: message || `What's the ${name}?`, default: defaultValue || session.lastAnswers[name] }], answers || {})
 }
 

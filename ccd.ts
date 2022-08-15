@@ -1,10 +1,9 @@
-import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, EventToComplexType } from 'types/ccd'
-import { Answers } from './types/types'
+import { AllCCDKeys, AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, EventToComplexType } from 'types/ccd'
 
 /**
  * Creates a new CaseEvent object using answers provided or defaults
  */
-export function createNewCaseEvent(answers?: Answers): CaseEvent {
+export function createNewCaseEvent(answers?: AllCCDKeys): CaseEvent {
   return {
     CaseTypeID: answers?.CaseTypeID || '',
     ID: answers?.ID || '',
@@ -26,7 +25,7 @@ export function createNewCaseEvent(answers?: Answers): CaseEvent {
 /**
  * Creates a new CaseField object using answers provided or defaults
  */
-export function createNewCaseField(answers?: Answers): CaseField {
+export function createNewCaseField(answers?: AllCCDKeys): CaseField {
   return {
     CaseTypeID: answers?.CaseTypeID || '',
     ID: answers?.ID || '',
@@ -44,7 +43,7 @@ export function createNewCaseField(answers?: Answers): CaseField {
 /**
  * Creates a new CaseEventToField object using answers provided or defaults
  */
-export function createNewCaseEventToField(answers?: Answers): CaseEventToField {
+export function createNewCaseEventToField(answers?: AllCCDKeys): CaseEventToField {
   return {
     CaseTypeID: answers?.CaseTypeID || 'ET_EnglandWales',
     CaseEventID: answers?.CaseEventID || '',
@@ -68,7 +67,7 @@ export function createNewCaseEventToField(answers?: Answers): CaseEventToField {
 /**
  * Creates a new EventToCompledType object using answers provided or defaults
  */
-export function createNewEventToComplexType(answers?: Answers): EventToComplexType {
+export function createNewEventToComplexType(answers?: AllCCDKeys): EventToComplexType {
   return {
     ID: answers?.ID || '',
     CaseFieldID: answers?.CaseFieldID || '',
@@ -78,6 +77,30 @@ export function createNewEventToComplexType(answers?: Answers): EventToComplexTy
     FieldDisplayOrder: answers?.FieldDisplayOrder || 1,
     DisplayContext: answers?.DisplayContext || 'OPTIONAL',
     FieldShowCondition: answers?.FieldShowCondition
+  }
+}
+
+/**
+ * Creates a new AuthorisationCaseEvent object using answers provided or defaults
+ */
+export function createAuthorisationCaseEvent(answers?: AllCCDKeys): AuthorisationCaseEvent {
+  return {
+    CaseTypeId: answers?.CaseTypeId || answers?.CaseTypeID,
+    CaseEventID: answers?.CaseEventID,
+    UserRole: answers?.UserRole,
+    CRUD: answers?.CRUD || 'R'
+  }
+}
+
+/**
+ * Creates a new AuthorisationCaseField object using answers provided or defaults
+ */
+export function createAuthorisationCaseField(answers?: AllCCDKeys): AuthorisationCaseField {
+  return {
+    CaseTypeId: answers?.CaseTypeId || answers?.CaseTypeID,
+    CaseFieldID: answers?.CaseFieldID,
+    UserRole: answers?.UserRole,
+    CRUD: answers?.CRUD || 'R'
   }
 }
 
@@ -127,90 +150,4 @@ export function trimCaseField(obj: CaseField): CaseField {
   }
 
   return json as CaseField
-}
-
-/**
- * Creates an array of AuthorisationCaseEvent objects.
- * TODO: Refactor so its not specific to ET
- */
-export function createAuthorisationCaseEvent(caseTypeID: string = "ET_EnglandWales", eventID: string): AuthorisationCaseEvent[] {
-  const userRoleRegion = caseTypeID === "ET_EnglandWales" ? "englandwales" : "scotland"
-  return [
-    {
-      "CaseTypeId": caseTypeID,
-      "CaseEventID": eventID,
-      "UserRole": "caseworker-employment",
-      "CRUD": "R"
-    },
-    {
-      "CaseTypeId": caseTypeID,
-      "CaseEventID": eventID,
-      "UserRole": "caseworker-employment-etjudge",
-      "CRUD": "R"
-    },
-    {
-      "CaseTypeId": caseTypeID,
-      "CaseEventID": eventID,
-      "UserRole": `caseworker-employment-${userRoleRegion}`,
-      "CRUD": "CRU"
-    },
-    {
-      "CaseTypeId": caseTypeID,
-      "CaseEventID": eventID,
-      "UserRole": `caseworker-employment-etjudge-${userRoleRegion}`,
-      "CRUD": "CRU"
-    },
-    {
-      "CaseTypeId": caseTypeID,
-      "CaseEventID": eventID,
-      "UserRole": "caseworker-employment-api",
-      "CRUD": "CRUD"
-    }
-  ]
-}
-
-/**
- * Creates an array of AuthorisationCaseFields objects.
- * TODO: Refactor so its not specific to ET
- */
-export function createAuthorisationCaseFields(caseTypeID: string = "ET_EnglandWales", fieldID: string): AuthorisationCaseField[] {
-  const userRoleRegion = caseTypeID === "ET_EnglandWales" ? "englandwales" : "scotland"
-  return [
-    {
-      "CaseTypeId": caseTypeID,
-      "CaseFieldID": fieldID,
-      "UserRole": "caseworker-employment",
-      "CRUD": "R"
-    },
-    {
-      "CaseTypeId": caseTypeID,
-      "CaseFieldID": fieldID,
-      "UserRole": "caseworker-employment-etjudge",
-      "CRUD": "R"
-    },
-    {
-      "CaseTypeId": caseTypeID,
-      "CaseFieldID": fieldID,
-      "UserRole": `caseworker-employment-${userRoleRegion}`,
-      "CRUD": "CRU"
-    },
-    {
-      "CaseTypeId": caseTypeID,
-      "CaseFieldID": fieldID,
-      "UserRole": `caseworker-employment-etjudge-${userRoleRegion}`,
-      "CRUD": "CRU"
-    },
-    {
-      "CaseTypeId": caseTypeID,
-      "CaseFieldID": fieldID,
-      "UserRole": `caseworker-employment-legalrep-solicitor`,
-      "CRUD": "CRU"
-    },
-    {
-      "CaseTypeId": caseTypeID,
-      "CaseFieldID": fieldID,
-      "UserRole": "caseworker-employment-api",
-      "CRUD": "CRUD"
-    },
-  ]
 }

@@ -1,14 +1,14 @@
 import { prompt } from "inquirer"
-import { CaseEventToFieldKeys, CaseFieldKeys } from "types/ccd"
+import { AllCCDKeys, CaseEventToFieldKeys, CaseFieldKeys } from "types/ccd"
 import { Journey } from "types/journey"
 import { askCaseTypeID } from "app/questions"
-import { createAuthorisationCaseFields, createNewCaseEventToField, createNewCaseField, trimCaseEventToField, trimCaseField } from "app/objects"
-import { addToInMemoryConfig } from "app/et/configs"
+import { createNewCaseEventToField, createNewCaseField, trimCaseEventToField, trimCaseField } from "app/ccd"
+import { addToInMemoryConfig, createCaseFieldAuthorisations } from "app/et/configs"
 import { askCaseEvent, askFirstOnPageQuestions, askForPageIDAndDisplayOrder, QUESTION_FIELD_SHOW_CONDITION, QUESTION_ID } from "./createSingleField"
 import { addOnDuplicateQuestion } from "./manageDuplicateField"
 import { addToLastAnswers } from "app/session"
 
-export async function createCallbackPopulatedLabel(answers: any) {
+export async function createCallbackPopulatedLabel(answers: AllCCDKeys & Record<string, any> = {}) {
   answers = await askCaseTypeID(answers)
   answers = await askCaseEvent(answers)
 
@@ -59,8 +59,8 @@ export async function createCallbackPopulatedLabel(answers: any) {
   })
 
   const authorisations = [
-    ...createAuthorisationCaseFields(answers.CaseTypeID, answers.ID),
-    ...createAuthorisationCaseFields(answers.CaseTypeID, `${answers.ID}Label`)
+    ...createCaseFieldAuthorisations(answers.CaseTypeID, answers.ID),
+    ...createCaseFieldAuthorisations(answers.CaseTypeID, `${answers.ID}Label`)
   ]
 
   addToInMemoryConfig({

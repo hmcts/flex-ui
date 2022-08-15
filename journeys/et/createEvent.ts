@@ -1,9 +1,10 @@
 import { prompt } from "inquirer"
 import { Journey } from "types/journey"
 import { askCaseTypeID } from "app/questions"
-import { createAuthorisationCaseEvent, createNewCaseEvent } from "app/objects"
-import { addToInMemoryConfig, upsertNewCaseEvent } from "app/et/configs"
+import { createNewCaseEvent } from "app/ccd"
+import { addToInMemoryConfig, createCaseEventAuthorisations, upsertNewCaseEvent } from "app/et/configs"
 import { Y_OR_N } from "app/constants"
+import { AllCCDKeys } from "app/types/ccd"
 
 const QUESTION_NAME = 'Give the new event a name (shows in the event dropdown)'
 const QUESTION_DESCRIPTION = 'Give the new event a description'
@@ -17,7 +18,7 @@ const QUESTION_CALLBACK_URL_ABOUT_TO_START_EVENT = 'Do we need a callback before
 const QUESTION_CALLBACK_URL_ABOUT_TO_SUBMIT_EVENT = 'Do we need a callback before we submit? (optional)'
 const QUESTION_CALLBACK_URL_SUBMITTED_EVENT = 'Do we need a callback after we submit? (optional)'
 
-export async function createEvent(answers: any) {
+export async function createEvent(answers: AllCCDKeys & Record<string, any> = {}) {
   answers = await prompt([{ name: 'ID', message: "What's the ID of the new Event?" }], answers)
   answers = await askCaseTypeID(answers)
   answers = await prompt(
@@ -36,7 +37,7 @@ export async function createEvent(answers: any) {
     ], answers)
 
   const caseEvent = createNewCaseEvent(answers)
-  const authorisations = createAuthorisationCaseEvent(answers.CaseTypeID, answers.ID)
+  const authorisations = createCaseEventAuthorisations(answers.CaseTypeID, answers.ID)
 
   upsertNewCaseEvent(caseEvent)
 

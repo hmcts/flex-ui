@@ -1,8 +1,7 @@
 import { AuthorisationCaseField, CaseField } from "types/ccd"
 import { Journey } from "types/journey"
 import { askCaseTypeID } from "app/questions"
-import { getConfigSheetsForCaseTypeID } from "app/et/configs"
-import { createAuthorisationCaseFields } from "app/objects"
+import { getConfigSheetsForCaseTypeID, createCaseFieldAuthorisations } from "app/et/configs"
 import { findMissing, matcher } from "app/helpers"
 import { COMPOUND_KEYS } from "app/constants"
 import { writeFileSync } from "fs"
@@ -55,7 +54,7 @@ async function validateCaseFieldAuths() {
  * @returns a record of fields and their extra, missing and/or different auths
  */
 function checkFieldForAuths(field: CaseField, existingAuths: AuthorisationCaseField[]) {
-  const generatedAuths = createAuthorisationCaseFields(field.CaseTypeID, field.ID)
+  const generatedAuths = createCaseFieldAuthorisations(field.CaseTypeID, field.ID)
 
   const extraAuths = findMissing<AuthorisationCaseField>([...generatedAuths], existingAuths, COMPOUND_KEYS.AuthorisationCaseField)
   const missingAuths = findMissing<AuthorisationCaseField>([...existingAuths], generatedAuths, COMPOUND_KEYS.AuthorisationCaseField)

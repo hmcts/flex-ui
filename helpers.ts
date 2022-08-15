@@ -1,4 +1,4 @@
-import { exec } from "child_process"
+import { ChildProcess, exec, ExecException } from "child_process"
 import { existsSync, mkdirSync } from "fs"
 import { readdir } from "fs/promises"
 import { resolve } from "path"
@@ -117,9 +117,9 @@ export function format(template: string, ...args: (string | number)[]) {
  */
 export function execCommand(command: string, cwd?: string, rejectOnNonZeroExitCode = true) {
   return new Promise((resolve, reject) => {
-    const child = exec(command, { cwd }, (err, stdout, stderr) => {
-      const out = { err, stdout, stderr, code: child.exitCode }
-      if (rejectOnNonZeroExitCode && child.exitCode > 0) {
+    const child: ChildProcess = exec(command, { cwd }, (err, stdout, stderr) => {
+      const out = { err, stdout, stderr, code: child.exitCode || 0 }
+      if (rejectOnNonZeroExitCode && child.exitCode && child.exitCode > 0) {
         return reject(out)
       }
       return resolve(out)

@@ -18,7 +18,7 @@ async function duplicateCaseField() {
       name: 'ID',
       message: QUESTION_DUPLICATE,
       type: 'autocomplete',
-      source: (_answers: any, input: string) => fuzzySearch([CANCEL, ...region.CaseField.map(o => o.ID)], input),
+      source: (_answers: unknown, input: string) => fuzzySearch([CANCEL, ...region.CaseField.map(o => o.ID)], input),
       pageSize: getIdealSizeForInquirer()
     }
   ])

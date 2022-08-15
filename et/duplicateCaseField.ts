@@ -1,5 +1,5 @@
 import { addToInMemoryConfig, getConfigSheetsForCaseTypeID, upsertNewCaseEvent } from "app/et/configs"
-import { CaseField, ConfigSheets } from "app/types/ccd"
+import { CaseField, ConfigSheets, createNewConfigSheets } from "app/types/ccd"
 
 /**
  * Duplicates a field and all related objects under a different CaseTypeID
@@ -66,6 +66,7 @@ function getObjectsReferencedByCaseField(caseTypeID: string, caseFieldID: string
   const region = getConfigSheetsForCaseTypeID(caseTypeID)
 
   const caseField = region.CaseField.find(o => o.ID === caseFieldID)
+  if (!caseField) return createNewConfigSheets()
 
   return getObjectsReferencedByCaseFields(region, [caseField])
 }

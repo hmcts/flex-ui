@@ -195,3 +195,18 @@ export const sheets: (keyof (ConfigSheets))[] = [
   'EventToComplexTypes',
   'Scrubbed'
 ]
+
+export function createNewConfigSheets() {
+  return sheets.reduce((acc, obj) => {
+    acc[obj] = []
+    return acc
+  }, {} as ConfigSheets)
+}
+
+type KeyOfAll<T> = T extends T ? keyof T : never
+
+type AllObjectKeys<T> = {
+  [P in KeyOfAll<T[keyof T]>]: any
+}
+
+export type AllCCDKeys = Partial<AllObjectKeys<CCDTypes>>

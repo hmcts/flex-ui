@@ -1,7 +1,7 @@
 import { prompt } from "inquirer"
-import { CaseEventToFieldKeys, CaseFieldKeys, EventToComplexTypeKeys } from "types/ccd"
+import { AllCCDKeys, CaseEventToFieldKeys, CaseFieldKeys, EventToComplexTypeKeys } from "types/ccd"
 import { createSingleField, askCaseEvent } from "./createSingleField"
-import { createNewEventToComplexType } from "app/objects"
+import { createNewEventToComplexType } from "app/ccd"
 import { addToInMemoryConfig, getKnownCaseFieldIDs } from "app/et/configs"
 import { fuzzySearch } from "app/questions"
 import { CUSTOM } from "app/constants"
@@ -19,7 +19,7 @@ const QUESTION_DISPLAY_CONTEXT = 'Should this field be READONLY, OPTIONAL or MAN
 const QUESTION_FIELD_SHOW_CONDITION = 'Enter a FieldShowCondition (optional)'
 const DISPLAY_CONTEXT_OPTIONS = ['READONLY', 'OPTIONAL', 'MANDATORY']
 
-async function createEventToComplexType(answers: any) {
+async function createEventToComplexType(answers: AllCCDKeys & Record<string, any> = {}) {
   answers = await askCaseEvent(answers, QUESTION_CASE_EVENT_ID)
 
   answers = await prompt([{ name: 'ID', message: QUESTION_ID, type: 'input', default: session.lastAnswers.ID }], answers)
@@ -41,7 +41,7 @@ async function createEventToComplexType(answers: any) {
   })
 }
 
-async function askCaseFieldID(answers: any = {}) {
+async function askCaseFieldID(answers: AllCCDKeys & Record<string, any> = {}) {
   const opts = getKnownCaseFieldIDs()
   const key = EventToComplexTypeKeys.CaseFieldID
   answers = await prompt([
@@ -49,7 +49,7 @@ async function askCaseFieldID(answers: any = {}) {
       name: key,
       message: QUESTION_CASE_FIELD_ID,
       type: 'autocomplete',
-      source: (_answers: any, input: string) => fuzzySearch([CUSTOM, ...opts], input),
+      source: (_answers: unknown, input: string) => fuzzySearch([CUSTOM, ...opts], input),
       pageSize: getIdealSizeForInquirer()
     }
   ], answers)

@@ -1,15 +1,16 @@
 import { prompt } from "inquirer"
 import { addToLastAnswers, session } from "app/session"
-import { CaseEventKeys, CaseEventToFieldKeys, CaseFieldKeys } from "types/ccd"
+import { AllCCDKeys, CaseEventKeys, CaseEventToFieldKeys, CaseFieldKeys } from "types/ccd"
 import { askBasicFreeEntry, askCaseTypeID, fuzzySearch } from "app/questions"
 import { CUSTOM, DISPLAY_CONTEXT_OPTIONS, FIELD_TYPES_NO_MIN_MAX, FIELD_TYPES_NO_PARAMETER, NONE, Y_OR_N } from "app/constants"
-import { addToInMemoryConfig, getCaseEventIDOpts, getKnownCaseFieldTypeParameters, getKnownCaseFieldTypes, getNextPageFieldIDForPage } from "app/et/configs"
+import { addToInMemoryConfig, createCaseFieldAuthorisations, getCaseEventIDOpts, getKnownCaseFieldTypeParameters, getKnownCaseFieldTypes, getNextPageFieldIDForPage } from "app/et/configs"
 import { addOnDuplicateQuestion } from "./manageDuplicateField"
-import { createAuthorisationCaseFields, createNewCaseEventToField, createNewCaseField, trimCaseEventToField, trimCaseField } from "app/objects"
+import { createNewCaseEventToField, createNewCaseField, trimCaseEventToField, trimCaseField } from "app/ccd"
 import { createScrubbed } from "./createScrubbed"
 import { createEvent } from "./createEvent"
 import { format, getIdealSizeForInquirer } from "app/helpers"
 import { Journey } from "types/journey"
+import { doDuplicateCaseField } from "app/et/duplicateCaseField"
 
 export const QUESTION_ID = `What's the ID for this field?`
 const QUESTION_LABEL = 'What text (Label) should this field have?'
@@ -30,7 +31,7 @@ const QUESTION_PAGE_SHOW_CONDITION = 'Enter a page show condition string (option
 const QUESTION_CALLBACK_URL_MID_EVENT = 'Enter the callback url to hit before loading the next page (optional)'
 const QUESTION_REGULAR_EXPRESSION = "Do we need a RegularExpression for the field?"
 
-export async function createSingleField(answers: any = {}) {
+export async function createSingleField(answers: AllCCDKeys & Record<string, any> = {}) {
   answers = await askBasic(answers)
 
   answers = await askForPageIDAndDisplayOrder(answers)
@@ -61,7 +62,7 @@ export async function createSingleField(answers: any = {}) {
 
   const caseField = createNewCaseField(answers)
   const caseEventToField = createNewCaseEventToField(answers)
-  const authorisations = createAuthorisationCaseFields(answers.CaseTypeID, answers.ID)
+  const authorisations = createCaseFieldAuthorisations(answers.CaseTypeID, answers.ID)
 
   addToInMemoryConfig({
     AuthorisationCaseField: authorisations,
@@ -69,12 +70,13 @@ export async function createSingleField(answers: any = {}) {
     CaseEventToFields: [trimCaseEventToField(caseEventToField)]
   })
 
+  doDuplicateCaseField(answers.CaseTypeID, answers.ID, answers.CaseTypeID)
   await addOnDuplicateQuestion(answers as { CaseTypeID: string, ID: string })
 
   return answers.ID
 }
 
-export function getDefaultForPageFieldDisplayOrder(answers: any) {
+export function getDefaultForPageFieldDisplayOrder(answers: AllCCDKeys & Record<string, any> = {}) {
   const pageID = CaseEventToFieldKeys.PageID
   if (answers[pageID] && answers[CaseEventToFieldKeys.CaseEventID] && answers[CaseEventToFieldKeys.CaseTypeID]) {
     return getNextPageFieldIDForPage(
@@ -89,7 +91,7 @@ export function getDefaultForPageFieldDisplayOrder(answers: any) {
   return 1
 }
 
-async function askBasic(answers: any = {}) {
+async function askBasic(answers: AllCCDKeys & Record<string, any> = {}) {
   answers = await askCaseTypeID(answers)
   answers = await askCaseEvent(answers)
 
@@ -102,7 +104,7 @@ async function askBasic(answers: any = {}) {
   )
 }
 
-export async function askForPageIDAndDisplayOrder(answers: any = {}) {
+export async function askForPageIDAndDisplayOrder(answers: AllCCDKeys & Record<string, any> = {}) {
   answers = await prompt([{
     name: CaseEventToFieldKeys.PageID,
     message: QUESTION_PAGE_ID,
@@ -118,7 +120,7 @@ export async function askForPageIDAndDisplayOrder(answers: any = {}) {
   }], answers)
 }
 
-export async function askCaseEvent(answers: any = {}, message?: string) {
+export async function askCaseEvent(answers: AllCCDKeys & Record<string, any> = {}, message?: string) {
   const opts = getCaseEventIDOpts()
   const key = CaseEventToFieldKeys.CaseEventID
   answers = await prompt([
@@ -126,7 +128,7 @@ export async function askCaseEvent(answers: any = {}, message?: string) {
       name: key,
       message: message || QUESTION_CASE_EVENT_ID,
       type: 'autocomplete',
-      source: (_answers: any, input: string) => fuzzySearch([CUSTOM, ...opts], input),
+      source: (_answers: unknown, input: string) => fuzzySearch([CUSTOM, ...opts], input),
       default: session.lastAnswers[key],
       pageSize: getIdealSizeForInquirer()
     }
@@ -139,7 +141,7 @@ export async function askCaseEvent(answers: any = {}, message?: string) {
   return answers
 }
 
-async function askFieldTypeParameter(answers: any = {}) {
+async function askFieldTypeParameter(answers: AllCCDKeys & Record<string, any> = {}) {
   const opts = getKnownCaseFieldTypeParameters()
   const key = CaseFieldKeys.FieldTypeParameter
   answers = await prompt([
@@ -147,7 +149,7 @@ async function askFieldTypeParameter(answers: any = {}) {
       name: key,
       message: format(QUESTION_FIELD_TYPE_PARAMETER, answers[CaseFieldKeys.FieldType]),
       type: 'autocomplete',
-      source: (_answers: any, input: string) => fuzzySearch([NONE, CUSTOM, ...opts], input),
+      source: (_answers: unknown, input: string) => fuzzySearch([NONE, CUSTOM, ...opts], input),
       pageSize: getIdealSizeForInquirer()
     }
   ], answers)
@@ -163,7 +165,7 @@ async function askFieldTypeParameter(answers: any = {}) {
 }
 
 
-async function askFieldType(answers: any = {}) {
+async function askFieldType(answers: AllCCDKeys & Record<string, any> = {}) {
   const opts = getKnownCaseFieldTypes()
   const key = CaseFieldKeys.FieldType
   answers = await prompt([
@@ -171,21 +173,22 @@ async function askFieldType(answers: any = {}) {
       name: key,
       message: QUESTION_FIELD_TYPE,
       type: 'autocomplete',
-      source: (_answers: any, input: string) => fuzzySearch([CUSTOM, ...opts], input),
+      source: (_answers: unknown, input: string) => fuzzySearch([CUSTOM, ...opts], input),
       default: 'Label',
       pageSize: getIdealSizeForInquirer()
     }
   ], answers)
 
   if (answers[key] === CUSTOM) {
-    answers = await askBasicFreeEntry(key, QUESTION_FIELD_TYPE_CUSTOM)
+    const customFieldType = await askBasicFreeEntry({}, key, QUESTION_FIELD_TYPE_CUSTOM)
+    answers[key] = customFieldType[key]
     // TODO: Add ComplexType creation route here when ComplexType support is added
   }
 
   return answers
 }
 
-async function askNonLabelQuestions(answers: any = {}) {
+async function askNonLabelQuestions(answers: AllCCDKeys & Record<string, any> = {}) {
   return prompt([
     { name: CaseFieldKeys.HintText, message: QUESTION_HINT_TEXT, type: 'input' },
     { name: CaseEventToFieldKeys.DisplayContext, message: QUESTION_DISPLAY_CONTEXT, type: 'list', choices: DISPLAY_CONTEXT_OPTIONS, default: DISPLAY_CONTEXT_OPTIONS[1] },
@@ -193,14 +196,14 @@ async function askNonLabelQuestions(answers: any = {}) {
   ], answers)
 }
 
-export async function askMinAndMax(answers: any = {}) {
+export async function askMinAndMax(answers: AllCCDKeys & Record<string, any> = {}) {
   return prompt([
     { name: CaseFieldKeys.Min, message: QUESTION_MIN, },
     { name: CaseFieldKeys.Max, message: QUESTION_MAX, },
   ], answers)
 }
 
-export async function askFirstOnPageQuestions(answers: any = {}) {
+export async function askFirstOnPageQuestions(answers: AllCCDKeys & Record<string, any> = {}) {
   return prompt([
     { name: CaseEventToFieldKeys.PageLabel, message: QUESTION_PAGE_LABEL, type: 'input' },
     { name: CaseEventToFieldKeys.PageShowCondition, message: QUESTION_PAGE_SHOW_CONDITION, type: 'input' },
@@ -208,7 +211,7 @@ export async function askFirstOnPageQuestions(answers: any = {}) {
   ], answers)
 }
 
-async function askForRegularExpression(answers: any = {}) {
+async function askForRegularExpression(answers: AllCCDKeys & Record<string, any> = {}) {
   return prompt([
     { name: CaseFieldKeys.RegularExpression, message: QUESTION_REGULAR_EXPRESSION, type: 'input' }
   ], answers)
