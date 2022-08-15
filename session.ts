@@ -1,11 +1,10 @@
 import { readFileSync, rmSync, writeFileSync } from "fs"
 import { readdir } from "fs/promises"
 import { sep } from "path"
-import { addNewScrubbed, addToInMemoryConfig, upsertNewCaseEvent } from "app/et/configs"
 import { COMPOUND_KEYS } from "app/constants"
 import { getUniqueByKey, upsertFields } from "app/helpers"
-import { ConfigSheets, sheets } from "./types/ccd"
-import { Answers } from "./questions"
+import { ConfigSheets, sheets } from "types/ccd"
+import { Answers } from "app/questions"
 
 export type Session = {
   name: string
@@ -58,14 +57,6 @@ export function restorePreviousSession(sessionFileName: string) {
 
   session.date = json.date
   session.name = json.name
-
-  addToInMemoryConfig(session.added)
-
-  addNewScrubbed(session.added.Scrubbed)
-
-  for (const event of session.added.CaseEvent) {
-    upsertNewCaseEvent(event)
-  }
 
   if (!json.lastAnswers) return
 

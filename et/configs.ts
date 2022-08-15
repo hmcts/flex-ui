@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from "fs"
 import { sep } from "path"
 import { findLastIndex, format, getUniqueByKey, getUniqueByKeyAsArray, upsertFields } from "app/helpers"
-import { addToSession } from "app/session"
+import { addToSession, session } from "app/session"
 import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, ConfigSheets, Scrubbed, sheets } from "types/ccd"
 import { COMPOUND_KEYS } from "app/constants"
 
@@ -22,7 +22,7 @@ enum Roles {
   CaseworkerEmploymentETJudgeEnglandWales = "caseworker-employment-etjudge-englandwales",
   CaseworkerEmploymentScotland = "caseworker-employment-scotland",
   CaseworkerEmploymentETJudgeScotland = "caseworker-employment-etjudge-scotland",
-  Citizen = "caseworker-citizen",
+  Citizen = "citizen",
   CaseworkerEmploymentApi = "caseworker-employment-api"
 }
 
@@ -331,4 +331,17 @@ export function createCaseFieldAuthorisations(caseTypeID: string = "ET_EnglandWa
   return createAuthorisations<AuthorisationCaseField>(roleMappings, caseTypeID, (role, crud) => {
     return { CaseTypeId: caseTypeID, CaseFieldID: fieldID, UserRole: role, CRUD: crud }
   })
+}
+
+/**
+ * Load the current session into in-memory configs
+ */
+export function loadCurrentSessionIntoMemory() {
+  addToInMemoryConfig(session.added)
+
+  addNewScrubbed(session.added.Scrubbed)
+
+  for (const event of session.added.CaseEvent) {
+    upsertNewCaseEvent(event)
+  }
 }

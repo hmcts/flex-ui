@@ -2,6 +2,7 @@ import { prompt } from "inquirer"
 import { findPreviousSessions, restorePreviousSession } from "app/session"
 import { Journey } from "types/journey"
 import { getIdealSizeForInquirer } from "app/helpers"
+import { loadCurrentSessionIntoMemory } from "app/et/configs"
 
 const QUESTION_PREVIOUS_SESSION = "Select a previous session"
 
@@ -34,6 +35,7 @@ async function restoreSession() {
   }
 
   restorePreviousSession(answers.name)
+  loadCurrentSessionIntoMemory()
 }
 
 export default {
