@@ -1,7 +1,7 @@
 import { prompt } from "inquirer"
 import { addToLastAnswers, session } from "app/session"
-import { AllCCDKeys, CaseEventKeys, CaseEventToFieldKeys, CaseFieldKeys } from "types/ccd"
-import { askBasicFreeEntry, askCaseTypeID, fuzzySearch } from "app/questions"
+import { CaseEventKeys, CaseEventToFieldKeys, CaseFieldKeys } from "types/ccd"
+import { Answers, askBasicFreeEntry, askCaseTypeID, fuzzySearch } from "app/questions"
 import { CUSTOM, DISPLAY_CONTEXT_OPTIONS, FIELD_TYPES_NO_MIN_MAX, FIELD_TYPES_NO_PARAMETER, NONE, Y_OR_N } from "app/constants"
 import { addToInMemoryConfig, createCaseFieldAuthorisations, getCaseEventIDOpts, getKnownCaseFieldTypeParameters, getKnownCaseFieldTypes, getNextPageFieldIDForPage } from "app/et/configs"
 import { addOnDuplicateQuestion } from "./manageDuplicateField"
@@ -31,7 +31,7 @@ const QUESTION_PAGE_SHOW_CONDITION = 'Enter a page show condition string (option
 const QUESTION_CALLBACK_URL_MID_EVENT = 'Enter the callback url to hit before loading the next page (optional)'
 const QUESTION_REGULAR_EXPRESSION = "Do we need a RegularExpression for the field?"
 
-export async function createSingleField(answers: AllCCDKeys & Record<string, any> = {}) {
+export async function createSingleField(answers: Answers = {}) {
   answers = await askBasic(answers)
 
   answers = await askForPageIDAndDisplayOrder(answers)
@@ -76,7 +76,7 @@ export async function createSingleField(answers: AllCCDKeys & Record<string, any
   return answers.ID
 }
 
-export function getDefaultForPageFieldDisplayOrder(answers: AllCCDKeys & Record<string, any> = {}) {
+export function getDefaultForPageFieldDisplayOrder(answers: Answers = {}) {
   const pageID = CaseEventToFieldKeys.PageID
   if (answers[pageID] && answers[CaseEventToFieldKeys.CaseEventID] && answers[CaseEventToFieldKeys.CaseTypeID]) {
     return getNextPageFieldIDForPage(
@@ -91,7 +91,7 @@ export function getDefaultForPageFieldDisplayOrder(answers: AllCCDKeys & Record<
   return 1
 }
 
-async function askBasic(answers: AllCCDKeys & Record<string, any> = {}) {
+async function askBasic(answers: Answers = {}) {
   answers = await askCaseTypeID(answers)
   answers = await askCaseEvent(answers)
 
@@ -104,7 +104,7 @@ async function askBasic(answers: AllCCDKeys & Record<string, any> = {}) {
   )
 }
 
-export async function askForPageIDAndDisplayOrder(answers: AllCCDKeys & Record<string, any> = {}) {
+export async function askForPageIDAndDisplayOrder(answers: Answers = {}) {
   answers = await prompt([{
     name: CaseEventToFieldKeys.PageID,
     message: QUESTION_PAGE_ID,
@@ -120,7 +120,7 @@ export async function askForPageIDAndDisplayOrder(answers: AllCCDKeys & Record<s
   }], answers)
 }
 
-export async function askCaseEvent(answers: AllCCDKeys & Record<string, any> = {}, message?: string) {
+export async function askCaseEvent(answers: Answers = {}, message?: string) {
   const opts = getCaseEventIDOpts()
   const key = CaseEventToFieldKeys.CaseEventID
   answers = await prompt([
@@ -141,7 +141,7 @@ export async function askCaseEvent(answers: AllCCDKeys & Record<string, any> = {
   return answers
 }
 
-async function askFieldTypeParameter(answers: AllCCDKeys & Record<string, any> = {}) {
+async function askFieldTypeParameter(answers: Answers = {}) {
   const opts = getKnownCaseFieldTypeParameters()
   const key = CaseFieldKeys.FieldTypeParameter
   answers = await prompt([
@@ -165,7 +165,7 @@ async function askFieldTypeParameter(answers: AllCCDKeys & Record<string, any> =
 }
 
 
-async function askFieldType(answers: AllCCDKeys & Record<string, any> = {}) {
+async function askFieldType(answers: Answers = {}) {
   const opts = getKnownCaseFieldTypes()
   const key = CaseFieldKeys.FieldType
   answers = await prompt([
@@ -188,7 +188,7 @@ async function askFieldType(answers: AllCCDKeys & Record<string, any> = {}) {
   return answers
 }
 
-async function askNonLabelQuestions(answers: AllCCDKeys & Record<string, any> = {}) {
+async function askNonLabelQuestions(answers: Answers = {}) {
   return prompt([
     { name: CaseFieldKeys.HintText, message: QUESTION_HINT_TEXT, type: 'input' },
     { name: CaseEventToFieldKeys.DisplayContext, message: QUESTION_DISPLAY_CONTEXT, type: 'list', choices: DISPLAY_CONTEXT_OPTIONS, default: DISPLAY_CONTEXT_OPTIONS[1] },
@@ -196,14 +196,14 @@ async function askNonLabelQuestions(answers: AllCCDKeys & Record<string, any> = 
   ], answers)
 }
 
-export async function askMinAndMax(answers: AllCCDKeys & Record<string, any> = {}) {
+export async function askMinAndMax(answers: Answers = {}) {
   return prompt([
     { name: CaseFieldKeys.Min, message: QUESTION_MIN, },
     { name: CaseFieldKeys.Max, message: QUESTION_MAX, },
   ], answers)
 }
 
-export async function askFirstOnPageQuestions(answers: AllCCDKeys & Record<string, any> = {}) {
+export async function askFirstOnPageQuestions(answers: Answers = {}) {
   return prompt([
     { name: CaseEventToFieldKeys.PageLabel, message: QUESTION_PAGE_LABEL, type: 'input' },
     { name: CaseEventToFieldKeys.PageShowCondition, message: QUESTION_PAGE_SHOW_CONDITION, type: 'input' },
@@ -211,7 +211,7 @@ export async function askFirstOnPageQuestions(answers: AllCCDKeys & Record<strin
   ], answers)
 }
 
-async function askForRegularExpression(answers: AllCCDKeys & Record<string, any> = {}) {
+async function askForRegularExpression(answers: Answers = {}) {
   return prompt([
     { name: CaseFieldKeys.RegularExpression, message: QUESTION_REGULAR_EXPRESSION, type: 'input' }
   ], answers)

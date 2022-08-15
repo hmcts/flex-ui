@@ -6,11 +6,13 @@ import { AllCCDKeys, CaseFieldKeys } from "types/ccd"
 import { getKnownCaseTypeIDs } from "app/et/configs"
 import { getIdealSizeForInquirer } from "app/helpers"
 
+export type Answers = AllCCDKeys & Record<string, any> 
+
 /**
  * Asks the user for a CaseTypeID. Allows for creation if <custom> is selected.
  * @returns extended answers object as passed in
  */
-export async function askCaseTypeID(answers: AllCCDKeys & Record<string, any> = {}) {
+export async function askCaseTypeID(answers: Answers = {}) {
   const opts = getKnownCaseTypeIDs()
   const key = CaseFieldKeys.CaseTypeID
 
@@ -38,7 +40,7 @@ export async function askCaseTypeID(answers: AllCCDKeys & Record<string, any> = 
  * Asks for generic input selecting from a list
  * @returns extended answers object as passed in
  */
-async function list(answers: AllCCDKeys & Record<string, any> = {}, name: string, message: string, choices: string[], defaultValue?: any) {
+async function list(answers: Answers = {}, name: string, message: string, choices: string[], defaultValue?: any) {
   return prompt([{ name, message, type: 'list', choices, default: defaultValue, pageSize: getIdealSizeForInquirer() }], answers)
 }
 
@@ -46,7 +48,7 @@ async function list(answers: AllCCDKeys & Record<string, any> = {}, name: string
  * Asks for generic input select from a list AND allowing free typing
  * @returns extended answers object as passed in
  */
-export async function listOrFreeType(answers: AllCCDKeys & Record<string, any> = {}, name: string, message: string, choices: string[], defaultValue?: any) {
+export async function listOrFreeType(answers: Answers = {}, name: string, message: string, choices: string[], defaultValue?: any) {
   answers = await list(answers, name, message, [CUSTOM, ...choices], defaultValue)
 
   if (answers[name] !== CUSTOM) {
@@ -63,7 +65,7 @@ export async function listOrFreeType(answers: AllCCDKeys & Record<string, any> =
  * Asks for basic text entry given a question
  * @returns extended answers object as passed in
  */
-export async function askBasicFreeEntry(answers: AllCCDKeys & Record<string, any> = {}, name: string, message?: string, defaultValue?: any) {
+export async function askBasicFreeEntry(answers: Answers = {}, name: string, message?: string, defaultValue?: any) {
   return prompt([{ name, message: message || `What's the ${name}?`, default: defaultValue || session.lastAnswers[name] }], answers || {})
 }
 

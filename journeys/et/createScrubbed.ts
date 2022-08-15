@@ -1,7 +1,8 @@
 import { YES_OR_NO } from "app/constants"
 import { addNewScrubbed } from "app/et/configs"
+import { Answers } from "app/questions"
 import { prompt } from "inquirer"
-import { AllCCDKeys, Scrubbed } from "types/ccd"
+import { Scrubbed } from "types/ccd"
 import { Journey } from "types/journey"
 
 const QUESTION_ID = "What's the name of the new Scrubbed list?"
@@ -10,43 +11,39 @@ const QUESTION_LIST_ELEMENT_CODE = `Give a ListElementCode for this item`
 const QUESTION_DISPLAY_ORDER = `Whats the DisplayOrder for this item?`
 const QUESTION_ADD_ANOTHER = `Add another?`
 
-export async function createScrubbed(answers: AllCCDKeys & Record<string, any> = {}) {
+export async function createScrubbed(answers: Answers = {}) {
   answers = await prompt([{ name: 'ID', message: QUESTION_ID }], answers)
 
   let createdItems: Scrubbed[] = []
 
   let x = 0
-  while (true) {
-    x++
-    const followup = await prompt([
+  do {
+    answers = await prompt([
       { name: 'ListElement', message: QUESTION_LIST_ELEMENT },
-    ])
-
-    const more = await prompt([
-      { name: 'ListElementCode', message: QUESTION_LIST_ELEMENT_CODE, default: followup.ListElement },
-      { name: 'DisplayOrder', message: QUESTION_DISPLAY_ORDER, default: x },
+      { name: 'ListElementCode', message: QUESTION_LIST_ELEMENT_CODE, default: (answers: Answers) => answers.ListElement },
+      { name: 'DisplayOrder', message: QUESTION_DISPLAY_ORDER, default: ++x },
       { name: 'More', message: QUESTION_ADD_ANOTHER, type: 'list', choices: YES_OR_NO }
-    ])
+    ], answers)
 
-    if (!more.ListElementCode) {
-      more.ListElementCode = followup.ListElement
+    if (!answers.ListElementCode) {
+      answers.ListElementCode = answers.ListElement
     }
 
-    if (!more.DisplayOrder) {
-      more.DisplayOrder = x
+    if (!answers.DisplayOrder) {
+      answers.DisplayOrder = x
     }
 
     createdItems.push({
       ID: answers.ID,
-      ListElement: followup.ListElement,
-      ListElementCode: more.ListElementCode,
-      DisplayOrder: more.DisplayOrder
+      ListElement: answers.ListElement,
+      ListElementCode: answers.ListElementCode,
+      DisplayOrder: answers.DisplayOrder
     })
 
-    if (more.More === "No") {
+    if (answers.More === "No") {
       break
     }
-  }
+  } while (true)
 
   addNewScrubbed(createdItems)
 

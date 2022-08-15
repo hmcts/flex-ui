@@ -4,13 +4,14 @@ import { sep } from "path"
 import { addNewScrubbed, addToInMemoryConfig, upsertNewCaseEvent } from "app/et/configs"
 import { COMPOUND_KEYS } from "app/constants"
 import { getUniqueByKey, upsertFields } from "app/helpers"
-import { AllCCDKeys, ConfigSheets, sheets } from "./types/ccd"
+import { ConfigSheets, sheets } from "./types/ccd"
+import { Answers } from "./questions"
 
 export type Session = {
   name: string
   date: Date | string
   added: ConfigSheets
-  lastAnswers: AllCCDKeys & Record<string, any>
+  lastAnswers: Answers
 }
 
 export const SESSION_DIR = 'sessions'
@@ -120,7 +121,7 @@ export function getPageCount() {
 /**
  * Adds to the lastAnswers object for this session
  */
-export function addToLastAnswers(answers: AllCCDKeys & Record<string, any> = {}) {
+export function addToLastAnswers(answers: Answers = {}) {
   session.lastAnswers = {
     ...session.lastAnswers,
     ...answers
