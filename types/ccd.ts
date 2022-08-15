@@ -26,15 +26,15 @@ export interface CaseEventToField {
   PageID: number
   PageDisplayOrder: number
   PageFieldDisplayOrder: number
-  FieldShowCondition?: string | null
-  PageShowCondition?: string | null
-  RetainHiddenValue?: 'Yes' | 'No' | null
-  ShowSummaryChangeOption?: 'Y' | 'N' | null
-  CallBackURLMidEvent?: string | null
-  PageLabel?: string | null
-  PageColumnNumber?: number | null
-  ShowSummaryContentOption?: number | null
-  RetriesTimeoutURLMidEvent?: string | null
+  FieldShowCondition?: string
+  PageShowCondition?: string
+  RetainHiddenValue?: 'Yes' | 'No'
+  ShowSummaryChangeOption?: 'Y' | 'N'
+  CallBackURLMidEvent?: string
+  PageLabel?: string
+  PageColumnNumber?: number
+  ShowSummaryContentOption?: number
+  RetriesTimeoutURLMidEvent?: string
 }
 
 export interface CaseEvent {
