@@ -155,6 +155,19 @@ export function readInCurrentConfig() {
 }
 
 /**
+ * Finds the index at which to insert a Case Event by finding the index of an existing DisplayOrder
+ * or returning the index of the higher DisplayOrder +1
+ */
+function getCaseEventInsertIndex(configSheet: ConfigSheets, caseEvent: CaseEvent) {
+  const insertIndex = configSheet.CaseEvent.findIndex(o => o.DisplayOrder === caseEvent.DisplayOrder)
+  if (insertIndex > -1) {
+    return insertIndex
+  }
+
+  return findLastIndex(configSheet.CaseEvent, o => o.CaseTypeID === caseEvent.CaseTypeID) + 1
+}
+
+/**
  * Upserts a CaseEvent into the correct region's config and into the current session. 
  * Inserts according to DisplayOrder, modifying other CaseEvent DisplayOrders where necessary.
  * Will replace where necessary, so changed non-compound keys will get updated
@@ -165,10 +178,10 @@ export function upsertNewCaseEvent(caseEvent: CaseEvent) {
   const existIndex = configSheets.CaseEvent.findIndex(o => o.ID === caseEvent.ID)
 
   if (existIndex === -1) {
-    const ewInsertIndex = configSheets.CaseEvent.findIndex(o => o.DisplayOrder === caseEvent.DisplayOrder)
-    configSheets.CaseEvent.splice(ewInsertIndex, 0, caseEvent)
+    const insertIndex = getCaseEventInsertIndex(configSheets, caseEvent)
+    configSheets.CaseEvent.splice(insertIndex, 0, caseEvent)
 
-    for (let i = ewInsertIndex + 1; i < configSheets.CaseEvent.length; i++) {
+    for (let i = insertIndex + 1; i < configSheets.CaseEvent.length; i++) {
       const event = configSheets.CaseEvent[i]
       if (event.CaseTypeID !== caseEvent.CaseTypeID) continue
       event.DisplayOrder++
@@ -218,15 +231,15 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
     }
   }
 
-  const ewCaseFields = fields.CaseField!.filter(o => o.CaseTypeID.startsWith("ET_EnglandWales"))
-  const ewCaseEventToFields = fields.CaseEventToFields!.filter(o => o.CaseTypeID.startsWith("ET_EnglandWales"))
-  const ewAuthorisationCaseFields = fields.AuthorisationCaseField!.filter(o => o.CaseTypeId.startsWith("ET_EnglandWales"))
-  const ewAuthorisationCaseEvents = fields.AuthorisationCaseEvent!.filter(o => o.CaseTypeId.startsWith("ET_EnglandWales"))
+  const ewCaseFields = fields.CaseField.filter(o => o.CaseTypeID.startsWith("ET_EnglandWales"))
+  const ewCaseEventToFields = fields.CaseEventToFields.filter(o => o.CaseTypeID.startsWith("ET_EnglandWales"))
+  const ewAuthorisationCaseFields = fields.AuthorisationCaseField.filter(o => o.CaseTypeId.startsWith("ET_EnglandWales"))
+  const ewAuthorisationCaseEvents = fields.AuthorisationCaseEvent.filter(o => o.CaseTypeId.startsWith("ET_EnglandWales"))
 
-  const scCaseFields = fields.CaseField!.filter(o => o.CaseTypeID.startsWith("ET_Scotland"))
-  const scCaseEventToFields = fields.CaseEventToFields!.filter(o => o.CaseTypeID.startsWith("ET_Scotland"))
-  const scAuthorisationCaseFields = fields.AuthorisationCaseField!.filter(o => o.CaseTypeId.startsWith("ET_Scotland"))
-  const scAuthorisationCaseEvents = fields.AuthorisationCaseEvent!.filter(o => o.CaseTypeId.startsWith("ET_Scotland"))
+  const scCaseFields = fields.CaseField.filter(o => o.CaseTypeID.startsWith("ET_Scotland"))
+  const scCaseEventToFields = fields.CaseEventToFields.filter(o => o.CaseTypeID.startsWith("ET_Scotland"))
+  const scAuthorisationCaseFields = fields.AuthorisationCaseField.filter(o => o.CaseTypeId.startsWith("ET_Scotland"))
+  const scAuthorisationCaseEvents = fields.AuthorisationCaseEvent.filter(o => o.CaseTypeId.startsWith("ET_Scotland"))
 
   // TODO: These group by CaseTypeID but fields should also be grouped further (like Case Fields need to listen to PageID and PageFieldDisplayOrder etc...)
 
@@ -246,7 +259,7 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
     (x, arr) => findLastIndex(arr, o => o.CaseTypeId === x.CaseTypeId) + 1
   )
 
-  upsertFields(englandwales.EventToComplexTypes, fields.EventToComplexTypes!, COMPOUND_KEYS.EventToComplexTypes)
+  upsertFields(englandwales.EventToComplexTypes, fields.EventToComplexTypes, COMPOUND_KEYS.EventToComplexTypes)
 
   upsertFields(scotland.CaseField, scCaseFields, COMPOUND_KEYS.CaseField,
     (x, arr) => findLastIndex(arr, o => o.CaseTypeID === x.CaseTypeID) + 1
@@ -261,7 +274,7 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
     (x, arr) => findLastIndex(arr, o => o.CaseTypeId === x.CaseTypeId) + 1
   )
 
-  upsertFields(scotland.EventToComplexTypes, fields.EventToComplexTypes!, COMPOUND_KEYS.EventToComplexTypes)
+  upsertFields(scotland.EventToComplexTypes, fields.EventToComplexTypes, COMPOUND_KEYS.EventToComplexTypes)
 
   addToSession({
     AuthorisationCaseField: ewAuthorisationCaseFields,
@@ -312,7 +325,7 @@ function createAuthorisations<T>(mappings: RoleMappings, caseTypeID: string, fn:
     if (!targetPermissions) return undefined
 
     return fn(role, targetPermissions)
-  }).filter(o => o) as T[]
+  }).filter(o => o)
 }
 
 /**
