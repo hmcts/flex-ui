@@ -4,11 +4,11 @@ import 'module-alias/register'
 import { config as envConfig } from 'dotenv'
 import { prompt, Separator, registerPrompt } from 'inquirer'
 import autocomplete from "inquirer-autocomplete-prompt"
-import { Journey } from 'types/types'
 import { readInCurrentConfig } from 'app/et/configs'
 import { ensurePathExists, format, getFiles, getIdealSizeForInquirer } from 'app/helpers'
 import { cleanupEmptySessions, saveSession, session, SESSION_DIR } from 'app/session'
 import { DIST_JOURNEY_DIR } from 'app/constants'
+import { Journey } from 'types/journey'
 
 envConfig()
 registerPrompt('autocomplete', autocomplete)

@@ -1,5 +1,5 @@
 import { destroyEverything } from "app/et/docker"
-import { Journey } from "types/types"
+import { Journey } from "types/journey"
 
 export default {
   group: 'et-docker',

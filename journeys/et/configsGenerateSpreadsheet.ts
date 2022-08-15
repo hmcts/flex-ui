@@ -1,6 +1,6 @@
 import { execCommand } from "app/helpers"
 import { prompt } from "inquirer"
-import { Journey } from "types/types"
+import { Journey } from "types/journey"
 
 const QUESTION_ENV = "WHat environment are we generating for?"
 

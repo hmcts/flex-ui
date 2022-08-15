@@ -1,10 +1,11 @@
 import { readFileSync, rmSync, writeFileSync } from "fs"
 import { readdir } from "fs/promises"
 import { sep } from "path"
-import { addNewScrubbed, addToInMemoryConfig, sheets, upsertNewCaseEvent } from "app/et/configs"
+import { addNewScrubbed, addToInMemoryConfig, upsertNewCaseEvent } from "app/et/configs"
 import { COMPOUND_KEYS } from "app/constants"
-import { upsertFields } from "app/helpers"
-import { Answers, ConfigSheets, Session } from "types/types"
+import { getUniqueByKey, upsertFields } from "app/helpers"
+import { Answers, Session } from "types/types"
+import { ConfigSheets, sheets } from "./types/ccd"
 
 export const SESSION_DIR = 'sessions'
 export const SESSION_EXT = '.session.json'
@@ -44,8 +45,8 @@ export function restorePreviousSession(sessionFileName: string) {
   const json: Session = JSON.parse(read.toString())
 
   for (const sheet of sheets) {
-    //@ts-ignore - TODO: Please fix this - the types should match
-    session.added[sheet] = json.added[sheet] || []
+    // We don't get type safety here - it doesn't recognise that these types are the same
+    session.added[sheet] = json.added[sheet] || [] as any
   }
 
   session.date = json.date
@@ -82,8 +83,8 @@ export async function findPreviousSessions() {
 export function addToSession(fields: Partial<ConfigSheets>) {
   for (const sheet of sheets) {
     if (fields[sheet]?.length) {
-      //@ts-ignore - TODO: Please fix this, not sure why the types don't align here
-      upsertFields(session.added[sheet], fields[sheet], COMPOUND_KEYS[sheet])
+      // We don't get type safey here - there seems to be no way to tell TS that all these types align
+      upsertFields<any>(session.added[sheet], fields[sheet] || [], COMPOUND_KEYS[sheet])
     }
   }
 
@@ -100,13 +101,7 @@ export function getFieldCount() {
  * Gets a record of Fields by Page
  */
 export function getFieldsPerPage(): Record<number, number> {
-  return session.added.CaseEventToFields.reduce((acc: any, obj) => {
-    if (!acc[obj.PageID]) {
-      acc[obj.PageID] = 0
-    }
-    acc[obj.PageID]++
-    return acc
-  }, {})
+  return getUniqueByKey(session.added.CaseEventToFields, 'PageID')
 }
 
 /**
@@ -134,15 +129,7 @@ export function createNewSession(name: string): Session {
     name,
     date: new Date(),
     lastAnswers: {},
-    added: {
-      AuthorisationCaseField: [],
-      CaseEventToFields: [],
-      CaseField: [],
-      Scrubbed: [],
-      CaseEvent: [],
-      AuthorisationCaseEvent: [],
-      EventToComplexTypes: [],
-    }
+    added: sheets.reduce((acc, obj) => { acc[obj] = []; return acc }, {} as ConfigSheets)
   }
 }
 

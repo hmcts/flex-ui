@@ -1,6 +1,6 @@
 import { prompt } from "inquirer"
 import { addToLastAnswers, session } from "app/session"
-import { CaseEventKeys, CaseEventToFieldKeys, CaseFieldKeys, Journey } from "types/types"
+import { CaseEventKeys, CaseEventToFieldKeys, CaseFieldKeys } from "types/ccd"
 import { askBasicFreeEntry, askCaseTypeID, fuzzySearch } from "app/questions"
 import { CUSTOM, DISPLAY_CONTEXT_OPTIONS, FIELD_TYPES_NO_MIN_MAX, FIELD_TYPES_NO_PARAMETER, NONE, Y_OR_N } from "app/constants"
 import { addToInMemoryConfig, getCaseEventIDOpts, getKnownCaseFieldTypeParameters, getKnownCaseFieldTypes, getNextPageFieldIDForPage } from "app/et/configs"
@@ -9,6 +9,7 @@ import { createAuthorisationCaseFields, createNewCaseEventToField, createNewCase
 import { createScrubbed } from "./createScrubbed"
 import { createEvent } from "./createEvent"
 import { format, getIdealSizeForInquirer } from "app/helpers"
+import { Journey } from "types/journey"
 
 export const QUESTION_ID = `What's the ID for this field?`
 const QUESTION_LABEL = 'What text (Label) should this field have?'

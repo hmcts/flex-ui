@@ -1,5 +1,5 @@
 import { prompt } from "inquirer"
-import { Journey } from "types/types"
+import { Journey } from "types/journey"
 import { askCaseTypeID, fuzzySearch, listOrFreeType } from "app/questions"
 import { getConfigSheetsForCaseTypeID, getKnownCaseTypeIDs } from "app/et/configs"
 import { doDuplicateCaseField } from "app/et/duplicateCaseField"

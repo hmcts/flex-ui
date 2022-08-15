@@ -1,6 +1,6 @@
 import { prompt } from "inquirer"
 import { findPreviousSessions, restorePreviousSession } from "app/session"
-import { Journey } from "types/types"
+import { Journey } from "types/journey"
 import { getIdealSizeForInquirer } from "app/helpers"
 
 const QUESTION_PREVIOUS_SESSION = "Select a previous session"

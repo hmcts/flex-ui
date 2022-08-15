@@ -1,4 +1,4 @@
-import { Journey } from "types/types"
+import { Journey } from "types/journey"
 import { saveBackToProject } from "app/et/configs"
 import { generateSpreadsheets } from "./configsGenerateSpreadsheet"
 

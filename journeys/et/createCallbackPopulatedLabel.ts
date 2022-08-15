@@ -1,5 +1,6 @@
 import { prompt } from "inquirer"
-import { CaseEventToFieldKeys, CaseFieldKeys, Journey } from "types/types"
+import { CaseEventToFieldKeys, CaseFieldKeys } from "types/ccd"
+import { Journey } from "types/journey"
 import { askCaseTypeID } from "app/questions"
 import { createAuthorisationCaseFields, createNewCaseEventToField, createNewCaseField, trimCaseEventToField, trimCaseField } from "app/objects"
 import { addToInMemoryConfig } from "app/et/configs"

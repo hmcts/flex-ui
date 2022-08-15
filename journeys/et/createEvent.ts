@@ -1,5 +1,5 @@
 import { prompt } from "inquirer"
-import { Journey } from "types/types"
+import { Journey } from "types/journey"
 import { askCaseTypeID } from "app/questions"
 import { createAuthorisationCaseEvent, createNewCaseEvent } from "app/objects"
 import { addToInMemoryConfig, upsertNewCaseEvent } from "app/et/configs"

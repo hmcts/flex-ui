@@ -1,7 +1,8 @@
 import { YES_OR_NO } from "app/constants"
 import { addNewScrubbed } from "app/et/configs"
 import { prompt } from "inquirer"
-import { Journey, Scrubbed } from "types/types"
+import { Scrubbed } from "types/ccd"
+import { Journey } from "types/journey"
 
 const QUESTION_ID = "What's the name of the new Scrubbed list?"
 const QUESTION_LIST_ELEMENT = `What should be displayed to the user when selecting this option?`

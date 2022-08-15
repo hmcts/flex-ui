@@ -2,9 +2,9 @@ import { prompt } from "inquirer"
 import { CUSTOM } from "app/constants"
 import { session } from "app/session"
 import fuzzy from "fuzzy"
-import { CaseFieldKeys } from "types/types"
+import { CaseFieldKeys } from "types/ccd"
 import { getKnownCaseTypeIDs } from "app/et/configs"
-import { getIdealSizeForInquirer } from "./helpers"
+import { getIdealSizeForInquirer } from "app/helpers"
 
 /**
  * Asks the user for a CaseTypeID. Allows for creation if <custom> is selected.

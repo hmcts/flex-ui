@@ -1,6 +1,6 @@
 import { execCommand } from "app/helpers"
 import { sep } from "path"
-import { Journey } from "types/types"
+import { Journey } from "types/journey"
 
 const IMPORT_SCRIPT = `${process.env.ECM_DOCKER_DIR}/bin/ccd-import-definition.sh`
 

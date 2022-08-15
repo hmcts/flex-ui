@@ -134,8 +134,9 @@ export function getUniqueByKey<T>(arr: T[], key: keyof (T), defaultOption?: stri
   return arr.reduce((acc: Record<string, any>, obj: T) => {
     const accKey = String(obj[key])
     if (!acc[accKey]) {
-      acc[accKey] = true
+      acc[accKey] = 0
     }
+    acc[accKey]++
     return acc
   }, defaultOption ? { [defaultOption]: true } : {})
 }

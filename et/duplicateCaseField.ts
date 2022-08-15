@@ -1,5 +1,5 @@
 import { addToInMemoryConfig, getConfigSheetsForCaseTypeID, upsertNewCaseEvent } from "app/et/configs"
-import { CaseField, ConfigSheets } from "app/types/types"
+import { CaseField, ConfigSheets } from "app/types/ccd"
 
 /**
  * Duplicates a field and all related objects under a different CaseTypeID

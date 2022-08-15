@@ -1,4 +1,5 @@
-import { AuthorisationCaseField, CaseField, Journey } from "types/types"
+import { AuthorisationCaseField, CaseField } from "types/ccd"
+import { Journey } from "types/journey"
 import { askCaseTypeID } from "app/questions"
 import { getConfigSheetsForCaseTypeID } from "app/et/configs"
 import { createAuthorisationCaseFields } from "app/objects"

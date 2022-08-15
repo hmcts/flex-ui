@@ -1,4 +1,5 @@
-import { Answers, AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, EventToComplexType } from 'types/types'
+import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, EventToComplexType } from 'types/ccd'
+import { Answers } from './types/types'
 
 /**
  * Creates a new CaseEvent object using answers provided or defaults

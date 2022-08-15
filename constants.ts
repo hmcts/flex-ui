@@ -1,5 +1,5 @@
 import { sep } from "path"
-import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, EventToComplexType, Scrubbed } from "types/types"
+import { CompoundKeys, CCDTypes } from "types/ccd"
 
 export const DISPLAY_CONTEXT_OPTIONS = ['READONLY', 'OPTIONAL', 'MANDATORY', 'COMPLEX']
 
@@ -35,17 +35,7 @@ export const NONE = '<none>'
 export const CUSTOM = '<custom>'
 export const CANCEL = '<cancel>'
 
-// TODO: Looking for a better name and way to declare this (tried Record<keyof(ConfigSheets), keyof(keyof(ConfigSheets))> but that's not supported).
-// Really want full type safety here as a lot relies on this. The only thing we're missing currently is that the keys must be keyof<ConfigSheets>
-export const COMPOUND_KEYS: {
-  AuthorisationCaseEvent: (keyof (AuthorisationCaseEvent))[],
-  AuthorisationCaseField: (keyof (AuthorisationCaseField))[],
-  CaseEvent: (keyof (CaseEvent))[],
-  CaseEventToFields: (keyof (CaseEventToField))[],
-  CaseField: (keyof (CaseField))[],
-  EventToComplexTypes: (keyof (EventToComplexType))[],
-  Scrubbed: (keyof (Scrubbed))[],
-} = {
+export const COMPOUND_KEYS: CompoundKeys<CCDTypes> = {
   AuthorisationCaseEvent: ['CaseEventID', 'CaseTypeId', 'UserRole'],
   AuthorisationCaseField: ['CaseFieldID', 'CaseTypeId', 'UserRole'],
   CaseEvent: ['ID', 'CaseTypeID'],

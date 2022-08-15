@@ -1,9 +1,11 @@
 import { prompt, Separator } from "inquirer"
 import { createNewSession, getFieldCount, getFieldsPerPage, getPageCount, saveSession, session } from "app/session"
-import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, ConfigSheets, Journey, Scrubbed, Session } from "types/types"
+import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, ConfigSheets, Scrubbed } from "types/ccd"
 import { getObjectsReferencedByCaseFields } from "app/et/duplicateCaseField"
 import { format, upsertFields } from "app/helpers"
 import { COMPOUND_KEYS } from "app/constants"
+import { Session } from "types/types"
+import { Journey } from "types/journey"
 
 const QUESTION_PAGE_ID = `Export fields from what page?`
 const QUESTION_PAGE_ID_START = 'Starting from (including) what page ID?'
@@ -63,7 +65,7 @@ async function splitPageByPage(fieldCountByPage: Record<number, number>) {
     const fieldCountOnPage = fieldCountByPage[i]
 
     const answers = await prompt([
-      { name: 'sessionName', message:format(QUESTION_NAME_BY_PAGE, i, fieldCountOnPage), type: 'input' },
+      { name: 'sessionName', message: format(QUESTION_NAME_BY_PAGE, i, fieldCountOnPage), type: 'input' },
     ])
 
     createSessionFromPage(i, answers.sessionName)

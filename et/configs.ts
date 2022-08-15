@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync } from "fs"
 import { sep } from "path"
 import { findLastIndex, format, getUniqueByKey, getUniqueByKeyAsArray, upsertFields } from "app/helpers"
 import { addToSession } from "app/session"
-import { CaseEvent, ConfigSheets, Scrubbed } from "types/types"
+import { CaseEvent, ConfigSheets, Scrubbed, sheets } from "types/ccd"
 import { COMPOUND_KEYS } from "app/constants"
 
 let readTime: number = 0
@@ -13,16 +13,6 @@ enum Region {
   EnglandWales = "EnglandWales",
   Scotland = "Scotland"
 }
-
-export const sheets: (keyof (ConfigSheets))[] = [
-  'AuthorisationCaseEvent',
-  'AuthorisationCaseField',
-  'CaseEvent',
-  'CaseEventToFields',
-  'CaseField',
-  'EventToComplexTypes',
-  'Scrubbed'
-]
 
 /**
  * Gets the parsed JSON file contents
