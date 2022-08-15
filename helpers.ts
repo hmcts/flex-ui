@@ -1,5 +1,5 @@
 import { ChildProcess, exec, ExecException } from "child_process"
-import { existsSync, mkdirSync } from "fs"
+import { Dirent, existsSync, mkdirSync } from "fs"
 import { readdir } from "fs/promises"
 import { resolve } from "path"
 
@@ -22,9 +22,9 @@ export function ensurePathExists(dir: string) {
 /**
  * Recursively reads files in a directory. Returns as an array of files relative to the start dir
  */
-export async function getFiles(dir: string) {
+export async function getFiles(dir: string): Promise<string[]> {
   const dirents = await readdir(dir, { withFileTypes: true })
-  const files: any[] = await Promise.all(dirents.map((dirent: any) => {
+  const files: unknown[] = await Promise.all(dirents.map((dirent: Dirent) => {
     const res = resolve(dir, dirent.name)
     return dirent.isDirectory() ? getFiles(res) : res
   }))
@@ -115,7 +115,7 @@ export function format(template: string, ...args: (string | number)[]) {
  * TODO: Work around the "debugger attached" messages that vscode spits out when debugging
  * @returns an object with stdout, stderr and the exit code
  */
-export function execCommand(command: string, cwd?: string, rejectOnNonZeroExitCode = true) {
+export function execCommand(command: string, cwd?: string, rejectOnNonZeroExitCode = true): Promise<{ err: ExecException | null, stdout: string, stderr: string, code: number }> {
   return new Promise((resolve, reject) => {
     const child: ChildProcess = exec(command, { cwd }, (err, stdout, stderr) => {
       const out = { err, stdout, stderr, code: child.exitCode || 0 }
@@ -130,22 +130,22 @@ export function execCommand(command: string, cwd?: string, rejectOnNonZeroExitCo
 /**
  * Gets a record of unique items in an array given an array of keys to match
  */
-export function getUniqueByKey<T>(arr: T[], key: keyof (T), defaultOption?: string) {
-  return arr.reduce((acc: Record<string, any>, obj: T) => {
+export function getUniqueByKey<T>(arr: T[], key: keyof (T)) {
+  return arr.reduce((acc: Record<string, number>, obj: T) => {
     const accKey = String(obj[key])
     if (!acc[accKey]) {
       acc[accKey] = 0
     }
     acc[accKey]++
     return acc
-  }, defaultOption ? { [defaultOption]: true } : {})
+  }, {} as Record<string, number>)
 }
 
 /**
  * Calls getUniqueByKey but returns as an array instead of an object
  */
-export function getUniqueByKeyAsArray<T>(arr: T[], key: keyof (T), defaultOption?: string) {
-  return Object.keys(getUniqueByKey(arr, key, defaultOption))
+export function getUniqueByKeyAsArray<T>(arr: T[], key: keyof (T)) {
+  return Object.keys(getUniqueByKey(arr, key))
 }
 
 /** Clears the current terminal line and writes a new message with no ending newline */

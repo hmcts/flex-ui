@@ -6,5 +6,5 @@ export type Journey = {
   /** A function used to check if the select journey text matches this journey (optional) */
   matchText?: (text: string) => boolean
   /** The main function to call to kick off the journey */
-  fn?: () => Promise<any>
+  fn?: () => Promise<unknown>
 }

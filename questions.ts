@@ -6,7 +6,7 @@ import { AllCCDKeys, CaseFieldKeys } from "types/ccd"
 import { getKnownCaseTypeIDs } from "app/et/configs"
 import { getIdealSizeForInquirer } from "app/helpers"
 
-export type Answers = AllCCDKeys & Record<string, any> 
+export type Answers = AllCCDKeys & Record<string, unknown> 
 
 /**
  * Asks the user for a CaseTypeID. Allows for creation if <custom> is selected.
@@ -40,7 +40,7 @@ export async function askCaseTypeID(answers: Answers = {}) {
  * Asks for generic input selecting from a list
  * @returns extended answers object as passed in
  */
-async function list(answers: Answers = {}, name: string, message: string, choices: string[], defaultValue?: any) {
+async function list(answers: Answers = {}, name: string, message: string, choices: string[], defaultValue?: unknown) {
   return prompt([{ name, message, type: 'list', choices, default: defaultValue, pageSize: getIdealSizeForInquirer() }], answers)
 }
 
@@ -48,7 +48,7 @@ async function list(answers: Answers = {}, name: string, message: string, choice
  * Asks for generic input select from a list AND allowing free typing
  * @returns extended answers object as passed in
  */
-export async function listOrFreeType(answers: Answers = {}, name: string, message: string, choices: string[], defaultValue?: any) {
+export async function listOrFreeType(answers: Answers = {}, name: string, message: string, choices: string[], defaultValue?: unknown) {
   answers = await list(answers, name, message, [CUSTOM, ...choices], defaultValue)
 
   if (answers[name] !== CUSTOM) {
@@ -65,7 +65,7 @@ export async function listOrFreeType(answers: Answers = {}, name: string, messag
  * Asks for basic text entry given a question
  * @returns extended answers object as passed in
  */
-export async function askBasicFreeEntry(answers: Answers = {}, name: string, message?: string, defaultValue?: any) {
+export async function askBasicFreeEntry(answers: Answers = {}, name: string, message?: string, defaultValue?: unknown) {
   return prompt([{ name, message: message || `What's the ${name}?`, default: defaultValue || session.lastAnswers[name] }], answers || {})
 }
 

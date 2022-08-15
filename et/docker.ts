@@ -1,5 +1,5 @@
 import { clearCurrentLine, execCommand, temporaryLog } from "app/helpers"
-import { exec } from "child_process"
+import { exec, ExecException } from "child_process"
 
 /**
  * Commands for ensuring all docker containers are spun up
@@ -58,8 +58,8 @@ function initEcm() {
   temporaryLog("Running init-ecm.sh")
   const promise = () => {
     return new Promise(resolve => {
-      exec("./bin/ecm/init-ecm.sh", { cwd: process.env.ECM_DOCKER_DIR }, (error: any) => {
-        if (error.message.indexOf("Empty reply from server") > -1) {
+      exec("./bin/ecm/init-ecm.sh", { cwd: process.env.ECM_DOCKER_DIR }, (error?: ExecException) => {
+        if (error?.message?.indexOf("Empty reply from server") > -1) {
           temporaryLog(`init-ecm.sh failed with empty reply, waiting for 30s and trying again\r`)
           return setTimeout(() => promise().then(() => resolve('')).catch(() => undefined), 1000 * 30)
         }
@@ -149,7 +149,7 @@ function ccdComposePull() {
       temporaryLog(`pulling images... ${Object.values(progress).filter(o => o !== "done").length} left`)
     }, 10000)
 
-    const cleanupAndExit = (fn: () => any) => {
+    const cleanupAndExit = (fn: () => void) => {
       clearInterval(checkProgress)
       fn()
     }
