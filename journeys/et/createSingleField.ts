@@ -2,7 +2,7 @@ import { prompt } from "inquirer"
 import { addToLastAnswers, session } from "app/session"
 import { CaseEventKeys, CaseEventToFieldKeys, CaseFieldKeys } from "types/ccd"
 import { Answers, askBasicFreeEntry, askCaseTypeID, fuzzySearch } from "app/questions"
-import { CUSTOM, DISPLAY_CONTEXT_OPTIONS, FIELD_TYPES_NO_MIN_MAX, FIELD_TYPES_NO_PARAMETER, NONE, Y_OR_N } from "app/constants"
+import { CUSTOM, DISPLAY_CONTEXT_OPTIONS, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, NONE, Y_OR_N } from "app/constants"
 import { addToInMemoryConfig, createCaseFieldAuthorisations, getCaseEventIDOpts, getKnownCaseFieldTypeParameters, getKnownCaseFieldTypes, getNextPageFieldIDForPage } from "app/et/configs"
 import { addOnDuplicateQuestion } from "./manageDuplicateField"
 import { createNewCaseEventToField, createNewCaseField, trimCaseEventToField, trimCaseField } from "app/ccd"
@@ -38,7 +38,7 @@ export async function createSingleField(answers: Answers = {}) {
 
   answers = await askFieldType(answers)
 
-  if (!FIELD_TYPES_NO_PARAMETER.includes(answers[CaseFieldKeys.FieldType])) {
+  if (!isFieldTypeInExclusionList(answers[CaseFieldKeys.FieldType], FIELD_TYPES_EXCLUDE_PARAMETER)) {
     answers = await askFieldTypeParameter(answers)
   }
 
@@ -54,7 +54,7 @@ export async function createSingleField(answers: Answers = {}) {
     answers = await askForRegularExpression(answers)
   }
 
-  if (!FIELD_TYPES_NO_MIN_MAX.includes(answers[CaseFieldKeys.FieldType])) {
+  if (!isFieldTypeInExclusionList(answers[CaseFieldKeys.FieldType], FIELD_TYPES_EXCLUDE_MIN_MAX)) {
     answers = await askMinAndMax(answers)
   }
 
@@ -74,6 +74,13 @@ export async function createSingleField(answers: Answers = {}) {
   await addOnDuplicateQuestion(answers as { CaseTypeID: string, ID: string })
 
   return answers.ID
+}
+
+/**
+ * Checks if a given field type is in the exclusion list provided
+ */
+function isFieldTypeInExclusionList(fieldType: string, exclusionList: string[]) {
+  return exclusionList.includes(fieldType)
 }
 
 export function getDefaultForPageFieldDisplayOrder(answers: Answers = {}) {

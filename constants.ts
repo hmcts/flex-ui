@@ -12,7 +12,7 @@ export const NO_DUPLICATE = 'Don\'t duplicate'
 export const JOURNEY_DIR = 'journeys'
 export const DIST_JOURNEY_DIR = `dist${sep}${JOURNEY_DIR}`
 
-export const FIELD_TYPES_NO_PARAMETER = [
+export const FIELD_TYPES_EXCLUDE_PARAMETER = [
   'Text',
   'Label',
   'YesOrNo',
@@ -21,7 +21,7 @@ export const FIELD_TYPES_NO_PARAMETER = [
   'Number'
 ]
 
-export const FIELD_TYPES_NO_MIN_MAX = [
+export const FIELD_TYPES_EXCLUDE_MIN_MAX = [
   'Label',
   'YesOrNo',
   'FixedRadioList',
