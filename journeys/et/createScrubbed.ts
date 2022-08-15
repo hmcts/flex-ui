@@ -17,12 +17,13 @@ export async function createScrubbed(answers: Answers = {}) {
   let createdItems: Scrubbed[] = []
 
   let x = 0
-  do {
+  while (answers.More !== "No") {
+    
     answers = await prompt([
-      { name: 'ListElement', message: QUESTION_LIST_ELEMENT },
-      { name: 'ListElementCode', message: QUESTION_LIST_ELEMENT_CODE, default: (answers: Answers) => answers.ListElement },
-      { name: 'DisplayOrder', message: QUESTION_DISPLAY_ORDER, default: ++x },
-      { name: 'More', message: QUESTION_ADD_ANOTHER, type: 'list', choices: YES_OR_NO }
+      { name: 'ListElement', message: QUESTION_LIST_ELEMENT, askAnswered: true },
+      { name: 'ListElementCode', message: QUESTION_LIST_ELEMENT_CODE, default: (answers: Answers) => answers.ListElement, askAnswered: true },
+      { name: 'DisplayOrder', message: QUESTION_DISPLAY_ORDER, default: ++x, askAnswered: true },
+      { name: 'More', message: QUESTION_ADD_ANOTHER, type: 'list', choices: YES_OR_NO, askAnswered: true },
     ], answers)
 
     if (!answers.ListElementCode) {
@@ -39,11 +40,7 @@ export async function createScrubbed(answers: Answers = {}) {
       ListElementCode: answers.ListElementCode,
       DisplayOrder: answers.DisplayOrder
     })
-
-    if (answers.More === "No") {
-      break
-    }
-  } while (true)
+  }
 
   addNewScrubbed(createdItems)
 
