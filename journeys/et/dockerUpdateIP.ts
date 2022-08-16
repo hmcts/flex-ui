@@ -1,5 +1,5 @@
 import { Journey } from "types/journey"
-import { writeFileSync } from "fs"
+import { readFileSync, writeFileSync } from "fs"
 import { sep } from "path"
 import { execCommand } from "app/helpers"
 
@@ -11,7 +11,7 @@ async function updateIP() {
 
 function updateRegion(regionDir: string, ip: string) {
   const packageJsonPath = `${regionDir}${sep}package.json`
-  const packageJson = require(packageJsonPath)
+  const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'))
   packageJson.config.local.et_cos = `http://${ip}:8081`
   writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2))
 }
