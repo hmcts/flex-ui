@@ -133,13 +133,13 @@ async function createCaseInit(cookieJar: Record<string, string>) {
 
 async function createCasePages(eventToken: string, cookieJar: Record<string, string>) {
   const jsons: Record<string, any> = {
-    "initiateCase1": require('./resources/initiateCase1.json'),
-    "initiateCase2": require('./resources/initiateCase2.json'),
-    "initiateCase3": require('./resources/initiateCase3.json'),
-    "initiateCase4": require('./resources/initiateCase4.json'),
-    "initiateCase7": require('./resources/initiateCase7.json'),
-    "initiateCase8": require('./resources/initiateCase8.json'),
-    "initiateCase9": require('./resources/initiateCase9.json')
+    "initiateCase1": require('../resources/initiateCase1.json'),
+    "initiateCase2": require('../resources/initiateCase2.json'),
+    "initiateCase3": require('../resources/initiateCase3.json'),
+    "initiateCase4": require('../resources/initiateCase4.json'),
+    "initiateCase7": require('../resources/initiateCase7.json'),
+    "initiateCase8": require('../resources/initiateCase8.json'),
+    "initiateCase9": require('../resources/initiateCase9.json')
   }
 
   for (const name in jsons) {
@@ -155,7 +155,7 @@ async function createCasePages(eventToken: string, cookieJar: Record<string, str
     console.log(`${name} status: ${res.status}`)
   }
 
-  const finalCaseData = { ...require('./resources/initiateCaseFinal.json'), event_token: eventToken }
+  const finalCaseData = { ...require('../resources/initiateCaseFinal.json'), event_token: eventToken }
   await postCase(finalCaseData, cookieJar)
 }
 
