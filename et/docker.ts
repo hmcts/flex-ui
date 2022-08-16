@@ -1,4 +1,4 @@
-import { clearCurrentLine, execCommand, temporaryLog } from "app/helpers"
+import { clearCurrentLine, execCommand, exportEnvsFromEnv, temporaryLog } from "app/helpers"
 import { exec, ExecException } from "child_process"
 
 /**
@@ -162,7 +162,7 @@ function ccdComposePull() {
 
     temporaryLog(`Running ${command}`)
 
-    const child = exec(command, { cwd: process.env.ECM_DOCKER_DIR }, (err => {
+    const child = exec(command, { cwd: process.env.ECM_DOCKER_DIR, env: { ...process.env, ...exportEnvsFromEnv() } }, ((err, stdout, stderr) => {
       if (err) {
         return cleanupAndExit(() => reject(err))
       }

@@ -1,6 +1,7 @@
 import { ChildProcess, exec, ExecException } from "child_process"
-import { Dirent, existsSync, mkdirSync } from "fs"
+import { Dirent, existsSync, mkdirSync, readFileSync } from "fs"
 import { readdir } from "fs/promises"
+import { EOL } from "os"
 import { resolve } from "path"
 
 /**
@@ -110,6 +111,19 @@ export function format(template: string, ...args: (string | number)[]) {
   return template
 }
 
+export function exportEnvsFromEnv(): Record<string, string> {
+  //return {}
+  return readFileSync('.env', 'utf-8')
+    .split(EOL)
+    .filter(o => o)
+    .reduce((acc, obj) => {
+      const regex = /(.+?)="(.+)"/.exec(obj)
+      if (!regex) return acc
+      acc[regex[1]] = regex[2]
+      return acc
+    }, {})
+}
+
 /**
  * Executes a command in a child process. Waits until the child has exited
  * TODO: Work around the "debugger attached" messages that vscode spits out when debugging
@@ -117,7 +131,8 @@ export function format(template: string, ...args: (string | number)[]) {
  */
 export function execCommand(command: string, cwd?: string, rejectOnNonZeroExitCode = true): Promise<{ err: ExecException | null, stdout: string, stderr: string, code: number }> {
   return new Promise((resolve, reject) => {
-    const child: ChildProcess = exec(command, { cwd }, (err, stdout, stderr) => {
+    const env = exportEnvsFromEnv()
+    const child: ChildProcess = exec(command, { cwd, env: {...process.env, ...env} }, (err, stdout, stderr) => {
       const out = { err, stdout, stderr, code: child.exitCode || 0 }
       if (rejectOnNonZeroExitCode && child.exitCode && child.exitCode > 0) {
         return reject(out)
