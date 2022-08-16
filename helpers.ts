@@ -2,7 +2,7 @@ import { ChildProcess, exec, ExecException } from "child_process"
 import { Dirent, existsSync, mkdirSync, readFileSync } from "fs"
 import { readdir } from "fs/promises"
 import { EOL } from "os"
-import { resolve } from "path"
+import { resolve, sep } from "path"
 
 /**
  * Ensures a path exists by creating its parent directories and then itself
@@ -111,12 +111,21 @@ export function format(template: string, ...args: (string | number)[]) {
   return template
 }
 
+/**
+ * Read environment variables from the ecm-ccd-docker/compose/.env and bin/env_variables_all.txt
+ */
 export function getEnvVarsfromFile(): Record<string, string> {
-  return readFileSync('.env', 'utf-8')
+  const dotEnv = `${process.env.ECM_DOCKER_DIR}${sep}compose${sep}.env`
+  const envAll = `${process.env.ECM_DOCKER_DIR}${sep}bin${sep}env_variables_all.txt`
+
+  const dotEnvContents = readFileSync(dotEnv, 'utf-8')
+  const envAllContents = readFileSync(envAll, 'utf-8')
+
+  return `${dotEnvContents}${EOL}${envAllContents}`
     .split(EOL)
     .filter(o => o)
     .reduce((acc, obj) => {
-      const regex = /(.+?)="(.+)"/.exec(obj)
+      const regex = /(.+?)=(.+)/.exec(obj)
       if (!regex) return acc
       acc[regex[1]] = regex[2]
       return acc
@@ -130,7 +139,7 @@ export function getEnvVarsfromFile(): Record<string, string> {
 export function execCommand(command: string, cwd?: string, rejectOnNonZeroExitCode = true): Promise<{ err: ExecException | null, stdout: string, stderr: string, code: number }> {
   return new Promise((resolve, reject) => {
     const env = getEnvVarsfromFile()
-    const child: ChildProcess = exec(command, { cwd, env: {...process.env, ...env} }, (err, stdout, stderr) => {
+    const child: ChildProcess = exec(command, { cwd, env: { ...process.env, ...env } }, (err, stdout, stderr) => {
       const out = { err, stdout, stderr, code: child.exitCode || 0 }
       if (rejectOnNonZeroExitCode && child.exitCode && child.exitCode > 0) {
         return reject(out)
