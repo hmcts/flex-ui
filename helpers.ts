@@ -111,8 +111,7 @@ export function format(template: string, ...args: (string | number)[]) {
   return template
 }
 
-export function exportEnvsFromEnv(): Record<string, string> {
-  //return {}
+export function getEnvVarsfromFile(): Record<string, string> {
   return readFileSync('.env', 'utf-8')
     .split(EOL)
     .filter(o => o)
@@ -126,12 +125,11 @@ export function exportEnvsFromEnv(): Record<string, string> {
 
 /**
  * Executes a command in a child process. Waits until the child has exited
- * TODO: Work around the "debugger attached" messages that vscode spits out when debugging
  * @returns an object with stdout, stderr and the exit code
  */
 export function execCommand(command: string, cwd?: string, rejectOnNonZeroExitCode = true): Promise<{ err: ExecException | null, stdout: string, stderr: string, code: number }> {
   return new Promise((resolve, reject) => {
-    const env = exportEnvsFromEnv()
+    const env = getEnvVarsfromFile()
     const child: ChildProcess = exec(command, { cwd, env: {...process.env, ...env} }, (err, stdout, stderr) => {
       const out = { err, stdout, stderr, code: child.exitCode || 0 }
       if (rejectOnNonZeroExitCode && child.exitCode && child.exitCode > 0) {
