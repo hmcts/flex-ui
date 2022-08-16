@@ -114,7 +114,7 @@ export function format(template: string, ...args: (string | number)[]) {
 /**
  * Read environment variables from the ecm-ccd-docker/compose/.env and bin/env_variables_all.txt
  */
-export function getEnvVarsfromFile(): Record<string, string> {
+export function getEnvVarsFromFile(): Record<string, string> {
   const dotEnv = `${process.env.ECM_DOCKER_DIR}${sep}compose${sep}.env`
   const envAll = `${process.env.ECM_DOCKER_DIR}${sep}bin${sep}env_variables_all.txt`
 
@@ -138,7 +138,7 @@ export function getEnvVarsfromFile(): Record<string, string> {
  */
 export function execCommand(command: string, cwd?: string, rejectOnNonZeroExitCode = true): Promise<{ err: ExecException | null, stdout: string, stderr: string, code: number }> {
   return new Promise((resolve, reject) => {
-    const env = getEnvVarsfromFile()
+    const env = getEnvVarsFromFile()
     const child: ChildProcess = exec(command, { cwd, env: { ...process.env, ...env } }, (err, stdout, stderr) => {
       const out = { err, stdout, stderr, code: child.exitCode || 0 }
       if (rejectOnNonZeroExitCode && child.exitCode && child.exitCode > 0) {
