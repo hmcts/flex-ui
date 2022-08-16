@@ -1,4 +1,4 @@
-import { clearCurrentLine, execCommand, temporaryLog } from "app/helpers"
+import { clearCurrentLine, execCommand, getEnvVarsFromFile, temporaryLog } from "app/helpers"
 import { exec, ExecException } from "child_process"
 
 /**
@@ -36,9 +36,12 @@ async function ccdLogin() {
 /**
  * Runs ccd init in the ecm-ccd-docker repo
  */
-function ccdInit() {
+async function ccdInit() {
   temporaryLog('Running ./ccd init')
-  return execCommand('./ccd init', process.env.ECM_DOCKER_DIR)
+  const { stderr, code } = await execCommand('./ccd init', process.env.ECM_DOCKER_DIR, false)
+  if (stderr && !stderr.includes("network with name ccd-network already exists")) {
+    throw new Error(`./ccd init failed with exit code ${code}:  ${stderr}`)
+  }
 }
 
 /**
@@ -74,9 +77,12 @@ function initEcm() {
 /**
  * Runs init-db.sh in the et-ccd-callbacks repo
  */
-function initDb() {
+async function initDb() {
   temporaryLog('Running init-db.sh')
-  return execCommand('./bin/init-db.sh', process.env.ET_CCD_CALLBACKS_DIR)
+  const { stderr, code } = await execCommand('./bin/init-db.sh', process.env.ET_CCD_CALLBACKS_DIR, false)
+  if (stderr && !stderr.includes("already exists")) {
+    throw new Error(`./init-db.sh failed with exit code ${code}: ${stderr}`)
+  }
 }
 
 /**
@@ -156,7 +162,7 @@ function ccdComposePull() {
 
     temporaryLog(`Running ${command}`)
 
-    const child = exec(command, { cwd: process.env.ECM_DOCKER_DIR }, (err => {
+    const child = exec(command, { cwd: process.env.ECM_DOCKER_DIR, env: { ...process.env, ...getEnvVarsFromFile() } }, (err => {
       if (err) {
         return cleanupAndExit(() => reject(err))
       }
