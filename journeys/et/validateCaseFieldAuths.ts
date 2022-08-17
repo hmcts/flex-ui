@@ -1,11 +1,11 @@
-import { AuthorisationCaseField, CaseField } from "types/ccd"
-import { Journey } from "types/journey"
-import { askCaseTypeID } from "app/questions"
-import { getConfigSheetsForCaseTypeID, createCaseFieldAuthorisations } from "app/et/configs"
-import { findMissing, matcher } from "app/helpers"
-import { COMPOUND_KEYS } from "app/constants"
-import { writeFileSync } from "fs"
-import { resolve } from "path"
+import { AuthorisationCaseField, CaseField } from 'types/ccd'
+import { Journey } from 'types/journey'
+import { askCaseTypeID } from 'app/questions'
+import { getConfigSheetsForCaseTypeID, createCaseFieldAuthorisations } from 'app/et/configs'
+import { findMissing, matcher } from 'app/helpers'
+import { COMPOUND_KEYS } from 'app/constants'
+import { writeFileSync } from 'fs'
+import { resolve } from 'path'
 
 /**
  * Checks over every CaseField for missing or unexpected authorisations.
@@ -27,7 +27,6 @@ async function validateCaseFieldAuths() {
       acc[trimmedKey].push(obj)
       return acc
     }, {})
-
 
   const report = caseFieldsForType.map(o => checkFieldForAuths(o, authsByCaseField[o.ID.trim()] || []))
     .sort((a, b) => a.fieldID > b.fieldID ? 1 : -1)
@@ -61,6 +60,7 @@ function checkFieldForAuths(field: CaseField, existingAuths: AuthorisationCaseFi
   const differentAuths = existingAuths.map(o => {
     const found = generatedAuths.find(x => matcher(o, x, COMPOUND_KEYS.AuthorisationCaseField))
     if (found && found.CRUD !== o.CRUD) return { ...o, currentCRUD: o.CRUD, suggestedCRUD: found.CRUD }
+    return undefined
   }).filter(o => o)
 
   return { fieldID: field.ID, extraAuths, missingAuths, differentAuths }

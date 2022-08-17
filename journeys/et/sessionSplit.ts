@@ -1,29 +1,29 @@
-import { prompt, Separator } from "inquirer"
-import { createNewSession, getFieldCount, getFieldsPerPage, getPageCount, saveSession, session, Session } from "app/session"
-import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, ConfigSheets, Scrubbed } from "types/ccd"
-import { getObjectsReferencedByCaseFields } from "app/et/duplicateCaseField"
-import { format, upsertFields } from "app/helpers"
-import { COMPOUND_KEYS } from "app/constants"
-import { Journey } from "types/journey"
+import { prompt, Separator } from 'inquirer'
+import { createNewSession, getFieldCount, getFieldsPerPage, getPageCount, saveSession, session, Session } from 'app/session'
+import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, ConfigSheets, Scrubbed } from 'types/ccd'
+import { getObjectsReferencedByCaseFields } from 'app/et/duplicateCaseField'
+import { format, upsertFields } from 'app/helpers'
+import { COMPOUND_KEYS } from 'app/constants'
+import { Journey } from 'types/journey'
 
-const QUESTION_PAGE_ID = `Export fields from what page?`
+const QUESTION_PAGE_ID = 'Export fields from what page?'
 const QUESTION_PAGE_ID_START = 'Starting from (including) what page ID?'
-const QUESTION_PAGE_ID_END = `Up to (including) what page ID?`
+const QUESTION_PAGE_ID_END = 'Up to (including) what page ID?'
 const QUESTION_NAME = "What's the name of the session to export {0} fields to?"
-const QUESTION_NAME_BY_PAGE = `What's the name of the session to export page {0} ({1} fields) to?`
+const QUESTION_NAME_BY_PAGE = 'What\'s the name of the session to export page {0} ({1} fields) to?'
 const QUESTION_NAME_NO_COUNT = 'Whats the name for this session file?'
 
 /**
  * Asks how the current session file should be split
  */
 async function splitSession() {
-  const ALL = "ALL"
-  const RANGE = "RANGE"
+  const ALL = 'ALL'
+  const RANGE = 'RANGE'
 
   const validPages = getFieldsPerPage()
   const largestNumberLength = Object.keys(validPages).reduce((acc: number, obj) => Math.max(acc, obj.length), 0)
 
-  //TODO: Potentially bring page any custom page names for these pages to make identifying them easier
+  // TODO: Potentially bring page any custom page names for these pages to make identifying them easier
   const pageChoices = Object.keys(validPages).map(o => {
     return {
       name: o.padStart(largestNumberLength, '0'),
@@ -33,22 +33,22 @@ async function splitSession() {
 
   const answers = await prompt(
     [
-      { name: 'PageID', message: QUESTION_PAGE_ID, type: 'list', choices: [...pageChoices, new Separator(), RANGE, ALL, new Separator()] },
+      { name: 'PageID', message: QUESTION_PAGE_ID, type: 'list', choices: [...pageChoices, new Separator(), RANGE, ALL, new Separator()] }
     ]
   )
 
   if (answers.PageID === ALL) {
-    return splitPageByPage(validPages)
+    return await splitPageByPage(validPages)
   }
 
   if (answers.PageID === RANGE) {
-    return splitRangePage(pageChoices)
+    return await splitRangePage(pageChoices)
   }
 
   const fieldCountOnPage = validPages[answers.PageID]
 
   const followup = await prompt([
-    { name: 'sessionName', message: format(QUESTION_NAME, fieldCountOnPage), type: 'input' },
+    { name: 'sessionName', message: format(QUESTION_NAME, fieldCountOnPage), type: 'input' }
   ])
 
   createSessionFromPage(answers.PageID, followup.sessionName)
@@ -64,7 +64,7 @@ async function splitPageByPage(fieldCountByPage: Record<number, number>) {
     const fieldCountOnPage = fieldCountByPage[i]
 
     const answers = await prompt([
-      { name: 'sessionName', message: format(QUESTION_NAME_BY_PAGE, i, fieldCountOnPage), type: 'input' },
+      { name: 'sessionName', message: format(QUESTION_NAME_BY_PAGE, i, fieldCountOnPage), type: 'input' }
     ])
 
     createSessionFromPage(i, answers.sessionName)
@@ -74,12 +74,12 @@ async function splitPageByPage(fieldCountByPage: Record<number, number>) {
 /**
  * Flow for splitting a range of pages into one session file
  */
-async function splitRangePage(pageChoices: { name: string; value: number; }[]) {
+async function splitRangePage(pageChoices: Array<{ name: string, value: number }>) {
   let answers = await prompt([
-    { name: 'startPage', message: QUESTION_PAGE_ID_START, type: 'list', choices: pageChoices },
+    { name: 'startPage', message: QUESTION_PAGE_ID_START, type: 'list', choices: pageChoices }
   ])
 
-  const lastPageChoice = pageChoices.filter(o => o.value > Number(answers.startPage)).sort()
+  const lastPageChoice = pageChoices.filter(o => o.value > Number(answers.startPage)).sort((a, b) => Number(a) > Number(b) ? 1 : -1)
 
   answers = await prompt([
     { name: 'lastPage', message: QUESTION_PAGE_ID_END, type: 'list', choices: [...lastPageChoice, new Separator()] },

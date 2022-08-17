@@ -1,16 +1,16 @@
-import { prompt } from "inquirer"
-import { findPreviousSessions, restorePreviousSession } from "app/session"
-import { Journey } from "types/journey"
-import { getIdealSizeForInquirer } from "app/helpers"
-import { loadCurrentSessionIntoMemory } from "app/et/configs"
+import { prompt } from 'inquirer'
+import { findPreviousSessions, restorePreviousSession } from 'app/session'
+import { Journey } from 'types/journey'
+import { getIdealSizeForInquirer } from 'app/helpers'
+import { loadCurrentSessionIntoMemory } from 'app/et/configs'
 
-const QUESTION_PREVIOUS_SESSION = "Select a previous session"
+const QUESTION_PREVIOUS_SESSION = 'Select a previous session'
 
 async function restoreSession() {
   const prevSessions = await findPreviousSessions()
 
   if (!prevSessions.length) {
-    console.warn(`There are no previous sessions found`)
+    console.warn('There are no previous sessions found')
     return
   }
 

@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "tsc && node dist/index.js",
-    "test": "tsc && mocha -r ts-node/register *.spec.ts"
+    "start": "tsc --build --clean && tsc && node dist/index.js",
+    "test": "tsc && mocha -r ts-node/register *.spec.ts",
+    "prepare": "husky install"
   },
   "author": "",
   "license": "ISC",
@@ -20,7 +21,12 @@
     "@types/mocha": "^9.1.1",
     "@types/node": "^18.0.0",
     "@types/node-fetch": "^2.6.2",
+    "@typescript-eslint/eslint-plugin": "^5.33.1",
+    "@typescript-eslint/parser": "^5.33.1",
     "chai": "^4.3.6",
+    "eslint": "^8.22.0",
+    "eslint-config-standard-with-typescript": "^22.0.0",
+    "husky": "^8.0.1",
     "mocha": "^10.0.0",
     "ts-node": "^10.8.1",
     "typescript": "^4.7.4"

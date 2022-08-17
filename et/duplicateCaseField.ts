@@ -1,5 +1,5 @@
-import { addToInMemoryConfig, getConfigSheetsForCaseTypeID, upsertNewCaseEvent } from "app/et/configs"
-import { CaseField, ConfigSheets, createNewConfigSheets } from "app/types/ccd"
+import { addToInMemoryConfig, getConfigSheetsForCaseTypeID, upsertNewCaseEvent } from 'app/et/configs'
+import { CaseField, ConfigSheets, createNewConfigSheets } from 'app/types/ccd'
 
 /**
  * Duplicates a field and all related objects under a different CaseTypeID
@@ -16,7 +16,7 @@ export function doDuplicateCaseField(fromCaseTypeID: string, caseFieldID: string
     AuthorisationCaseField: referenced.AuthorisationCaseField.map(o => duplicateAuthorisationInCaseType(toCaseTypeID, o)),
     CaseEvent: referenced.CaseEvent.map(o => duplicateInCaseType(toCaseTypeID, o)),
     CaseEventToFields: referenced.CaseEventToFields.map(o => duplicateInCaseType(toCaseTypeID, o)),
-    CaseField: referenced.CaseField.map(o => duplicateInCaseType(toCaseTypeID, o)),
+    CaseField: referenced.CaseField.map(o => duplicateInCaseType(toCaseTypeID, o))
   })
 }
 
@@ -24,11 +24,11 @@ export function doDuplicateCaseField(fromCaseTypeID: string, caseFieldID: string
  * Changes englandwales to scotland and vice versa
  */
 function swapRegions(input: string) {
-  if (input.endsWith("englandwales")) {
-    return input.replace("englandwales", "scotland")
+  if (input.endsWith('englandwales')) {
+    return input.replace('englandwales', 'scotland')
   }
-  if (input.endsWith("scotland")) {
-    return input.replace("scotland", "englandwales")
+  if (input.endsWith('scotland')) {
+    return input.replace('scotland', 'englandwales')
   }
   return input
 }
@@ -62,7 +62,7 @@ function isFieldReferencedInField(caseField: CaseField, caseFieldID: string) {
 /**
  * Gets ALL objects needed to support a specific CaseField (checks all supported JSONs)
  */
-function getObjectsReferencedByCaseField(caseTypeID: string, caseFieldID: string) {
+function getObjectsReferencedByCaseField(caseTypeID: string, caseFieldID: string): ConfigSheets {
   const region = getConfigSheetsForCaseTypeID(caseTypeID)
 
   const caseField = region.CaseField.find(o => o.ID === caseFieldID)
@@ -75,7 +75,7 @@ function getObjectsReferencedByCaseField(caseTypeID: string, caseFieldID: string
  * Gets ALL objects needed to support an array of CaseFields (checks all currently supported JSONs)
  * TODO: Include ComplexTypes and other any JSONs as and when supported
  */
-export function getObjectsReferencedByCaseFields(config: ConfigSheets, caseFields: CaseField[]) {
+export function getObjectsReferencedByCaseFields(config: ConfigSheets, caseFields: CaseField[]): ConfigSheets {
   const refCaseFields = config.CaseField.filter(o => caseFields.find(x => x.ID === o.ID || isFieldReferencedInField(x, o.ID)))
   const refCaseEventToField = config.CaseEventToFields.filter(o => refCaseFields.find(x => x.ID === o.CaseFieldID))
   const refCaseEvents = config.CaseEvent.filter(o => refCaseEventToField.find(x => x.CaseEventID === o.ID))
@@ -91,6 +91,6 @@ export function getObjectsReferencedByCaseFields(config: ConfigSheets, caseField
     CaseEvent: refCaseEvents,
     CaseEventToFields: refCaseEventToField,
     Scrubbed: refScrubbed,
-    EventToComplexTypes: refEventToComplexTypes,
-  } as ConfigSheets
+    EventToComplexTypes: refEventToComplexTypes
+  }
 }

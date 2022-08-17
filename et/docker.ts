@@ -1,5 +1,5 @@
-import { clearCurrentLine, execCommand, getEnvVarsFromFile, temporaryLog } from "app/helpers"
-import { exec, ExecException } from "child_process"
+import { clearCurrentLine, execCommand, getEnvVarsFromFile, temporaryLog } from 'app/helpers'
+import { exec, ExecException } from 'child_process'
 
 /**
  * Commands for ensuring all docker containers are spun up
@@ -30,7 +30,7 @@ export async function destroyEverything() {
  */
 async function ccdLogin() {
   temporaryLog('Running ./ccd login')
-  return execCommand('./ccd login', process.env.ECM_DOCKER_DIR)
+  return await execCommand('./ccd login', process.env.ECM_DOCKER_DIR)
 }
 
 /**
@@ -39,7 +39,7 @@ async function ccdLogin() {
 async function ccdInit() {
   temporaryLog('Running ./ccd init')
   const { stderr, code } = await execCommand('./ccd init', process.env.ECM_DOCKER_DIR, false)
-  if (stderr && !stderr.includes("network with name ccd-network already exists")) {
+  if (stderr && !stderr.includes('network with name ccd-network already exists')) {
     throw new Error(`./ccd init failed with exit code ${code}:  ${stderr}`)
   }
 }
@@ -47,31 +47,31 @@ async function ccdInit() {
 /**
  * Runs ccd compose up -d in the ecm-ccd-docker repo
  */
-function ccdComposeUp() {
+async function ccdComposeUp() {
   temporaryLog('Running ./compose up -d')
-  return execCommand('./ccd compose up -d', process.env.ECM_DOCKER_DIR)
+  return await execCommand('./ccd compose up -d', process.env.ECM_DOCKER_DIR)
 }
 
 /**
- * Run the init-ecm command responsible for creating roles and loading data. 
+ * Run the init-ecm command responsible for creating roles and loading data.
  * This command will automatically retry every 30 seconds (if the usual error messages occur)
  * until it is successful (can take around 5 mins depending on hardware)
  */
-function initEcm() {
-  temporaryLog("Running init-ecm.sh")
-  const promise = () => {
-    return new Promise(resolve => {
-      exec("./bin/ecm/init-ecm.sh", { cwd: process.env.ECM_DOCKER_DIR }, (error?: ExecException) => {
-        if (error?.message?.indexOf("Empty reply from server") > -1) {
-          temporaryLog(`init-ecm.sh failed with empty reply, waiting for 30s and trying again\r`)
-          return setTimeout(() => promise().then(() => resolve('')).catch(() => undefined), 1000 * 30)
+async function initEcm() {
+  temporaryLog('Running init-ecm.sh')
+  const promise = async () => {
+    return await new Promise(resolve => {
+      exec('./bin/ecm/init-ecm.sh', { cwd: process.env.ECM_DOCKER_DIR }, (error?: ExecException) => {
+        if (error?.message?.includes('Empty reply from server')) {
+          temporaryLog('init-ecm.sh failed with empty reply, waiting for 30s and trying again\r')
+          return setTimeout(() => { promise().then(() => resolve('')).catch(() => undefined) }, 1000 * 30)
         }
-        temporaryLog(`init-ecm.sh successful`)
+        temporaryLog('init-ecm.sh successful')
         resolve('')
       })
     })
   }
-  return promise()
+  return await promise()
 }
 
 /**
@@ -80,7 +80,7 @@ function initEcm() {
 async function initDb() {
   temporaryLog('Running init-db.sh')
   const { stderr, code } = await execCommand('./bin/init-db.sh', process.env.ET_CCD_CALLBACKS_DIR, false)
-  if (stderr && !stderr.includes("already exists")) {
+  if (stderr && !stderr.includes('already exists')) {
     throw new Error(`./init-db.sh failed with exit code ${code}: ${stderr}`)
   }
 }
@@ -89,53 +89,53 @@ async function initDb() {
  * Docker Kill All. This kills all running containers regardless of hmcts or not.
  * TODO: Improve this so it doesnt affect unrelated containers
  */
-function dockerKillAll() {
+async function dockerKillAll() {
   const command = 'docker kill $(docker ps -qa)'
   temporaryLog(`Running ${command}`)
-  return execCommand(command, undefined, false)
+  return await execCommand(command, undefined, false)
 }
 
 /**
  * Docker Remove All Containers.
  * TODO: Improve this so it doesnt affect unrelated containers
  */
-function dockerRmAll() {
+async function dockerRmAll() {
   const command = 'docker rm $(docker ps -qa)'
-  return execCommand(command, undefined, false)
+  return await execCommand(command, undefined, false)
 }
 
 /**
  * Docker system prune (including volumes). This will delete any case data.
  * TODO: Improve this so it doesnt affect unrelated containers
  */
-function dockerSystemPrune() {
+async function dockerSystemPrune() {
   const command = 'docker system prune --volumes -f'
-  return execCommand(command, undefined, false)
+  return await execCommand(command, undefined, false)
 }
 
 /**
  * Docker remove all images.
  * TODO: Improve this so it doesnt affect unrelated images
  */
-function dockerImageRm() {
-  const command = 'docker image rm \$(docker image ls)'
-  return execCommand(command, undefined, false)
+async function dockerImageRm() {
+  const command = 'docker image rm $(docker image ls)'
+  return await execCommand(command, undefined, false)
 }
 
 /**
  * Runs ccd compose pull to download all related images, this can take a long time and output is not available until exit.
  */
-function ccdComposePull() {
+async function ccdComposePull() {
   const command = './ccd compose pull'
-  return new Promise((resolve, reject) => {
-    let stdout: string[] = []
-    let stderr: string[] = []
+  return await new Promise((resolve, reject) => {
+    const stdout: string[] = []
+    const stderr: string[] = []
     let timeout = 6
 
-    let progress: { [image: string]: string } = {}
+    const progress: { [image: string]: string } = {}
 
     const regex = /Pulling (.+?)\s*\.\.\. (.+)/
-    let lastProgress: string = ''
+    let lastProgress = ''
 
     const checkProgress = setInterval(() => {
       const progressJson = JSON.stringify(progress)
@@ -145,14 +145,13 @@ function ccdComposePull() {
         console.warn(progress)
         timeout--
         if (!timeout) {
-          try { child.kill() }
-          catch (e) { }
+          try { child.kill() } catch (e) { }
           cleanupAndExit(() => reject(new Error('Progress has stalled')))
         }
         return
       }
       lastProgress = progressJson
-      temporaryLog(`pulling images... ${Object.values(progress).filter(o => o !== "done").length} left`)
+      temporaryLog(`pulling images... ${Object.values(progress).filter(o => o !== 'done').length} left`)
     }, 10000)
 
     const cleanupAndExit = (fn: () => void) => {
@@ -162,19 +161,21 @@ function ccdComposePull() {
 
     temporaryLog(`Running ${command}`)
 
-    const child = exec(command, { cwd: process.env.ECM_DOCKER_DIR, env: { ...process.env, ...getEnvVarsFromFile() } }, (err => {
+    const child = exec(command, { cwd: process.env.ECM_DOCKER_DIR, env: { ...process.env, ...getEnvVarsFromFile() } }, err => {
       if (err) {
         return cleanupAndExit(() => reject(err))
       }
 
-      if (Object.values(progress).some(o => o !== "done")) {
+      if (Object.values(progress).some(o => o !== 'done')) {
         // If one of these are not done then its possible an error occured
-        return cleanupAndExit(() => reject({ stdout, stderr, progress }))
+        console.warn(stdout)
+        console.warn(stderr)
+        return cleanupAndExit(() => reject(new Error('Not all images are at status "done"')))
       }
 
       temporaryLog(`${command} successful`)
       return cleanupAndExit(() => resolve(null))
-    }))
+    })
 
     child.stdout?.on('data', data => {
       stdout.push(data)
@@ -186,7 +187,7 @@ function ccdComposePull() {
         progress[results[1]] = results[2]
         return
       }
-      stdout.push(data)
+      stderr.push(data)
     })
   })
 }

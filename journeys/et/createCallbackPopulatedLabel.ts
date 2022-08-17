@@ -1,12 +1,12 @@
-import { prompt } from "inquirer"
-import { CaseEventToFieldKeys, CaseFieldKeys } from "types/ccd"
-import { Journey } from "types/journey"
-import { Answers, askCaseTypeID } from "app/questions"
-import { createNewCaseEventToField, createNewCaseField, trimCaseEventToField, trimCaseField } from "app/ccd"
-import { addToInMemoryConfig, createCaseFieldAuthorisations } from "app/et/configs"
-import { askCaseEvent, askFirstOnPageQuestions, askForPageIDAndDisplayOrder, QUESTION_FIELD_SHOW_CONDITION, QUESTION_ID } from "./createSingleField"
-import { addOnDuplicateQuestion } from "./manageDuplicateField"
-import { addToLastAnswers } from "app/session"
+import { prompt } from 'inquirer'
+import { CaseEventToFieldKeys, CaseFieldKeys } from 'types/ccd'
+import { Journey } from 'types/journey'
+import { Answers, askCaseTypeID } from 'app/questions'
+import { createNewCaseEventToField, createNewCaseField, trimCaseEventToField, trimCaseField } from 'app/ccd'
+import { addToInMemoryConfig, createCaseFieldAuthorisations } from 'app/et/configs'
+import { askCaseEvent, askFirstOnPageQuestions, askForPageIDAndDisplayOrder, QUESTION_FIELD_SHOW_CONDITION, QUESTION_ID } from './createSingleField'
+import { addOnDuplicateQuestion } from './manageDuplicateField'
+import { addToLastAnswers } from 'app/session'
 
 export async function createCallbackPopulatedLabel(answers: Answers = {}) {
   answers = await askCaseTypeID(answers)
@@ -37,14 +37,14 @@ export async function createCallbackPopulatedLabel(answers: Answers = {}) {
     ...answers,
     ID: `${answers.ID}Label`,
     FieldType: 'Label',
-    Label: "${" + caseField.ID + "}"
+    Label: '${' + caseField.ID + '}'
   })
 
   const caseEventToField = createNewCaseEventToField({
     ...answers,
     ShowSummaryChangeOption: 'N',
     DisplayContext: 'READONLY',
-    FieldShowCondition: `${answers.ID}Label=\"dummy\"`,
+    FieldShowCondition: `${answers.ID}Label="dummy"`,
     RetainHiddenValue: 'No'
   })
 
@@ -54,7 +54,7 @@ export async function createCallbackPopulatedLabel(answers: Answers = {}) {
     DisplayContext: 'READONLY',
     RetainHiddenValue: 'No',
     CaseFieldID: `${answers.ID}Label`,
-    PageFieldDisplayOrder: answers.PageFieldDisplayOrder + 1,
+    PageFieldDisplayOrder: (answers.PageFieldDisplayOrder as number) + 1,
     PageShowCondition: ''
   })
 

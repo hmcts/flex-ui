@@ -1,8 +1,8 @@
-import { ChildProcess, exec, ExecException } from "child_process"
-import { Dirent, existsSync, mkdirSync, readFileSync } from "fs"
-import { readdir } from "fs/promises"
-import { EOL } from "os"
-import { resolve, sep } from "path"
+import { ChildProcess, exec, ExecException } from 'child_process'
+import { Dirent, existsSync, mkdirSync, readFileSync } from 'fs'
+import { readdir } from 'fs/promises'
+import { EOL } from 'os'
+import { resolve, sep } from 'path'
 
 /**
  * Ensures a path exists by creating its parent directories and then itself
@@ -39,7 +39,7 @@ export async function getFiles(dir: string): Promise<string[]> {
  * @param keys list of keys whose values must be equal on both objects to qualify as unique
  * @returns an array of items present in list but missing in sublist
  */
-export function findMissing<T>(list: T[], sublist: T[], keys: (keyof (T))[]) {
+export function findMissing<T>(list: T[], sublist: T[], keys: Array<keyof (T)>) {
   const missing: T[] = []
   for (const obj of sublist) {
     const existingIndex = list.findIndex(o => matcher(o, obj, keys))
@@ -57,7 +57,7 @@ export function findMissing<T>(list: T[], sublist: T[], keys: (keyof (T))[]) {
  * @param keys list of keys whose values must be equal on both objects to qualify as unique
  * @param spliceIndexFn function to get the correct index to splice new items in at
  */
-export function upsertFields<T>(to: T[], from: T[], keys: (keyof (T))[], spliceIndexFn?: (obj: T, arr: T[]) => number) {
+export function upsertFields<T>(to: T[], from: T[], keys: Array<keyof (T)>, spliceIndexFn?: (obj: T, arr: T[]) => number) {
   for (const obj of from) {
     const existingIndex = to.findIndex(o => matcher(o, obj, keys))
     if (existingIndex === -1) {
@@ -80,7 +80,7 @@ export function upsertFields<T>(to: T[], from: T[], keys: (keyof (T))[], spliceI
  * @param keys an array of keys that must match on both objects to be considered the same
  * @returns true if all keys on both objects match
  */
-export function matcher<T>(item1: T, item2: T, keys: (keyof (T))[]) {
+export function matcher<T>(item1: T, item2: T, keys: Array<keyof (T)>) {
   for (const key of keys) {
     if (item1[key] !== item2[key]) {
       return false
@@ -102,7 +102,7 @@ export function findLastIndex<T>(arr: T[], predicate: (value: T, index: number, 
 /**
  * Similar to string.format in C#. Extends template literals by resolving their values at time of call
  */
-export function format(template: string, ...args: (string | number)[]) {
+export function format(template: string, ...args: Array<string | number>) {
   for (let i = 0; i < args.length; i++) {
     const arg = args[i]
     template = template.replace(new RegExp(`\\{${i}\\}`, 'g'), String(arg))
@@ -136,8 +136,8 @@ export function getEnvVarsFromFile(): Record<string, string> {
  * Executes a command in a child process. Waits until the child has exited
  * @returns an object with stdout, stderr and the exit code
  */
-export function execCommand(command: string, cwd?: string, rejectOnNonZeroExitCode = true): Promise<{ err: ExecException | null, stdout: string, stderr: string, code: number }> {
-  return new Promise((resolve, reject) => {
+export async function execCommand(command: string, cwd?: string, rejectOnNonZeroExitCode = true): Promise<{ err: ExecException | null, stdout: string, stderr: string, code: number }> {
+  return await new Promise((resolve, reject) => {
     const env = getEnvVarsFromFile()
     const child: ChildProcess = exec(command, { cwd, env: { ...process.env, ...env } }, (err, stdout, stderr) => {
       const out = { err, stdout, stderr, code: child.exitCode || 0 }
@@ -153,14 +153,14 @@ export function execCommand(command: string, cwd?: string, rejectOnNonZeroExitCo
  * Gets a record of unique items in an array given an array of keys to match
  */
 export function getUniqueByKey<T>(arr: T[], key: keyof (T)) {
-  return arr.reduce((acc: Record<string, number>, obj: T) => {
+  return arr.reduce<Record<string, number>>((acc: Record<string, number>, obj: T) => {
     const accKey = String(obj[key])
     if (!acc[accKey]) {
       acc[accKey] = 0
     }
     acc[accKey]++
     return acc
-  }, {} as Record<string, number>)
+  }, {})
 }
 
 /**

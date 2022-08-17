@@ -1,6 +1,6 @@
-import { Journey } from "types/journey"
-import { saveBackToProject } from "app/et/configs"
-import { generateSpreadsheets } from "./configsGenerateSpreadsheet"
+import { Journey } from 'types/journey'
+import { saveBackToProject } from 'app/et/configs'
+import { generateSpreadsheets } from './configsGenerateSpreadsheet'
 
 async function save() {
   await saveBackToProject()

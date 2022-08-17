@@ -1,12 +1,12 @@
-import { readFileSync, rmSync, writeFileSync } from "fs"
-import { readdir } from "fs/promises"
-import { sep } from "path"
-import { COMPOUND_KEYS } from "app/constants"
-import { getUniqueByKey, upsertFields } from "app/helpers"
-import { ConfigSheets, sheets } from "types/ccd"
-import { Answers } from "app/questions"
+import { readFileSync, rmSync, writeFileSync } from 'fs'
+import { readdir } from 'fs/promises'
+import { sep } from 'path'
+import { COMPOUND_KEYS } from 'app/constants'
+import { getUniqueByKey, upsertFields } from 'app/helpers'
+import { ConfigSheets, createNewConfigSheets, sheets } from 'types/ccd'
+import { Answers } from 'app/questions'
 
-export type Session = {
+export interface Session {
   name: string
   date: Date | string
   added: ConfigSheets
@@ -85,7 +85,6 @@ export function addToSession(fields: Partial<ConfigSheets>) {
       upsertFields<any>(session.added[sheet], fields[sheet] || [], COMPOUND_KEYS[sheet])
     }
   }
-
 }
 
 /**
@@ -127,7 +126,7 @@ export function createNewSession(name: string): Session {
     name,
     date: new Date(),
     lastAnswers: {},
-    added: sheets.reduce((acc, obj) => { acc[obj] = []; return acc }, {} as ConfigSheets)
+    added: createNewConfigSheets()
   }
 }
 
