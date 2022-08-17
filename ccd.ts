@@ -1,6 +1,16 @@
 import { AllCCDKeys, AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, EventToComplexType } from 'types/ccd'
 
 /**
+ * Conditionally prepends ${ET_COS_URL} onto url if it starts with '/'
+ */
+function formatCallbackUrl(url?: string) {
+  if (url?.startsWith('/')) {
+    return `\${ET_COS_URL}${url}`
+  }
+  return url
+}
+
+/**
  * Creates a new CaseEvent object using answers provided or defaults
  */
 export function createNewCaseEvent(answers?: AllCCDKeys): CaseEvent {
@@ -10,15 +20,15 @@ export function createNewCaseEvent(answers?: AllCCDKeys): CaseEvent {
     Name: answers?.Name || '',
     Description: answers?.Description || '',
     DisplayOrder: answers?.DisplayOrder || 1,
-    "PreConditionState(s)": answers?.['PreConditionState(s)'] || "*",
-    PostConditionState: answers?.PostConditionState || "*",
-    "SecurityClassification": "Public",
+    'PreConditionState(s)': answers?.['PreConditionState(s)'] || '*',
+    PostConditionState: answers?.PostConditionState || '*',
+    SecurityClassification: 'Public',
     ShowEventNotes: answers?.ShowEventNotes || 'N',
     ShowSummary: answers?.ShowSummary || 'Y',
     EventEnablingCondition: answers?.EventEnablingCondition || '',
-    CallBackURLAboutToStartEvent: answers?.CallBackURLAboutToStartEvent || '',
-    CallBackURLAboutToSubmitEvent: answers?.CallBackURLAboutToSubmitEvent || '',
-    CallBackURLSubmittedEvent: answers?.CallBackURLSubmittedEvent || ''
+    CallBackURLAboutToStartEvent: formatCallbackUrl(answers?.CallBackURLAboutToStartEvent) || '',
+    CallBackURLAboutToSubmitEvent: formatCallbackUrl(answers?.CallBackURLAboutToSubmitEvent) || '',
+    CallBackURLSubmittedEvent: formatCallbackUrl(answers?.CallBackURLSubmittedEvent) || ''
   }
 }
 
@@ -56,7 +66,7 @@ export function createNewCaseEventToField(answers?: AllCCDKeys): CaseEventToFiel
     PageShowCondition: answers?.PageShowCondition,
     RetainHiddenValue: answers?.RetainHiddenValue || 'Yes',
     ShowSummaryChangeOption: answers?.ShowSummaryChangeOption || 'N',
-    CallBackURLMidEvent: answers?.CallBackURLMidEvent?.startsWith('/') ? ("${ET_COS_URL}" + answers.CallBackURLMidEvent) : answers?.CallBackURLMidEvent,
+    CallBackURLMidEvent: formatCallbackUrl(answers?.CallBackURLMidEvent) || '',
     PageLabel: answers?.PageLabel || '',
     PageColumnNumber: answers?.PageColumnNumber || 1,
     ShowSummaryContentOption: answers?.ShowSummaryContentOption,

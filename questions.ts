@@ -1,12 +1,12 @@
-import { prompt } from "inquirer"
-import { CUSTOM } from "app/constants"
-import { session } from "app/session"
-import fuzzy from "fuzzy"
-import { AllCCDKeys, CaseFieldKeys } from "types/ccd"
-import { getKnownCaseTypeIDs } from "app/et/configs"
-import { getIdealSizeForInquirer } from "app/helpers"
+import { prompt } from 'inquirer'
+import { CUSTOM } from 'app/constants'
+import { session } from 'app/session'
+import fuzzy from 'fuzzy'
+import { AllCCDKeys, CaseFieldKeys } from 'types/ccd'
+import { getKnownCaseTypeIDs } from 'app/et/configs'
+import { getIdealSizeForInquirer } from 'app/helpers'
 
-export type Answers = AllCCDKeys & Record<string, unknown> 
+export type Answers = AllCCDKeys & Record<string, unknown>
 
 /**
  * Asks the user for a CaseTypeID. Allows for creation if <custom> is selected.
@@ -19,7 +19,7 @@ export async function askCaseTypeID(answers: Answers = {}) {
   answers = await prompt([
     {
       name: key,
-      message: "Select the CaseTypeID",
+      message: 'Select the CaseTypeID',
       type: 'autocomplete',
       source: (_answers: unknown, input: string) => fuzzySearch([CUSTOM, ...opts], input),
       default: session.lastAnswers[key],
@@ -28,9 +28,9 @@ export async function askCaseTypeID(answers: Answers = {}) {
   ], answers)
 
   if (answers[key] === CUSTOM) {
-    const newEventTypeAnswers = await askBasicFreeEntry({}, key, "Enter a custom value for CaseTypeID")
+    const newEventTypeAnswers = await askBasicFreeEntry({}, key, 'Enter a custom value for CaseTypeID')
     answers[key] = newEventTypeAnswers[key]
-    //TODO: There's no support for CaseType.json yet so theres no flow to create one. But we could...
+    // TODO: There's no support for CaseType.json yet so theres no flow to create one. But we could...
   }
 
   return answers
@@ -41,7 +41,7 @@ export async function askCaseTypeID(answers: Answers = {}) {
  * @returns extended answers object as passed in
  */
 async function list(answers: Answers = {}, name: string, message: string, choices: string[], defaultValue?: unknown) {
-  return prompt([{ name, message, type: 'list', choices, default: defaultValue, pageSize: getIdealSizeForInquirer() }], answers)
+  return await prompt([{ name, message, type: 'list', choices, default: defaultValue, pageSize: getIdealSizeForInquirer() }], answers)
 }
 
 /**
@@ -55,18 +55,15 @@ export async function listOrFreeType(answers: Answers = {}, name: string, messag
     return answers
   }
 
-  // We need this to reset the value of <custom> so the user can provide an actual value
-  delete answers[name]
-  return prompt([{ name, message: `Enter a custom value` }], answers)
+  return await prompt([{ name, message: 'Enter a custom value', askAnswered: true }], answers)
 }
-
 
 /**
  * Asks for basic text entry given a question
  * @returns extended answers object as passed in
  */
 export async function askBasicFreeEntry(answers: Answers = {}, name: string, message?: string, defaultValue?: unknown) {
-  return prompt([{ name, message: message || `What's the ${name}?`, default: defaultValue || session.lastAnswers[name] }], answers || {})
+  return await prompt([{ name, message: message || `What's the ${name}?`, default: defaultValue || session.lastAnswers[name] }], answers || {})
 }
 
 /**

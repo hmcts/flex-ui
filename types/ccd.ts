@@ -6,7 +6,7 @@ export interface CaseField {
   FieldType?: string
   FieldTypeParameter?: string
   RegularExpression?: string
-  SecurityClassification: "Public"
+  SecurityClassification: 'Public'
   Min?: number
   Max?: number
 }
@@ -62,7 +62,7 @@ export interface EventToComplexType {
   EventElementLabel: string
   EventHintText?: string
   FieldDisplayOrder: number
-  DisplayContext: 'READONLY' | 'OPTIONAL' | 'MANDATORY',
+  DisplayContext: 'READONLY' | 'OPTIONAL' | 'MANDATORY'
   FieldShowCondition?: string
   RetainHiddenValue?: 'No' | 'Yes'
 }
@@ -91,13 +91,13 @@ export type CCDSheets<T> = {
 
 export type ConfigSheets = CCDSheets<CCDTypes>
 
-export type CCDTypes = {
-  AuthorisationCaseEvent: AuthorisationCaseEvent,
-  AuthorisationCaseField: AuthorisationCaseField,
-  CaseEvent: CaseEvent,
-  CaseEventToFields: CaseEventToField,
-  CaseField: CaseField,
-  EventToComplexTypes: EventToComplexType,
+export interface CCDTypes {
+  AuthorisationCaseEvent: AuthorisationCaseEvent
+  AuthorisationCaseField: AuthorisationCaseField
+  CaseEvent: CaseEvent
+  CaseEventToFields: CaseEventToField
+  CaseField: CaseField
+  EventToComplexTypes: EventToComplexType
   Scrubbed: Scrubbed
 }
 
@@ -186,7 +186,7 @@ export enum ScrubbedKeys {
   DisplayOrder = 'DisplayOrder',
 }
 
-export const sheets: (keyof (ConfigSheets))[] = [
+export const sheets: Array<keyof (ConfigSheets)> = [
   'AuthorisationCaseEvent',
   'AuthorisationCaseField',
   'CaseEvent',
@@ -196,11 +196,11 @@ export const sheets: (keyof (ConfigSheets))[] = [
   'Scrubbed'
 ]
 
-export function createNewConfigSheets() {
+export function createNewConfigSheets(): ConfigSheets {
   return sheets.reduce((acc, obj) => {
     acc[obj] = []
     return acc
-  }, {} as ConfigSheets)
+  }, {}) as ConfigSheets
 }
 
 type KeyOfAll<T> = T extends T ? keyof T : never

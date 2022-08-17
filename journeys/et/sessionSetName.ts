@@ -1,8 +1,8 @@
-import { prompt } from "inquirer"
-import { session } from "app/session"
-import { Journey } from "types/journey"
+import { prompt } from 'inquirer'
+import { session } from 'app/session'
+import { Journey } from 'types/journey'
 
-const QUESTION_NAME = "What should we called this session?"
+const QUESTION_NAME = 'What should we called this session?'
 
 export async function setSessionName() {
   const answers = await prompt([{ name: 'name', message: QUESTION_NAME }])

@@ -1,44 +1,44 @@
-import { readFileSync, writeFileSync } from "fs"
-import { sep } from "path"
-import { findLastIndex, format, getUniqueByKey, getUniqueByKeyAsArray, upsertFields } from "app/helpers"
-import { addToSession, session } from "app/session"
-import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, ConfigSheets, Scrubbed, sheets } from "types/ccd"
-import { COMPOUND_KEYS } from "app/constants"
+import { readFileSync, writeFileSync } from 'fs'
+import { sep } from 'path'
+import { findLastIndex, format, getUniqueByKey, getUniqueByKeyAsArray, upsertFields } from 'app/helpers'
+import { addToSession, session } from 'app/session'
+import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, ConfigSheets, Scrubbed, sheets } from 'types/ccd'
+import { COMPOUND_KEYS } from 'app/constants'
 
 let readTime = 0
 let englandwales: ConfigSheets
 let scotland: ConfigSheets
 
 export enum Region {
-  EnglandWales = "EnglandWales",
-  Scotland = "Scotland"
+  EnglandWales = 'EnglandWales',
+  Scotland = 'Scotland'
 }
 
 enum Roles {
-  CaseworkerEmployment = "caseworker-employment",
-  CaseworkerEmploymentLegalRepSolicitor = "caseworker-employment-legalrep-solicitor",
-  CaseworkerEmploymentETJudge = "caseworker-employment-etjudge",
-  CaseworkerEmploymentEnglandWales = "caseworker-employment-englandwales",
-  CaseworkerEmploymentETJudgeEnglandWales = "caseworker-employment-etjudge-englandwales",
-  CaseworkerEmploymentScotland = "caseworker-employment-scotland",
-  CaseworkerEmploymentETJudgeScotland = "caseworker-employment-etjudge-scotland",
-  Citizen = "citizen",
-  CaseworkerEmploymentApi = "caseworker-employment-api"
+  CaseworkerEmployment = 'caseworker-employment',
+  CaseworkerEmploymentLegalRepSolicitor = 'caseworker-employment-legalrep-solicitor',
+  CaseworkerEmploymentETJudge = 'caseworker-employment-etjudge',
+  CaseworkerEmploymentEnglandWales = 'caseworker-employment-englandwales',
+  CaseworkerEmploymentETJudgeEnglandWales = 'caseworker-employment-etjudge-englandwales',
+  CaseworkerEmploymentScotland = 'caseworker-employment-scotland',
+  CaseworkerEmploymentETJudgeScotland = 'caseworker-employment-etjudge-scotland',
+  Citizen = 'citizen',
+  CaseworkerEmploymentApi = 'caseworker-employment-api'
 }
 
 type RegionPermissions = Record<Region, string>
 type RoleMappings = Record<Roles, Partial<RegionPermissions>>
 
 const roleMappings: RoleMappings = {
-  [Roles.CaseworkerEmployment]: { [Region.EnglandWales]: "R", [Region.Scotland]: "R" },
-  [Roles.CaseworkerEmploymentApi]: { [Region.EnglandWales]: "CRUD", [Region.Scotland]: "CRUD" },
-  [Roles.CaseworkerEmploymentETJudge]: { [Region.EnglandWales]: "R", [Region.Scotland]: "R" },
-  [Roles.CaseworkerEmploymentETJudgeEnglandWales]: { [Region.EnglandWales]: "CRU" },
-  [Roles.CaseworkerEmploymentETJudgeScotland]: { [Region.Scotland]: "CRU" },
-  [Roles.CaseworkerEmploymentEnglandWales]: { [Region.EnglandWales]: "R" },
-  [Roles.CaseworkerEmploymentLegalRepSolicitor]: { [Region.EnglandWales]: "CRU", [Region.Scotland]: "CRU" },
-  [Roles.CaseworkerEmploymentScotland]: { [Region.Scotland]: "R" },
-  [Roles.Citizen]: { [Region.EnglandWales]: "CRU", [Region.Scotland]: "CRU" },
+  [Roles.CaseworkerEmployment]: { [Region.EnglandWales]: 'R', [Region.Scotland]: 'R' },
+  [Roles.CaseworkerEmploymentApi]: { [Region.EnglandWales]: 'CRUD', [Region.Scotland]: 'CRUD' },
+  [Roles.CaseworkerEmploymentETJudge]: { [Region.EnglandWales]: 'R', [Region.Scotland]: 'R' },
+  [Roles.CaseworkerEmploymentETJudgeEnglandWales]: { [Region.EnglandWales]: 'CRU' },
+  [Roles.CaseworkerEmploymentETJudgeScotland]: { [Region.Scotland]: 'CRU' },
+  [Roles.CaseworkerEmploymentEnglandWales]: { [Region.EnglandWales]: 'R' },
+  [Roles.CaseworkerEmploymentLegalRepSolicitor]: { [Region.EnglandWales]: 'CRU', [Region.Scotland]: 'CRU' },
+  [Roles.CaseworkerEmploymentScotland]: { [Region.Scotland]: 'R' },
+  [Roles.Citizen]: { [Region.EnglandWales]: 'CRU', [Region.Scotland]: 'CRU' }
 }
 
 /**
@@ -72,14 +72,14 @@ function getScotland() {
  * @returns either englandwales or scotland
  */
 export function getConfigSheetsForCaseTypeID(caseTypeID: string) {
-  return caseTypeID.startsWith("ET_EnglandWales") ? getEnglandWales() : getScotland()
+  return caseTypeID.startsWith('ET_EnglandWales') ? getEnglandWales() : getScotland()
 }
 
 /**
  * Returns a region enum value based on the CaseTypeID passed in
  */
 function getRegionFromCaseTypeId(caseTypeID: string) {
-  return caseTypeID.startsWith("ET_EnglandWales") ? Region.EnglandWales : Region.Scotland
+  return caseTypeID.startsWith('ET_EnglandWales') ? Region.EnglandWales : Region.Scotland
 }
 
 /**
@@ -131,7 +131,7 @@ export function getNextPageFieldIDForPage(caseTypeID: string, caseEventID: strin
 }
 
 export function getConfigSheetName(region: Region, configSheet: keyof (ConfigSheets)) {
-  if (configSheet === "Scrubbed") {
+  if (configSheet === 'Scrubbed') {
     return `${region.toString()} Scrubbed`
   }
   return configSheet
@@ -142,10 +142,10 @@ export function getConfigSheetName(region: Region, configSheet: keyof (ConfigShe
  */
 export function readInCurrentConfig() {
   const builder = (envVar: string, region: Region) => {
-    return sheets.reduce((acc, sheetName) => {
+    return sheets.reduce<Partial<ConfigSheets>>((acc, sheetName) => {
       acc[sheetName] = getJson(envVar, getConfigSheetName(region, sheetName))
       return acc
-    }, {} as Partial<ConfigSheets>) as ConfigSheets
+    }, {}) as ConfigSheets
   }
 
   englandwales = builder(process.env.ENGWALES_DEF_DIR, Region.EnglandWales)
@@ -168,7 +168,7 @@ function getCaseEventInsertIndex(configSheet: ConfigSheets, caseEvent: CaseEvent
 }
 
 /**
- * Upserts a CaseEvent into the correct region's config and into the current session. 
+ * Upserts a CaseEvent into the correct region's config and into the current session.
  * Inserts according to DisplayOrder, modifying other CaseEvent DisplayOrders where necessary.
  * Will replace where necessary, so changed non-compound keys will get updated
  * @param caseEvent to upsert
@@ -194,7 +194,7 @@ export function upsertNewCaseEvent(caseEvent: CaseEvent) {
 }
 
 /**
- * Upserts Scrubbed items into the correct region's config and into the current session. 
+ * Upserts Scrubbed items into the correct region's config and into the current session.
  * Will replace where necessary, so changed non-compound keys will get updated (ie, ListElement)
  * @param opts scrubbed options to upsert
  */
@@ -231,15 +231,15 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
     }
   }
 
-  const ewCaseFields = fields.CaseField.filter(o => o.CaseTypeID.startsWith("ET_EnglandWales"))
-  const ewCaseEventToFields = fields.CaseEventToFields.filter(o => o.CaseTypeID.startsWith("ET_EnglandWales"))
-  const ewAuthorisationCaseFields = fields.AuthorisationCaseField.filter(o => o.CaseTypeId.startsWith("ET_EnglandWales"))
-  const ewAuthorisationCaseEvents = fields.AuthorisationCaseEvent.filter(o => o.CaseTypeId.startsWith("ET_EnglandWales"))
+  const ewCaseFields = fields.CaseField.filter(o => o.CaseTypeID.startsWith('ET_EnglandWales'))
+  const ewCaseEventToFields = fields.CaseEventToFields.filter(o => o.CaseTypeID.startsWith('ET_EnglandWales'))
+  const ewAuthorisationCaseFields = fields.AuthorisationCaseField.filter(o => o.CaseTypeId.startsWith('ET_EnglandWales'))
+  const ewAuthorisationCaseEvents = fields.AuthorisationCaseEvent.filter(o => o.CaseTypeId.startsWith('ET_EnglandWales'))
 
-  const scCaseFields = fields.CaseField.filter(o => o.CaseTypeID.startsWith("ET_Scotland"))
-  const scCaseEventToFields = fields.CaseEventToFields.filter(o => o.CaseTypeID.startsWith("ET_Scotland"))
-  const scAuthorisationCaseFields = fields.AuthorisationCaseField.filter(o => o.CaseTypeId.startsWith("ET_Scotland"))
-  const scAuthorisationCaseEvents = fields.AuthorisationCaseEvent.filter(o => o.CaseTypeId.startsWith("ET_Scotland"))
+  const scCaseFields = fields.CaseField.filter(o => o.CaseTypeID.startsWith('ET_Scotland'))
+  const scCaseEventToFields = fields.CaseEventToFields.filter(o => o.CaseTypeID.startsWith('ET_Scotland'))
+  const scAuthorisationCaseFields = fields.AuthorisationCaseField.filter(o => o.CaseTypeId.startsWith('ET_Scotland'))
+  const scAuthorisationCaseEvents = fields.AuthorisationCaseEvent.filter(o => o.CaseTypeId.startsWith('ET_Scotland'))
 
   // TODO: These group by CaseTypeID but fields should also be grouped further (like Case Fields need to listen to PageID and PageFieldDisplayOrder etc...)
 
@@ -331,7 +331,7 @@ function createAuthorisations<T>(mappings: RoleMappings, caseTypeID: string, fn:
 /**
  * Creates an array of AuthorisationCaseEvent objects
  */
-export function createCaseEventAuthorisations(caseTypeID: string = "ET_EnglandWales", eventID: string) {
+export function createCaseEventAuthorisations(caseTypeID = 'ET_EnglandWales', eventID: string) {
   return createAuthorisations<AuthorisationCaseEvent>(roleMappings, caseTypeID, (role, crud) => {
     return { CaseTypeId: caseTypeID, CaseEventID: eventID, UserRole: role, CRUD: crud }
   })
@@ -340,7 +340,7 @@ export function createCaseEventAuthorisations(caseTypeID: string = "ET_EnglandWa
 /**
  * Creates an array of AuthorisationCaseEvent objects
  */
-export function createCaseFieldAuthorisations(caseTypeID: string = "ET_EnglandWales", fieldID: string) {
+export function createCaseFieldAuthorisations(caseTypeID = 'ET_EnglandWales', fieldID: string) {
   return createAuthorisations<AuthorisationCaseField>(roleMappings, caseTypeID, (role, crud) => {
     return { CaseTypeId: caseTypeID, CaseFieldID: fieldID, UserRole: role, CRUD: crud }
   })

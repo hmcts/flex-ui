@@ -1,13 +1,13 @@
-import { prompt } from "inquirer"
-import { Journey } from "types/journey"
-import { askCaseTypeID, fuzzySearch, listOrFreeType } from "app/questions"
-import { getConfigSheetsForCaseTypeID, getKnownCaseTypeIDs } from "app/et/configs"
-import { doDuplicateCaseField } from "app/et/duplicateCaseField"
-import { CANCEL, NO_DUPLICATE } from "app/constants"
-import { getIdealSizeForInquirer } from "app/helpers"
+import { prompt } from 'inquirer'
+import { Journey } from 'types/journey'
+import { askCaseTypeID, fuzzySearch, listOrFreeType } from 'app/questions'
+import { getConfigSheetsForCaseTypeID, getKnownCaseTypeIDs } from 'app/et/configs'
+import { doDuplicateCaseField } from 'app/et/duplicateCaseField'
+import { CANCEL, NO_DUPLICATE } from 'app/constants'
+import { getIdealSizeForInquirer } from 'app/helpers'
 
 const QUESTION_DUPLICATE = "What's the ID of the field to duplicate?"
-const QUESTION_DUPLICATE_ADDON = "Do we need this field duplicated under another caseTypeID?"
+const QUESTION_DUPLICATE_ADDON = 'Do we need this field duplicated under another caseTypeID?'
 
 async function duplicateCaseField() {
   const { CaseTypeID } = await askCaseTypeID()

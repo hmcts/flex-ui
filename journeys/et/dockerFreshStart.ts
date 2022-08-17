@@ -1,5 +1,5 @@
-import { ensureUp, destroyEverything } from "app/et/docker"
-import { Journey } from "types/journey"
+import { ensureUp, destroyEverything } from 'app/et/docker'
+import { Journey } from 'types/journey'
 
 async function tearDownAndFreshStart() {
   await destroyEverything()
@@ -11,4 +11,3 @@ export default {
   text: 'Fresh start docker (destroy and rebuild)',
   fn: tearDownAndFreshStart
 } as Journey
-

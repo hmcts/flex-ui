@@ -1,5 +1,5 @@
-import { sep } from "path"
-import { CompoundKeys, CCDTypes } from "types/ccd"
+import { sep } from 'path'
+import { CompoundKeys, CCDTypes } from 'types/ccd'
 
 export const DISPLAY_CONTEXT_OPTIONS = ['READONLY', 'OPTIONAL', 'MANDATORY', 'COMPLEX']
 

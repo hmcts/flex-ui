@@ -1,7 +1,7 @@
-import { Journey } from "types/journey"
-import { getReadTime, readInCurrentConfig } from "app/et/configs"
-import { formatMsSpanNearestUnit } from "@spacepumpkin/format-timespan"
-import { restorePreviousSession, session, SESSION_EXT } from "app/session"
+import { Journey } from 'types/journey'
+import { getReadTime, readInCurrentConfig } from 'app/et/configs'
+import { formatMsSpanNearestUnit } from '@spacepumpkin/format-timespan'
+import { restorePreviousSession, session, SESSION_EXT } from 'app/session'
 
 const STATIC_TEXT = 'Flush memory and read in configs'
 

@@ -1,7 +1,7 @@
-export type Journey = {
+export interface Journey {
   /** Alias used for grouping related journeys together */
   group?: string
-  /** The text to display as an option to the user. Use a function to generate context-dependant text*/
+  /** The text to display as an option to the user. Use a function to generate context-dependant text */
   text: string | object | (() => string)
   /** A function used to check if the select journey text matches this journey (optional) */
   matchText?: (text: string) => boolean

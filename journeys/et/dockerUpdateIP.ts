@@ -1,7 +1,7 @@
-import { Journey } from "types/journey"
-import { readFileSync, writeFileSync } from "fs"
-import { sep } from "path"
-import { execCommand } from "app/helpers"
+import { Journey } from 'types/journey'
+import { readFileSync, writeFileSync } from 'fs'
+import { sep } from 'path'
+import { execCommand } from 'app/helpers'
 
 async function updateIP() {
   const ip = (await execCommand("hostname -I | awk '{print $1}'")).stdout.trim()

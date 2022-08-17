@@ -1,9 +1,9 @@
-import { prompt } from "inquirer"
-import { Journey } from "types/journey"
-import { Answers, askCaseTypeID } from "app/questions"
-import { createNewCaseEvent } from "app/ccd"
-import { addToInMemoryConfig, createCaseEventAuthorisations, upsertNewCaseEvent } from "app/et/configs"
-import { Y_OR_N } from "app/constants"
+import { prompt } from 'inquirer'
+import { Journey } from 'types/journey'
+import { Answers, askCaseTypeID } from 'app/questions'
+import { createNewCaseEvent } from 'app/ccd'
+import { addToInMemoryConfig, createCaseEventAuthorisations, upsertNewCaseEvent } from 'app/et/configs'
+import { Y_OR_N } from 'app/constants'
 
 const QUESTION_NAME = 'Give the new event a name (shows in the event dropdown)'
 const QUESTION_DESCRIPTION = 'Give the new event a description'
@@ -11,7 +11,7 @@ const QUESTION_DISPLAY_ORDER = 'Where should this event appear in the caseEvent 
 const QUESTION_PRECONDITION_STATES = 'What state should the case be in to see this page? (PreConditionState(s))'
 const QUESTION_POST_CONDITION_STATE = 'What state should the case be set to after completing this journey? (PostConditionState)'
 const QUESTION_EVENT_ENABLING_CONDITION = 'Enter an EventEnablingCondition (optional)'
-const QUESTION_SHOW_EVENT_NOTES = `Provide a value for ShowEventNotes`
+const QUESTION_SHOW_EVENT_NOTES = 'Provide a value for ShowEventNotes'
 const QUESTION_SHOW_SUMMARY = 'Should there be a Check Your Answers page at the end of this event?'
 const QUESTION_CALLBACK_URL_ABOUT_TO_START_EVENT = 'Do we need a callback before we start? (optional)'
 const QUESTION_CALLBACK_URL_ABOUT_TO_SUBMIT_EVENT = 'Do we need a callback before we submit? (optional)'
@@ -32,7 +32,7 @@ export async function createEvent(answers: Answers = {}) {
       { name: 'ShowSummary', message: QUESTION_SHOW_SUMMARY, type: 'list', choices: Y_OR_N, default: 'Y' },
       { name: 'CallBackURLAboutToStartEvent', message: QUESTION_CALLBACK_URL_ABOUT_TO_START_EVENT, type: 'input' },
       { name: 'CallBackURLAboutToSubmitEvent', message: QUESTION_CALLBACK_URL_ABOUT_TO_SUBMIT_EVENT, type: 'input' },
-      { name: 'CallBackURLSubmittedEvent', message: QUESTION_CALLBACK_URL_SUBMITTED_EVENT, type: 'input' },
+      { name: 'CallBackURLSubmittedEvent', message: QUESTION_CALLBACK_URL_SUBMITTED_EVENT, type: 'input' }
     ], answers)
 
   const caseEvent = createNewCaseEvent(answers)
