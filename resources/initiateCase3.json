@@ -1,0 +1,144 @@
+{
+  "data": {
+    "respondentCollection": [
+      {
+        "value": {
+          "respondent_name": "Another Person",
+          "respondent_ACAS_question": "Yes",
+          "respondent_ACAS": "123",
+          "respondent_phone1": "07123456789",
+          "responseReceived": null,
+          "responseContinue": null,
+          "extensionRequested": null,
+          "extensionGranted": null,
+          "extensionDate": null,
+          "responseReceivedDate": null,
+          "responseStruckOut": null,
+          "responseRespondentName": null,
+          "responseReference": null,
+          "response_status": null,
+          "responseToClaim": null,
+          "rejection_reason": null,
+          "rejection_reason_other": null,
+          "responseOutOfTime": null,
+          "responseNotOnPrescribedForm": null,
+          "responseRequiredInfoAbsent": null,
+          "responseStruckOutDate": null,
+          "responseStruckOutChairman": null,
+          "responseStruckOutReason": null,
+          "respondent_phone2": null,
+          "respondent_email": null,
+          "respondent_contact_preference": null,
+          "responseRespondentPhone1": null,
+          "responseRespondentPhone2": null,
+          "responseRespondentEmail": null,
+          "responseRespondentContactPreference": null,
+          "response_referred_to_judge": null,
+          "response_returned_from_judge": null,
+          "responseNotes": null,
+          "et3VettingCompleted": null,
+          "respondent_address": {
+            "AddressLine1": "35 Bridge Road",
+            "AddressLine2": "",
+            "AddressLine3": "",
+            "PostTown": "Erith",
+            "County": "",
+            "Country": "United Kingdom",
+            "PostCode": "DA8 2DE"
+          }
+        },
+        "id": null
+      }
+    ]
+  },
+  "event": {
+    "id": "initiateCase",
+    "summary": "",
+    "description": ""
+  },
+  "event_data": {
+    "receiptDate": "1989-01-01",
+    "feeGroupReference": "123232323232",
+    "managingOffice": "London Central",
+    "multipleReference": null,
+    "leadClaimant": null,
+    "claimant_TypeOfClaimant": "Individual",
+    "claimantIndType": {
+      "claimant_title1": "Mr",
+      "claimant_first_names": "Jack",
+      "claimant_last_name": "Reeve",
+      "claimant_date_of_birth": "1989-01-01",
+      "claimant_sex": "Male",
+      "claimant_gender_identity": "Male",
+      "claimant_gender": "Male"
+    },
+    "claimantType": {
+      "claimant_phone_number": "07666666666",
+      "claimant_mobile_number": "07333333333",
+      "claimant_email_address": "person@gmail.com",
+      "claimant_contact_preference": "Email",
+      "claimant_contact_language": null,
+      "claimant_addressUK": {
+        "AddressLine1": "35 Bridge Road",
+        "AddressLine2": "",
+        "AddressLine3": "",
+        "PostTown": "Erith",
+        "County": "",
+        "Country": "United Kingdom",
+        "PostCode": "DA8 2DE"
+      }
+    },
+    "respondentCollection": [
+      {
+        "value": {
+          "respondent_name": "Another Person",
+          "respondent_ACAS_question": "Yes",
+          "respondent_ACAS": "123",
+          "respondent_phone1": "07123456789",
+          "responseReceived": null,
+          "responseContinue": null,
+          "extensionRequested": null,
+          "extensionGranted": null,
+          "extensionDate": null,
+          "responseReceivedDate": null,
+          "responseStruckOut": null,
+          "responseRespondentName": null,
+          "responseReference": null,
+          "response_status": null,
+          "responseToClaim": null,
+          "rejection_reason": null,
+          "rejection_reason_other": null,
+          "responseOutOfTime": null,
+          "responseNotOnPrescribedForm": null,
+          "responseRequiredInfoAbsent": null,
+          "responseStruckOutDate": null,
+          "responseStruckOutChairman": null,
+          "responseStruckOutReason": null,
+          "respondent_phone2": null,
+          "respondent_email": null,
+          "respondent_contact_preference": null,
+          "responseRespondentPhone1": null,
+          "responseRespondentPhone2": null,
+          "responseRespondentEmail": null,
+          "responseRespondentContactPreference": null,
+          "response_referred_to_judge": null,
+          "response_returned_from_judge": null,
+          "responseNotes": null,
+          "et3VettingCompleted": null,
+          "respondent_address": {
+            "AddressLine1": "35 Bridge Road",
+            "AddressLine2": "",
+            "AddressLine3": "",
+            "PostTown": "Erith",
+            "County": "",
+            "Country": "United Kingdom",
+            "PostCode": "DA8 2DE"
+          }
+        },
+        "id": null
+      }
+    ]
+  },
+  "event_token": "",
+  "ignore_warning": false
+}
