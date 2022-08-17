@@ -86,7 +86,9 @@ export function createNewEventToComplexType(answers?: AllCCDKeys): EventToComple
     EventElementLabel: answers?.EventElementLabel || '',
     FieldDisplayOrder: answers?.FieldDisplayOrder || 1,
     DisplayContext: answers?.DisplayContext || 'OPTIONAL',
-    FieldShowCondition: answers?.FieldShowCondition
+    FieldShowCondition: answers?.FieldShowCondition,
+    EventHintText: answers?.EventHintText || '',
+    RetainHiddenValue: answers?.RetainHiddenValue || 'No'
   }
 }
 

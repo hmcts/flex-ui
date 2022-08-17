@@ -54,7 +54,7 @@ export async function createCallbackPopulatedLabel(answers: Answers = {}) {
     DisplayContext: 'READONLY',
     RetainHiddenValue: 'No',
     CaseFieldID: `${answers.ID}Label`,
-    PageFieldDisplayOrder: (answers.PageFieldDisplayOrder as number) + 1,
+    PageFieldDisplayOrder: (answers.PageFieldDisplayOrder) + 1,
     PageShowCondition: ''
   })
 

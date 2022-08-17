@@ -1,10 +1,10 @@
 import { prompt } from 'inquirer'
 import { CaseEventToFieldKeys, CaseFieldKeys, EventToComplexTypeKeys } from 'types/ccd'
-import { createSingleField, askCaseEvent } from './createSingleField'
+import { createSingleField, askCaseEvent, QUESTION_HINT_TEXT, QUESTION_RETAIN_HIDDEN_VALUE } from './createSingleField'
 import { createNewEventToComplexType } from 'app/ccd'
 import { addToInMemoryConfig, getKnownCaseFieldIDs } from 'app/et/configs'
 import { Answers, fuzzySearch } from 'app/questions'
-import { CUSTOM } from 'app/constants'
+import { CUSTOM, YES_OR_NO } from 'app/constants'
 import { session } from 'app/session'
 import { getIdealSizeForInquirer } from 'app/helpers'
 import { Journey } from 'types/journey'
@@ -38,11 +38,13 @@ async function createEventToComplexType(answers: Answers = {}) {
   answers = await askCaseFieldID(answers)
 
   answers = await prompt([
-    { name: 'ListElementCode', message: QUESTION_LIST_ELEMENT_CODE, type: 'input' },
-    { name: 'EventElementLabel', message: QUESTION_EVENT_ELEMENT_LABEL, type: 'input' },
-    { name: 'FieldDisplayOrder', message: QUESTION_FIELD_DISPLAY_ORDER, type: 'number', default: getDefaultValueForFieldDisplayOrder },
-    { name: 'DisplayContext', message: QUESTION_DISPLAY_CONTEXT, type: 'list', choices: DISPLAY_CONTEXT_OPTIONS },
-    { name: 'FieldShowCondition', message: QUESTION_FIELD_SHOW_CONDITION, type: 'input' }
+    { name: EventToComplexTypeKeys.ListElementCode, message: QUESTION_LIST_ELEMENT_CODE, type: 'input' },
+    { name: EventToComplexTypeKeys.EventElementLabel, message: QUESTION_EVENT_ELEMENT_LABEL, type: 'input' },
+    { name: EventToComplexTypeKeys.FieldDisplayOrder, message: QUESTION_FIELD_DISPLAY_ORDER, type: 'number', default: getDefaultValueForFieldDisplayOrder },
+    { name: EventToComplexTypeKeys.DisplayContext, message: QUESTION_DISPLAY_CONTEXT, type: 'list', choices: DISPLAY_CONTEXT_OPTIONS },
+    { name: EventToComplexTypeKeys.FieldShowCondition, message: QUESTION_FIELD_SHOW_CONDITION, type: 'input' },
+    { name: EventToComplexTypeKeys.EventHintText, message: QUESTION_HINT_TEXT, type: 'input' },
+    { name: EventToComplexTypeKeys.RetainHiddenValue, message: QUESTION_RETAIN_HIDDEN_VALUE, type: 'list', choices: YES_OR_NO }
   ], answers)
 
   const eventToComplexType = createNewEventToComplexType(answers)
