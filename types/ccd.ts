@@ -2,13 +2,13 @@ export interface CaseField {
   CaseTypeID: string
   ID: string
   Label: string
-  HintText?: string
-  FieldType?: string
-  FieldTypeParameter?: string
-  RegularExpression?: string
+  HintText: string
+  FieldType: string
+  FieldTypeParameter: string
+  RegularExpression: string
   SecurityClassification: 'Public'
-  Min?: number
-  Max?: number
+  Min: number
+  Max: number
 }
 
 export interface AuthorisationCaseField {
@@ -26,15 +26,15 @@ export interface CaseEventToField {
   PageID: number
   PageDisplayOrder: number
   PageFieldDisplayOrder: number
-  FieldShowCondition?: string
-  PageShowCondition?: string
-  RetainHiddenValue?: 'Yes' | 'No'
-  ShowSummaryChangeOption?: 'Y' | 'N'
-  CallBackURLMidEvent?: string
-  PageLabel?: string
-  PageColumnNumber?: number
-  ShowSummaryContentOption?: number
-  RetriesTimeoutURLMidEvent?: string
+  FieldShowCondition: string
+  PageShowCondition: string
+  RetainHiddenValue: 'Yes' | 'No'
+  ShowSummaryChangeOption: 'Y' | 'N'
+  CallBackURLMidEvent: string
+  PageLabel: string
+  PageColumnNumber: number
+  ShowSummaryContentOption: number
+  RetriesTimeoutURLMidEvent: string
 }
 
 export interface CaseEvent {
@@ -47,11 +47,11 @@ export interface CaseEvent {
   PostConditionState: string
   SecurityClassification: 'Public'
   EventEnablingCondition?: string
-  ShowEventNotes?: 'Y' | 'N'
-  ShowSummary?: 'Y' | 'N'
-  CallBackURLAboutToStartEvent?: string
-  CallBackURLAboutToSubmitEvent?: string
-  CallBackURLSubmittedEvent?: string
+  ShowEventNotes: 'Y' | 'N'
+  ShowSummary: 'Y' | 'N'
+  CallBackURLAboutToStartEvent: string
+  CallBackURLAboutToSubmitEvent: string
+  CallBackURLSubmittedEvent: string
 }
 
 export interface EventToComplexType {
@@ -60,11 +60,11 @@ export interface EventToComplexType {
   CaseFieldID: string
   ListElementCode: string
   EventElementLabel: string
-  EventHintText?: string
+  EventHintText: string
   FieldDisplayOrder: number
   DisplayContext: 'READONLY' | 'OPTIONAL' | 'MANDATORY'
-  FieldShowCondition?: string
-  RetainHiddenValue?: 'No' | 'Yes'
+  FieldShowCondition: string
+  RetainHiddenValue: 'No' | 'Yes'
 }
 
 export interface AuthorisationCaseEvent {
@@ -81,6 +81,16 @@ export interface Scrubbed {
   DisplayOrder: number
 }
 
+export interface CCDTypes {
+  AuthorisationCaseEvent: AuthorisationCaseEvent
+  AuthorisationCaseField: AuthorisationCaseField
+  CaseEvent: CaseEvent
+  CaseEventToFields: CaseEventToField
+  CaseField: CaseField
+  EventToComplexTypes: EventToComplexType
+  Scrubbed: Scrubbed
+}
+
 export type CompoundKeys<T> = {
   [P in keyof T]: Array<keyof T[P]>
 }
@@ -91,14 +101,12 @@ export type CCDSheets<T> = {
 
 export type ConfigSheets = CCDSheets<CCDTypes>
 
-export interface CCDTypes {
-  AuthorisationCaseEvent: AuthorisationCaseEvent
-  AuthorisationCaseField: AuthorisationCaseField
-  CaseEvent: CaseEvent
-  CaseEventToFields: CaseEventToField
-  CaseField: CaseField
-  EventToComplexTypes: EventToComplexType
-  Scrubbed: Scrubbed
+export type AllCCDKeys = Partial<AllObjectKeys<CCDTypes>>
+
+type KeyOfAll<T> = T extends T ? keyof T : never
+type UnionValue<T, K extends PropertyKey> = T extends Record<K, infer V> ? V : never
+type AllObjectKeys<T> = {
+  [P in KeyOfAll<T[keyof T]>]: UnionValue<T[keyof T], P>
 }
 
 // Use these enums when referencing keys, they shouldn't change in CCD but it does provide some type safety
@@ -202,11 +210,3 @@ export function createNewConfigSheets(): ConfigSheets {
     return acc
   }, {}) as ConfigSheets
 }
-
-type KeyOfAll<T> = T extends T ? keyof T : never
-
-type AllObjectKeys<T> = {
-  [P in KeyOfAll<T[keyof T]>]: any
-}
-
-export type AllCCDKeys = Partial<AllObjectKeys<CCDTypes>>

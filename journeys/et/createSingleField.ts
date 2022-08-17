@@ -2,7 +2,7 @@ import { prompt } from 'inquirer'
 import { addToLastAnswers, session } from 'app/session'
 import { CaseEventKeys, CaseEventToFieldKeys, CaseFieldKeys } from 'types/ccd'
 import { Answers, askBasicFreeEntry, askCaseTypeID, fuzzySearch } from 'app/questions'
-import { CUSTOM, DISPLAY_CONTEXT_OPTIONS, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, NONE, Y_OR_N } from 'app/constants'
+import { CUSTOM, DISPLAY_CONTEXT_OPTIONS, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, NONE, YES_OR_NO, Y_OR_N } from 'app/constants'
 import { addToInMemoryConfig, createCaseFieldAuthorisations, getCaseEventIDOpts, getKnownCaseFieldTypeParameters, getKnownCaseFieldTypes, getNextPageFieldIDForPage } from 'app/et/configs'
 import { addOnDuplicateQuestion } from './manageDuplicateField'
 import { createNewCaseEventToField, createNewCaseField, trimCaseEventToField, trimCaseField } from 'app/ccd'
@@ -18,10 +18,10 @@ const QUESTION_PAGE_ID = 'What page will this field appear on?'
 const QUESTION_PAGE_FIELD_DISPLAY_ORDER = 'Whats the PageFieldDisplayOrder for this field?'
 export const QUESTION_FIELD_SHOW_CONDITION = 'Enter a field show condition string (optional)'
 const QUESTION_CASE_EVENT_ID = 'What event does this new field belong to?'
-const QUESTION_FIELD_TYPE_PARAMETER = "What's the parameter for this {0} field?"
-const QUESTION_FIELD_TYPE = "What's the type of this field?"
-const QUESTION_FIELD_TYPE_CUSTOM = "What's the name of the FieldType?"
-const QUESTION_HINT_TEXT = 'What HintText should this field have? (optional)'
+const QUESTION_FIELD_TYPE_PARAMETER = 'What\'s the parameter for this {0} field?'
+const QUESTION_FIELD_TYPE = 'What\'s the type of this field?'
+const QUESTION_FIELD_TYPE_CUSTOM = 'What\'s the name of the FieldType?'
+export const QUESTION_HINT_TEXT = 'What HintText should this field have? (optional)'
 const QUESTION_DISPLAY_CONTEXT = 'Is this field READONLY, OPTIONAL, MANDATORY or COMPLEX?'
 const QUESTION_SHOW_SUMMARY_CHANGE_OPTION = 'Should this field appear on the CYA page?'
 const QUESTION_MIN = 'Enter a min for this field (optional)'
@@ -30,6 +30,7 @@ const QUESTION_PAGE_LABEL = 'Does this page have a custom title? (optional)'
 const QUESTION_PAGE_SHOW_CONDITION = 'Enter a page show condition string (optional)'
 const QUESTION_CALLBACK_URL_MID_EVENT = 'Enter the callback url to hit before loading the next page (optional)'
 const QUESTION_REGULAR_EXPRESSION = 'Do we need a RegularExpression for the field?'
+export const QUESTION_RETAIN_HIDDEN_VALUE = 'Should the field retain its value when hidden?'
 
 export async function createSingleField(answers: Answers = {}) {
   answers = await askBasic(answers)
@@ -94,7 +95,7 @@ export function getDefaultForPageFieldDisplayOrder(answers: Answers = {}) {
     )
   }
   if (session.lastAnswers[pageID] && session.lastAnswers[pageFieldDisplayOrder] && answers[pageID] === session.lastAnswers[pageID]) {
-    return (session.lastAnswers[pageFieldDisplayOrder] as number) + 1
+    return session.lastAnswers[pageFieldDisplayOrder] + 1
   }
   return 1
 }
@@ -213,6 +214,7 @@ export async function askFirstOnPageQuestions(answers: Answers = {}) {
   return await prompt([
     { name: CaseEventToFieldKeys.PageLabel, message: QUESTION_PAGE_LABEL, type: 'input' },
     { name: CaseEventToFieldKeys.PageShowCondition, message: QUESTION_PAGE_SHOW_CONDITION, type: 'input' },
+    { name: CaseEventToFieldKeys.RetainHiddenValue, message: QUESTION_RETAIN_HIDDEN_VALUE, type: 'list', choices: YES_OR_NO },
     { name: CaseEventToFieldKeys.CallBackURLMidEvent, message: QUESTION_CALLBACK_URL_MID_EVENT, type: 'input' }
   ], answers)
 }
