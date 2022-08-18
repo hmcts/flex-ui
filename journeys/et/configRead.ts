@@ -1,5 +1,5 @@
 import { Journey } from 'types/journey'
-import { getReadTime, readInCurrentConfig } from 'app/et/configs'
+import { getReadTime, loadCurrentSessionIntoMemory, readInCurrentConfig } from 'app/et/configs'
 import { formatMsSpanNearestUnit } from '@spacepumpkin/format-timespan'
 import { restorePreviousSession, session, SESSION_EXT } from 'app/session'
 
@@ -19,6 +19,7 @@ function readConfig() {
   readInCurrentConfig()
   // Reload the session to sync up in-memory config with session data
   restorePreviousSession(session.name + SESSION_EXT)
+  loadCurrentSessionIntoMemory()
 }
 
 export default {
