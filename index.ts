@@ -9,8 +9,10 @@ import { ensurePathExists, format, getFiles, getIdealSizeForInquirer } from 'app
 import { cleanupEmptySessions, saveSession, session, SESSION_DIR } from 'app/session'
 import { DIST_JOURNEY_DIR } from 'app/constants'
 import { Journey } from 'types/journey'
+import { resolve } from 'path'
 
 envConfig()
+process.env.APP_ROOT = resolve(__dirname)
 registerPrompt('autocomplete', autocomplete)
 
 /**
@@ -150,5 +152,7 @@ async function start() {
   }
   console.log('Bye!')
 }
+
+console.log(process.env.APP_ROOT)
 
 void start()
