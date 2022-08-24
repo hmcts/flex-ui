@@ -173,7 +173,8 @@ export function getUniqueByKeyAsArray<T>(arr: T[], key: keyof (T)) {
 /** Clears the current terminal line and writes a new message with no ending newline */
 export function temporaryLog(message: string) {
   clearCurrentLine()
-  process.stdout.write(`${new Date().toLocaleTimeString()} || ${message}`)
+  const msgNoNewLine = message.replace(/\n/g, '').substring(0, process.stdout.columns - 15)
+  process.stdout.write(`${new Date().toLocaleTimeString()} || ${msgNoNewLine}`)
 }
 
 /** Clears the current line by sending a special character command */
