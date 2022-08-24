@@ -194,15 +194,17 @@ export enum ScrubbedKeys {
   DisplayOrder = 'DisplayOrder',
 }
 
-export const sheets: Array<keyof (ConfigSheets)> = [
-  'AuthorisationCaseEvent',
-  'AuthorisationCaseField',
-  'CaseEvent',
-  'CaseEventToFields',
-  'CaseField',
-  'EventToComplexTypes',
-  'Scrubbed'
-]
+const sheetsObj: CCDTypes = {
+  CaseEvent: null,
+  CaseEventToFields: null,
+  CaseField: null,
+  EventToComplexTypes: null,
+  AuthorisationCaseEvent: null,
+  AuthorisationCaseField: null,
+  Scrubbed: null
+}
+
+export const sheets = Object.keys(sheetsObj) as Array<keyof (CCDTypes)>
 
 export function createNewConfigSheets(): ConfigSheets {
   return sheets.reduce((acc, obj) => {
