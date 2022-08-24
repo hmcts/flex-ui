@@ -81,12 +81,30 @@ export interface Scrubbed {
   DisplayOrder: number
 }
 
+export interface ComplexType {
+  ID: string
+  ListElementCode: string
+  FieldType: string
+  ElementLabel: string
+  FieldTypeParameter: string
+  FieldShowCondition: string
+  RetainHiddenValue: 'No' | 'Yes'
+  DisplayContextParameter: string
+  SecurityClassification: 'Public'
+  Min: number
+  Max: number
+  RegularExpression: string
+  DisplayOrder: number
+  HintText: string
+}
+
 export interface CCDTypes {
   AuthorisationCaseEvent: AuthorisationCaseEvent
   AuthorisationCaseField: AuthorisationCaseField
   CaseEvent: CaseEvent
   CaseEventToFields: CaseEventToField
   CaseField: CaseField
+  ComplexTypes: ComplexType
   EventToComplexTypes: EventToComplexType
   Scrubbed: Scrubbed
 }
@@ -194,15 +212,35 @@ export enum ScrubbedKeys {
   DisplayOrder = 'DisplayOrder',
 }
 
-export const sheets: Array<keyof (ConfigSheets)> = [
-  'AuthorisationCaseEvent',
-  'AuthorisationCaseField',
-  'CaseEvent',
-  'CaseEventToFields',
-  'CaseField',
-  'EventToComplexTypes',
-  'Scrubbed'
-]
+export enum ComplexTypeKeys {
+  ID = 'ID',
+  ListElementCode = 'ListElementCode',
+  FieldType = 'FieldType',
+  ElementLabel = 'ElementLabel',
+  FieldTypeParameter = 'FieldTypeParameter',
+  FieldShowCondition = 'FieldShowCondition',
+  RetainHiddenValue = 'RetainHiddenValue',
+  DisplayContextParameter = 'DisplayContextParameter',
+  SecurityClassification = 'SecurityClassification',
+  Min = 'Min',
+  Max = 'Max',
+  RegularExpression = 'RegularExpression',
+  DisplayOrder = 'DisplayOrder',
+  HintText = 'HintText',
+}
+
+const sheetsObj: CCDTypes = {
+  CaseEvent: null,
+  CaseEventToFields: null,
+  CaseField: null,
+  ComplexTypes: null,
+  EventToComplexTypes: null,
+  AuthorisationCaseEvent: null,
+  AuthorisationCaseField: null,
+  Scrubbed: null
+}
+
+export const sheets = Object.keys(sheetsObj) as Array<keyof (CCDTypes)>
 
 export function createNewConfigSheets(): ConfigSheets {
   return sheets.reduce((acc, obj) => {

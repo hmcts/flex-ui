@@ -2,7 +2,7 @@ import { prompt } from 'inquirer'
 import { addToLastAnswers, session } from 'app/session'
 import { CaseEventKeys, CaseEventToFieldKeys, CaseFieldKeys } from 'types/ccd'
 import { Answers, askBasicFreeEntry, askCaseTypeID, fuzzySearch } from 'app/questions'
-import { CUSTOM, DISPLAY_CONTEXT_OPTIONS, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, NONE, YES_OR_NO, Y_OR_N } from 'app/constants'
+import { CUSTOM, DISPLAY_CONTEXT_OPTIONS, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, isFieldTypeInExclusionList, NONE, YES_OR_NO, Y_OR_N } from 'app/constants'
 import { addToInMemoryConfig, createCaseFieldAuthorisations, getCaseEventIDOpts, getKnownCaseFieldTypeParameters, getKnownCaseFieldTypes, getNextPageFieldIDForPage } from 'app/et/configs'
 import { addOnDuplicateQuestion } from './manageDuplicateField'
 import { createNewCaseEventToField, createNewCaseField, trimCaseEventToField, trimCaseField } from 'app/ccd'
@@ -59,6 +59,10 @@ export async function createSingleField(answers: Answers = {}) {
     answers = await askMinAndMax(answers)
   }
 
+  if (answers[CaseEventToFieldKeys.FieldShowCondition]) {
+    answers = await askRetainHiddenValue(answers)
+  }
+
   addToLastAnswers(answers)
 
   const caseField = createNewCaseField(answers)
@@ -75,13 +79,6 @@ export async function createSingleField(answers: Answers = {}) {
   await addOnDuplicateQuestion(answers as { CaseTypeID: string, ID: string })
 
   return answers.ID
-}
-
-/**
- * Checks if a given field type is in the exclusion list provided
- */
-function isFieldTypeInExclusionList(fieldType: string, exclusionList: string[]) {
-  return exclusionList.includes(fieldType)
 }
 
 export function getDefaultForPageFieldDisplayOrder(answers: Answers = {}) {
@@ -150,7 +147,7 @@ export async function askCaseEvent(answers: Answers = {}, message?: string) {
   return answers
 }
 
-async function askFieldTypeParameter(answers: Answers = {}) {
+export async function askFieldTypeParameter(answers: Answers = {}) {
   const opts = getKnownCaseFieldTypeParameters()
   const key = CaseFieldKeys.FieldTypeParameter
   answers = await prompt([
@@ -172,7 +169,7 @@ async function askFieldTypeParameter(answers: Answers = {}) {
   return answers
 }
 
-async function askFieldType(answers: Answers = {}) {
+export async function askFieldType(answers: Answers = {}) {
   const opts = getKnownCaseFieldTypes()
   const key = CaseFieldKeys.FieldType
   answers = await prompt([
@@ -214,14 +211,19 @@ export async function askFirstOnPageQuestions(answers: Answers = {}) {
   return await prompt([
     { name: CaseEventToFieldKeys.PageLabel, message: QUESTION_PAGE_LABEL, type: 'input' },
     { name: CaseEventToFieldKeys.PageShowCondition, message: QUESTION_PAGE_SHOW_CONDITION, type: 'input' },
-    { name: CaseEventToFieldKeys.RetainHiddenValue, message: QUESTION_RETAIN_HIDDEN_VALUE, type: 'list', choices: YES_OR_NO },
     { name: CaseEventToFieldKeys.CallBackURLMidEvent, message: QUESTION_CALLBACK_URL_MID_EVENT, type: 'input' }
   ], answers)
 }
 
-async function askForRegularExpression(answers: Answers = {}) {
+export async function askForRegularExpression(answers: Answers = {}) {
   return await prompt([
     { name: CaseFieldKeys.RegularExpression, message: QUESTION_REGULAR_EXPRESSION, type: 'input' }
+  ], answers)
+}
+
+export async function askRetainHiddenValue(answers: Answers = {}) {
+  return await prompt([
+    { name: CaseEventToFieldKeys.RetainHiddenValue, message: QUESTION_RETAIN_HIDDEN_VALUE, type: 'list', choices: YES_OR_NO }
   ], answers)
 }
 

@@ -83,6 +83,7 @@ export function getObjectsReferencedByCaseFields(config: ConfigSheets, caseField
   const refScrubbed = config.Scrubbed.filter(o => refCaseFields.find(x => x.FieldTypeParameter === o.ID))
   const refAuthCaseField = config.AuthorisationCaseField.filter(o => refCaseFields.find(x => x.ID === o.CaseFieldID))
   const refAuthCaseEvent = config.AuthorisationCaseEvent.filter(o => refCaseEvents.find(x => x.ID === o.CaseEventID))
+  const refComplexType = config.ComplexTypes.filter(o => refCaseFields.find(x => x.ID === o.ID))
 
   return {
     AuthorisationCaseEvent: refAuthCaseEvent,
@@ -90,6 +91,7 @@ export function getObjectsReferencedByCaseFields(config: ConfigSheets, caseField
     CaseField: refCaseFields,
     CaseEvent: refCaseEvents,
     CaseEventToFields: refCaseEventToField,
+    ComplexTypes: refComplexType,
     Scrubbed: refScrubbed,
     EventToComplexTypes: refEventToComplexTypes
   }

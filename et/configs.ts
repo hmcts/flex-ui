@@ -121,6 +121,13 @@ export function getKnownCaseFieldIDs() {
 }
 
 /**
+ * Get all defined ComplexType IDs in englandwales and scotland configs
+ */
+export function getKnownComplexIDs() {
+  return getUniqueByKeyAsArray([...englandwales.ComplexTypes, ...scotland.ComplexTypes], 'ID')
+}
+
+/**
  * Gets the highest PageFieldDisplayOrder number from fields on a certain page
  */
 export function getNextPageFieldIDForPage(caseTypeID: string, caseEventID: string, pageID: number) {
@@ -261,6 +268,11 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
 
   upsertFields(englandwales.EventToComplexTypes, fields.EventToComplexTypes, COMPOUND_KEYS.EventToComplexTypes)
 
+  // Insert after (next to) other objects of the same ID, or insert at the end if the ID doesn't exist yet
+  upsertFields(englandwales.ComplexTypes, fields.ComplexTypes, COMPOUND_KEYS.ComplexTypes,
+    (x, arr) => findLastIndex(arr, o => o.ID === x.ID) + 1
+  )
+
   upsertFields(scotland.CaseField, scCaseFields, COMPOUND_KEYS.CaseField,
     (x, arr) => findLastIndex(arr, o => o.CaseTypeID === x.CaseTypeID) + 1
   )
@@ -276,12 +288,18 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
 
   upsertFields(scotland.EventToComplexTypes, fields.EventToComplexTypes, COMPOUND_KEYS.EventToComplexTypes)
 
+  // Insert after (next to) other objects of the same ID, or insert at the end if the ID doesn't exist yet
+  upsertFields(scotland.ComplexTypes, fields.ComplexTypes, COMPOUND_KEYS.ComplexTypes,
+    (x, arr) => findLastIndex(arr, o => o.ID === x.ID) + 1
+  )
+
   addToSession({
     AuthorisationCaseField: ewAuthorisationCaseFields,
     CaseField: ewCaseFields,
     CaseEventToFields: ewCaseEventToFields,
     AuthorisationCaseEvent: ewAuthorisationCaseEvents,
-    EventToComplexTypes: fields.EventToComplexTypes
+    EventToComplexTypes: fields.EventToComplexTypes,
+    ComplexTypes: fields.ComplexTypes
   })
 
   addToSession({
@@ -289,7 +307,8 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
     CaseField: scCaseFields,
     CaseEventToFields: scCaseEventToFields,
     AuthorisationCaseEvent: scAuthorisationCaseEvents,
-    EventToComplexTypes: fields.EventToComplexTypes
+    EventToComplexTypes: fields.EventToComplexTypes,
+    ComplexTypes: fields.ComplexTypes
   })
 }
 
