@@ -48,6 +48,7 @@ export const COMPOUND_KEYS: CompoundKeys<CCDTypes> = {
   CaseEvent: ['ID', 'CaseTypeID'],
   CaseEventToFields: ['CaseFieldID', 'CaseEventID', 'CaseTypeID'],
   CaseField: ['ID', 'CaseTypeID'],
+  CaseTypeTab: ['CaseTypeID', 'Channel', 'TabID', 'CaseFieldID'],
   ComplexTypes: ['ID', 'ListElementCode'],
   EventToComplexTypes: ['ID', 'CaseEventID', 'CaseFieldID', 'ListElementCode'],
   Scrubbed: ['ID', 'ListElementCode']

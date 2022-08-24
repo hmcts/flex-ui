@@ -98,12 +98,26 @@ export interface ComplexType {
   HintText: string
 }
 
+export interface CaseTypeTab {
+  CaseTypeID: string
+  Channel: string
+  TabID: string
+  TabLabel: string
+  TabDisplayOrder: number
+  CaseFieldID: string
+  TabFieldDisplayOrder: number
+  FieldShowCondition: string
+  TabShowCondition: string
+  DisplayContextParameter: string
+}
+
 export interface CCDTypes {
   AuthorisationCaseEvent: AuthorisationCaseEvent
   AuthorisationCaseField: AuthorisationCaseField
   CaseEvent: CaseEvent
   CaseEventToFields: CaseEventToField
   CaseField: CaseField
+  CaseTypeTab: CaseTypeTab
   ComplexTypes: ComplexType
   EventToComplexTypes: EventToComplexType
   Scrubbed: Scrubbed
@@ -229,6 +243,19 @@ export enum ComplexTypeKeys {
   HintText = 'HintText',
 }
 
+export enum CaseTypeTabLeys {
+  CaseTypeID = 'CaseTypeID',
+  Channel = 'Channel',
+  TabID = 'TabID',
+  TabLabel = 'TabLabel',
+  TabDisplayOrder = 'TabDisplayOrder',
+  CaseFieldID = 'CaseFieldID',
+  TabFieldDisplayOrder = 'TabFieldDisplayOrder',
+  FieldShowCondition = 'FieldShowCondition',
+  TabShowCondition = 'TabShowCondition',
+  DisplayContextParameter = 'DisplayContextParameter'
+}
+
 const sheetsObj: CCDTypes = {
   CaseEvent: null,
   CaseEventToFields: null,
@@ -237,7 +264,8 @@ const sheetsObj: CCDTypes = {
   EventToComplexTypes: null,
   AuthorisationCaseEvent: null,
   AuthorisationCaseField: null,
-  Scrubbed: null
+  Scrubbed: null,
+  CaseTypeTab: null
 }
 
 export const sheets = Object.keys(sheetsObj) as Array<keyof (CCDTypes)>
