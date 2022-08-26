@@ -243,7 +243,7 @@ export enum ComplexTypeKeys {
   HintText = 'HintText',
 }
 
-export enum CaseTypeTabLeys {
+export enum CaseTypeTabKeys {
   CaseTypeID = 'CaseTypeID',
   Channel = 'Channel',
   TabID = 'TabID',

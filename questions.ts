@@ -1,40 +1,18 @@
 import { prompt } from 'inquirer'
-import { CUSTOM } from 'app/constants'
+import { CUSTOM, YES_OR_NO } from 'app/constants'
 import { session } from 'app/session'
 import fuzzy from 'fuzzy'
-import { AllCCDKeys, CaseFieldKeys } from 'types/ccd'
-import { getKnownCaseTypeIDs } from 'app/et/configs'
+import { AllCCDKeys, CaseEventToFieldKeys, CaseFieldKeys } from 'types/ccd'
 import { getIdealSizeForInquirer } from 'app/helpers'
 
+const QUESTION_REGULAR_EXPRESSION = 'Do we need a RegularExpression for the field?'
+export const QUESTION_RETAIN_HIDDEN_VALUE = 'Should the field retain its value when hidden?'
+const QUESTION_MIN = 'Enter a min for this field (optional)'
+const QUESTION_MAX = 'Enter a max for this field (optional)'
+const QUESTION_PAGE_ID = 'What page will this appear on?'
+const QUESTION_PAGE_FIELD_DISPLAY_ORDER = 'Whats the PageFieldDisplayOrder for this?'
+
 export type Answers = AllCCDKeys & Record<string, unknown>
-
-/**
- * Asks the user for a CaseTypeID. Allows for creation if <custom> is selected.
- * @returns extended answers object as passed in
- */
-export async function askCaseTypeID(answers: Answers = {}) {
-  const opts = getKnownCaseTypeIDs()
-  const key = CaseFieldKeys.CaseTypeID
-
-  answers = await prompt([
-    {
-      name: key,
-      message: 'Select the CaseTypeID',
-      type: 'autocomplete',
-      source: (_answers: unknown, input: string) => fuzzySearch([CUSTOM, ...opts], input),
-      default: session.lastAnswers[key],
-      pageSize: getIdealSizeForInquirer()
-    }
-  ], answers)
-
-  if (answers[key] === CUSTOM) {
-    const newEventTypeAnswers = await askBasicFreeEntry({}, key, 'Enter a custom value for CaseTypeID')
-    answers[key] = newEventTypeAnswers[key]
-    // TODO: There's no support for CaseType.json yet so theres no flow to create one. But we could...
-  }
-
-  return answers
-}
 
 /**
  * Asks for generic input selecting from a list
@@ -74,4 +52,49 @@ export async function askBasicFreeEntry(answers: Answers = {}, name: string, mes
  */
 export function fuzzySearch(choices: string[], input = '') {
   return fuzzy.filter(input, [...choices].sort()).map((el) => el.original)
+}
+
+export async function askForRegularExpression(answers: Answers = {}, key?: string, message?: string, defaultValue?: string) {
+  return await prompt([{
+    name: key || CaseFieldKeys.RegularExpression,
+    message: message || QUESTION_REGULAR_EXPRESSION,
+    type: 'input',
+    default: defaultValue || session.lastAnswers[key] || session.lastAnswers.RegularExpression
+  }
+  ], answers)
+}
+
+export async function askRetainHiddenValue(answers: Answers = {}, key?: string, message?: string) {
+  return await prompt([{
+    name: key || CaseEventToFieldKeys.RetainHiddenValue,
+    message: message || QUESTION_RETAIN_HIDDEN_VALUE,
+    type: 'list',
+    choices: YES_OR_NO
+  }
+  ], answers)
+}
+
+export async function askMinAndMax(answers: Answers = {}) {
+  return await prompt([
+    { name: CaseFieldKeys.Min, message: QUESTION_MIN },
+    { name: CaseFieldKeys.Max, message: QUESTION_MAX }
+  ], answers)
+}
+
+export async function askForPageID(answers: Answers = {}, key?: string, message?: string, defaultValue?: number) {
+  return await prompt([{
+    name: key || CaseEventToFieldKeys.PageID,
+    message: message || QUESTION_PAGE_ID,
+    type: 'number',
+    default: defaultValue || session.lastAnswers.PageID || 1
+  }], answers)
+}
+
+export async function askForPageFieldDisplayOrder(answers: Answers = {}, key?: string, message?: string, defaultValue?: number) {
+  return await prompt([{
+    name: key || CaseEventToFieldKeys.PageFieldDisplayOrder,
+    message: message || QUESTION_PAGE_FIELD_DISPLAY_ORDER,
+    type: 'number',
+    default: defaultValue
+  }], answers)
 }

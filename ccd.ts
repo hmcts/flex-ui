@@ -1,4 +1,4 @@
-import { AllCCDKeys, AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, ComplexType, EventToComplexType } from 'types/ccd'
+import { AllCCDKeys, AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, CaseTypeTab, ComplexType, EventToComplexType } from 'types/ccd'
 
 /**
  * Conditionally prepends ${ET_COS_URL} onto url if it starts with '/'
@@ -132,6 +132,21 @@ export function createNewComplexType(answers?: AllCCDKeys): ComplexType {
     RegularExpression: answers.RegularExpression,
     DisplayOrder: answers?.DisplayOrder || undefined,
     HintText: answers?.HintText
+  }
+}
+
+export function createNewCaseTypeTab(answers?: AllCCDKeys): CaseTypeTab {
+  return {
+    CaseFieldID: answers?.CaseFieldID || '',
+    CaseTypeID: answers?.CaseTypeID || '',
+    Channel: answers?.Channel || '',
+    DisplayContextParameter: answers?.DisplayContextParameter || '',
+    TabShowCondition: answers?.TabShowCondition || '',
+    FieldShowCondition: answers?.FieldShowCondition || '',
+    TabDisplayOrder: answers?.TabDisplayOrder || 1,
+    TabID: answers?.TabID || '',
+    TabLabel: answers?.TabLabel || '',
+    TabFieldDisplayOrder: answers?.TabFieldDisplayOrder || 1
   }
 }
 

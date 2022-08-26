@@ -1,13 +1,14 @@
 import { prompt } from 'inquirer'
 import { CaseFieldKeys, ComplexTypeKeys } from 'types/ccd'
-import { QUESTION_HINT_TEXT, askFieldType, askForRegularExpression, askMinAndMax, askFieldTypeParameter, askRetainHiddenValue } from './createSingleField'
+import { QUESTION_HINT_TEXT } from './createSingleField'
 import { createNewComplexType } from 'app/ccd'
 import { addToInMemoryConfig, getKnownComplexIDs } from 'app/et/configs'
-import { Answers, askBasicFreeEntry, fuzzySearch } from 'app/questions'
+import { Answers, askBasicFreeEntry, askForRegularExpression, askMinAndMax, askRetainHiddenValue, fuzzySearch } from 'app/questions'
 import { CUSTOM, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, isFieldTypeInExclusionList } from 'app/constants'
 import { session } from 'app/session'
 import { Journey } from 'types/journey'
 import { getIdealSizeForInquirer } from 'app/helpers'
+import { askFieldType, askFieldTypeParameter } from 'app/et/questions'
 
 const QUESTION_ID = "What's the ID of this EventToComplexType?"
 const QUESTION_LIST_ELEMENT_CODE = 'What\'s the ListElementCode for this?'
