@@ -32,10 +32,18 @@ const QUESTION_CALLBACK_URL_MID_EVENT = 'Enter the callback url to hit before lo
 const QUESTION_REGULAR_EXPRESSION = 'Do we need a RegularExpression for the field?'
 export const QUESTION_RETAIN_HIDDEN_VALUE = 'Should the field retain its value when hidden?'
 
+function shouldAskEventQuestions(answers: Answers) {
+  return answers[CaseEventToFieldKeys.CaseEventID] !== NONE
+}
+
 export async function createSingleField(answers: Answers = {}) {
   answers = await askBasic(answers)
 
-  answers = await askForPageIDAndDisplayOrder(answers)
+  const askEvent = answers[CaseEventToFieldKeys.CaseEventID] !== NONE
+
+  if (askEvent) {
+    answers = await askForPageIDAndDisplayOrder(answers)
+  }
 
   answers = await askFieldType(answers)
 
@@ -47,7 +55,7 @@ export async function createSingleField(answers: Answers = {}) {
     answers = await askNonLabelQuestions(answers)
   }
 
-  if (answers[CaseEventToFieldKeys.PageFieldDisplayOrder] === 1) {
+  if (askEvent && answers[CaseEventToFieldKeys.PageFieldDisplayOrder] === 1) {
     answers = await askFirstOnPageQuestions(answers)
   }
 
@@ -59,20 +67,20 @@ export async function createSingleField(answers: Answers = {}) {
     answers = await askMinAndMax(answers)
   }
 
-  if (answers[CaseEventToFieldKeys.FieldShowCondition]) {
+  if (askEvent && answers[CaseEventToFieldKeys.FieldShowCondition]) {
     answers = await askRetainHiddenValue(answers)
   }
 
   addToLastAnswers(answers)
 
   const caseField = createNewCaseField(answers)
-  const caseEventToField = createNewCaseEventToField(answers)
+  const caseEventToField = askEvent ? createNewCaseEventToField(answers) : undefined
   const authorisations = createCaseFieldAuthorisations(answers.CaseTypeID, answers.ID)
 
   addToInMemoryConfig({
     AuthorisationCaseField: authorisations,
     CaseField: [trimCaseField(caseField)],
-    CaseEventToFields: [trimCaseEventToField(caseEventToField)]
+    CaseEventToFields: askEvent ? [trimCaseEventToField(caseEventToField)] : []
   })
 
   doDuplicateCaseField(answers.CaseTypeID, answers.ID, answers.CaseTypeID)
@@ -99,13 +107,13 @@ export function getDefaultForPageFieldDisplayOrder(answers: Answers = {}) {
 
 async function askBasic(answers: Answers = {}) {
   answers = await askCaseTypeID(answers)
-  answers = await askCaseEvent(answers)
+  answers = await askCaseEvent(answers, undefined, true)
 
   return await prompt(
     [
       { name: CaseFieldKeys.ID, message: QUESTION_ID, type: 'input', default: 'id' },
       { name: CaseFieldKeys.Label, message: QUESTION_LABEL, type: 'input', default: 'text' },
-      { name: CaseEventToFieldKeys.FieldShowCondition, message: QUESTION_FIELD_SHOW_CONDITION, type: 'input' }
+      { name: CaseEventToFieldKeys.FieldShowCondition, message: QUESTION_FIELD_SHOW_CONDITION, type: 'input', when: shouldAskEventQuestions }
     ], answers
   )
 }
@@ -126,15 +134,19 @@ export async function askForPageIDAndDisplayOrder(answers: Answers = {}) {
   }], answers)
 }
 
-export async function askCaseEvent(answers: Answers = {}, message?: string) {
+export async function askCaseEvent(answers: Answers = {}, message?: string, allowNone = false) {
   const opts = getCaseEventIDOpts()
   const key = CaseEventToFieldKeys.CaseEventID
+  const choices = [CUSTOM, ...opts]
+  if (allowNone) {
+    choices.splice(0, 0, NONE)
+  }
   answers = await prompt([
     {
       name: key,
       message: message || QUESTION_CASE_EVENT_ID,
       type: 'autocomplete',
-      source: (_answers: unknown, input: string) => fuzzySearch([CUSTOM, ...opts], input),
+      source: (_answers: unknown, input: string) => fuzzySearch(choices, input),
       default: session.lastAnswers[key],
       pageSize: getIdealSizeForInquirer()
     }
@@ -196,7 +208,7 @@ async function askNonLabelQuestions(answers: Answers = {}) {
   return await prompt([
     { name: CaseFieldKeys.HintText, message: QUESTION_HINT_TEXT, type: 'input' },
     { name: CaseEventToFieldKeys.DisplayContext, message: QUESTION_DISPLAY_CONTEXT, type: 'list', choices: DISPLAY_CONTEXT_OPTIONS, default: DISPLAY_CONTEXT_OPTIONS[1] },
-    { name: CaseEventToFieldKeys.ShowSummaryChangeOption, message: QUESTION_SHOW_SUMMARY_CHANGE_OPTION, type: 'list', choices: Y_OR_N, default: 'Y' }
+    { name: CaseEventToFieldKeys.ShowSummaryChangeOption, message: QUESTION_SHOW_SUMMARY_CHANGE_OPTION, type: 'list', choices: Y_OR_N, default: 'Y', when: shouldAskEventQuestions }
   ], answers)
 }
 
