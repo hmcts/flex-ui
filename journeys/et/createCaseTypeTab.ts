@@ -15,6 +15,6 @@ async function createCaseTypeTab() {
 
 export default {
   group: 'et-create',
-  text: 'Create Template',
+  text: 'Create CaseTypeTab',
   fn: createCaseTypeTab
 } as Journey
