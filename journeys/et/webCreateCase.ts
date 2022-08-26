@@ -1,8 +1,17 @@
 import { Journey } from 'types/journey'
 import fetch, { RequestInit } from 'node-fetch'
 import { resolve } from 'path'
+import { prompt } from 'inquirer'
 
 const IDAM_LOGIN_START_URL = 'http://localhost:3455/auth/login'
+
+async function askQuestions() {
+  const answers = await prompt([
+    { name: 'region', message: 'What region are we creating for?', type: 'list', choices: ['ET_EnglandWales', 'ET_Scotland'] }
+  ])
+
+  await createNewCase(answers.region)
+}
 
 async function getInitialLoginUrl() {
   const res = await fetch(IDAM_LOGIN_START_URL, { redirect: 'manual' })
@@ -120,15 +129,15 @@ async function makeAuthorisedRequest(url: string, cookieJar: Record<string, stri
   return res
 }
 
-export async function createNewCase() {
+export async function createNewCase(region: string) {
   const cookieJar = await loginToIdam()
-  const eventToken = await createCaseInit(cookieJar)
+  const eventToken = await createCaseInit(cookieJar, region)
 
-  await createCasePages(eventToken, cookieJar)
+  await createCasePages(eventToken, cookieJar, region)
 }
 
-async function createCaseInit(cookieJar: Record<string, string>) {
-  const url = 'http://localhost:3455/data/internal/case-types/ET_EnglandWales/event-triggers/initiateCase?ignore-warning=false'
+async function createCaseInit(cookieJar: Record<string, string>, region = 'ET_EnglandWales') {
+  const url = `http://localhost:3455/data/internal/case-types/${region}/event-triggers/initiateCase?ignore-warning=false`
 
   const res = await makeAuthorisedRequest(url, cookieJar)
   const json = await res.json()
@@ -136,36 +145,36 @@ async function createCaseInit(cookieJar: Record<string, string>) {
   return json.event_token
 }
 
-async function createCasePages(eventToken: string, cookieJar: Record<string, string>) {
-  const jsons: Record<string, any> = {
-    initiateCase1: require(resolve(process.env.APP_ROOT, '../et/resources/initiateCase1.json')),
-    initiateCase2: require(resolve(process.env.APP_ROOT, '../et/resources/initiateCase2.json')),
-    initiateCase3: require(resolve(process.env.APP_ROOT, '../et/resources/initiateCase3.json')),
-    initiateCase4: require(resolve(process.env.APP_ROOT, '../et/resources/initiateCase4.json')),
-    initiateCase7: require(resolve(process.env.APP_ROOT, '../et/resources/initiateCase7.json')),
-    initiateCase8: require(resolve(process.env.APP_ROOT, '../et/resources/initiateCase8.json')),
-    initiateCase9: require(resolve(process.env.APP_ROOT, '../et/resources/initiateCase9.json'))
-  }
+async function createCasePages(eventToken: string, cookieJar: Record<string, string>, region: string) {
+  // const jsons: Record<string, any> = {
+  //   initiateCase1: require(resolve(process.env.APP_ROOT, '../et/resources/initiateCase1.json')),
+  //   initiateCase2: require(resolve(process.env.APP_ROOT, '../et/resources/initiateCase2.json')),
+  //   initiateCase3: require(resolve(process.env.APP_ROOT, '../et/resources/initiateCase3.json')),
+  //   initiateCase4: require(resolve(process.env.APP_ROOT, '../et/resources/initiateCase4.json')),
+  //   initiateCase7: require(resolve(process.env.APP_ROOT, '../et/resources/initiateCase7.json')),
+  //   initiateCase8: require(resolve(process.env.APP_ROOT, '../et/resources/initiateCase8.json')),
+  //   initiateCase9: require(resolve(process.env.APP_ROOT, '../et/resources/initiateCase9.json'))
+  // }
 
-  for (const name in jsons) {
-    const json = jsons[name]
+  // for (const name in jsons) {
+  //   const json = jsons[name]
 
-    const url = `http://localhost:3455/data/case-types/ET_EnglandWales/validate?pageId=${name}`
-    const body = { ...json, event_token: eventToken }
-    const res = await makeAuthorisedRequest(url, cookieJar, {
-      method: 'POST',
-      body: JSON.stringify(body),
-      headers: { 'Content-Type': 'application/json' }
-    })
-    console.log(`${name} status: ${res.status}`)
-  }
+  //   const url = `http://localhost:3455/data/case-types/ET_EnglandWales/validate?pageId=${name}`
+  //   const body = { ...json, event_token: eventToken }
+  //   const res = await makeAuthorisedRequest(url, cookieJar, {
+  //     method: 'POST',
+  //     body: JSON.stringify(body),
+  //     headers: { 'Content-Type': 'application/json' }
+  //   })
+  //   console.log(`${name} status: ${res.status}`)
+  // }
 
   const finalCaseData = { ...require(resolve(process.env.APP_ROOT, '../et/resources/initiateCaseFinal.json')), event_token: eventToken }
-  await postCase(finalCaseData, cookieJar)
+  await postCase(finalCaseData, cookieJar, region)
 }
 
-async function postCase(caseData: any, cookieJar: Record<string, string>) {
-  const url = 'http://localhost:3455/data/case-types/ET_EnglandWales/cases?ignore-warning=false'
+async function postCase(caseData: any, cookieJar: Record<string, string>, region: string) {
+  const url = `http://localhost:3455/data/case-types/${region}/cases?ignore-warning=false`
 
   const res = await makeAuthorisedRequest(url, cookieJar, {
     method: 'POST',
@@ -179,5 +188,5 @@ async function postCase(caseData: any, cookieJar: Record<string, string>) {
 export default {
   group: 'et-web',
   text: 'Create default case in CCD',
-  fn: createNewCase
+  fn: askQuestions
 } as Journey

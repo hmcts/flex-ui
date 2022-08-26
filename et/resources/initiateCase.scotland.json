@@ -1,8 +1,8 @@
 {
   "data": {
-    "receiptDate": "1989-01-01",
-    "feeGroupReference": "123232323232",
-    "managingOffice": "Aberdeen",
+    "receiptDate": "2022-08-25",
+    "feeGroupReference": "123412341234",
+    "managingOffice": "Glasgow",
     "stateAPI": null,
     "caseRefNumberCount": null,
     "startCaseRefNumber": null,
@@ -13,23 +13,25 @@
     "claimant_TypeOfClaimant": "Individual",
     "claimant_Company": null,
     "claimantIndType": {
-      "claimant_title1": "Mr",
+      "claimant_preferred_title": "Mr",
       "claimant_title_other": null,
       "claimant_first_names": "Jack",
       "claimant_last_name": "Reeve",
       "claimant_date_of_birth": "1989-01-01",
       "claimant_sex": "Male",
-      "claimant_gender_identity": "Male",
-      "claimant_gender": "Male"
+      "claimant_gender_identity_same": null,
+      "claimant_gender_identity": null,
+      "claimant_title1": null,
+      "claimant_gender": null
     },
     "claimantType": {
-      "claimant_phone_number": "07666666666",
-      "claimant_mobile_number": "07333333333",
-      "claimant_email_address": "person@gmail.com",
+      "claimant_phone_number": "+447666666666",
+      "claimant_mobile_number": "+447666666666",
+      "claimant_email_address": "fake@email.com",
       "claimant_contact_preference": "Email",
       "claimant_contact_language": null,
       "claimant_addressUK": {
-        "AddressLine1": "35 Bridge Road",
+        "AddressLine1": "27 Bridge Road",
         "AddressLine2": "",
         "AddressLine3": "",
         "PostTown": "Erith",
@@ -41,16 +43,16 @@
     "respondentCollection": [
       {
         "value": {
-          "respondent_name": "Another Person",
+          "respondent_name": "A respondent",
           "respondent_ACAS_question": "Yes",
           "respondent_ACAS": "123",
           "respondent_ACAS_no": null,
-          "respondent_phone1": "07123456789",
-          "responseReceived": null,
+          "respondent_phone1": "+447333333333",
           "responseContinue": null,
           "extensionRequested": null,
           "extensionGranted": null,
           "extensionDate": null,
+          "responseReceived": null,
           "responseReceivedDate": null,
           "responseStruckOut": null,
           "responseRespondentName": null,
@@ -77,7 +79,7 @@
           "responseNotes": null,
           "et3VettingCompleted": null,
           "respondent_address": {
-            "AddressLine1": "35 Bridge Road",
+            "AddressLine1": "93 Bridge Road",
             "AddressLine2": "",
             "AddressLine3": "",
             "PostTown": "Erith",
@@ -141,51 +143,31 @@
             "et3SuggestedIssueTimePoints": null,
             "et3GeneralNotesRule26": null,
             "et3AdditionalInformation": null,
+            "et3VettingDocument": null,
             "et3CompanyHouseDocument": null,
             "et3IndividualInsolvencyDocument": null,
             "et3SuggestedIssues": []
           }
         },
-        "id": "5f69a174-fce3-4286-a13c-58832514be9e"
+        "id": "da468744-48af-48f2-88f8-b43a53d6cd77"
       }
     ],
     "claimantWorkAddressQuestion": "Yes",
     "claimantWorkAddressQRespondent": {
       "value": {
-        "code": "Another Person",
-        "label": "Another Person - 35 Bridge Road, Erith, DA8 2DE, United Kingdom"
+        "code": "A respondent",
+        "label": "A respondent - 93 Bridge Road, Erith, DA8 2DE, United Kingdom"
       },
-      "selectedCode": "Another Person",
-      "selectedLabel": "Another Person - 35 Bridge Road, Erith, DA8 2DE, United Kingdom",
+      "selectedCode": "A respondent",
+      "selectedLabel": "A respondent - 93 Bridge Road, Erith, DA8 2DE, United Kingdom",
       "list_items": [
         {
-          "code": "Another Person",
-          "label": "Another Person - 35 Bridge Road, Erith, DA8 2DE, United Kingdom"
+          "code": "A respondent",
+          "label": "A respondent - 93 Bridge Road, Erith, DA8 2DE, United Kingdom"
         }
       ]
     },
-    "claimantOtherType": {
-      "claimant_occupation": "Fall Guy",
-      "claimant_employed_from": "2022-01-01",
-      "claimant_employed_currently": "Yes",
-      "claimant_employed_to": null,
-      "claimant_employed_notice_period": "2022-02-01",
-      "claimant_disabled": "No",
-      "claimant_disabled_details": null,
-      "claimant_notice_period": null,
-      "claimant_notice_period_unit": null,
-      "claimant_notice_period_duration": null,
-      "claimant_average_weekly_hours": null,
-      "claimant_pay_before_tax": null,
-      "claimant_pay_after_tax": null,
-      "claimant_pay_cycle": null,
-      "claimant_pension_contribution": null,
-      "claimant_pension_weekly_contribution": null,
-      "claimant_benefits": null,
-      "claimant_benefits_detail": null,
-      "pastEmployer": null,
-      "stillWorking": null
-    },
+    "claimantOtherType": null,
     "claimantRepresentedQuestion": "No",
     "representativeClaimantType": null,
     "claimantHearingPreference": {
@@ -193,8 +175,7 @@
       "reasonable_adjustments": null,
       "reasonable_adjustments_detail": null,
       "hearing_preferences": [
-        "Video",
-        "Phone"
+        "Video"
       ]
     }
   },
