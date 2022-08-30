@@ -1,9 +1,10 @@
 import { prompt } from 'inquirer'
 import { Journey } from 'types/journey'
-import { Answers, askCaseTypeID } from 'app/questions'
+import { Answers } from 'app/questions'
 import { createNewCaseEvent } from 'app/ccd'
 import { addToInMemoryConfig, createCaseEventAuthorisations, upsertNewCaseEvent } from 'app/et/configs'
 import { Y_OR_N } from 'app/constants'
+import { askCaseTypeID } from 'app/et/questions'
 
 const QUESTION_NAME = 'Give the new event a name (shows in the event dropdown)'
 const QUESTION_DESCRIPTION = 'Give the new event a description'

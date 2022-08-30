@@ -1,11 +1,11 @@
 import { AuthorisationCaseField, CaseField } from 'types/ccd'
 import { Journey } from 'types/journey'
-import { askCaseTypeID } from 'app/questions'
 import { getConfigSheetsForCaseTypeID, createCaseFieldAuthorisations } from 'app/et/configs'
 import { findMissing, matcher } from 'app/helpers'
 import { COMPOUND_KEYS } from 'app/constants'
 import { writeFileSync } from 'fs'
 import { resolve } from 'path'
+import { askCaseTypeID } from 'app/et/questions'
 
 /**
  * Checks over every CaseField for missing or unexpected authorisations.
