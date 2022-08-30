@@ -48,7 +48,11 @@ const roleMappings: RoleMappings = {
  * @returns parsed JSON file
  */
 function getJson(regionDir: string, name: string) {
-  return JSON.parse(readFileSync(`${regionDir}${sep}definitions${sep}json${sep}${name}.json`).toString())
+  try {
+    return JSON.parse(readFileSync(`${regionDir}${sep}definitions${sep}json${sep}${name}.json`).toString())
+  } catch (e) {
+    throw new Error(`Failed to read ${name}.json in ${regionDir}`)
+  }
 }
 
 /** Getter for readTime */
