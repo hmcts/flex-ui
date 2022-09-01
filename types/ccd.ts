@@ -81,12 +81,44 @@ export interface Scrubbed {
   DisplayOrder: number
 }
 
+export interface ComplexType {
+  ID: string
+  ListElementCode: string
+  FieldType: string
+  ElementLabel: string
+  FieldTypeParameter: string
+  FieldShowCondition: string
+  RetainHiddenValue: 'No' | 'Yes'
+  DisplayContextParameter: string
+  SecurityClassification: 'Public'
+  Min: number
+  Max: number
+  RegularExpression: string
+  DisplayOrder: number
+  HintText: string
+}
+
+export interface CaseTypeTab {
+  CaseTypeID: string
+  Channel: string
+  TabID: string
+  TabLabel: string
+  TabDisplayOrder: number
+  CaseFieldID: string
+  TabFieldDisplayOrder: number
+  FieldShowCondition: string
+  TabShowCondition: string
+  DisplayContextParameter: string
+}
+
 export interface CCDTypes {
   AuthorisationCaseEvent: AuthorisationCaseEvent
   AuthorisationCaseField: AuthorisationCaseField
   CaseEvent: CaseEvent
   CaseEventToFields: CaseEventToField
   CaseField: CaseField
+  CaseTypeTab: CaseTypeTab
+  ComplexTypes: ComplexType
   EventToComplexTypes: EventToComplexType
   Scrubbed: Scrubbed
 }
@@ -194,14 +226,46 @@ export enum ScrubbedKeys {
   DisplayOrder = 'DisplayOrder',
 }
 
+export enum ComplexTypeKeys {
+  ID = 'ID',
+  ListElementCode = 'ListElementCode',
+  FieldType = 'FieldType',
+  ElementLabel = 'ElementLabel',
+  FieldTypeParameter = 'FieldTypeParameter',
+  FieldShowCondition = 'FieldShowCondition',
+  RetainHiddenValue = 'RetainHiddenValue',
+  DisplayContextParameter = 'DisplayContextParameter',
+  SecurityClassification = 'SecurityClassification',
+  Min = 'Min',
+  Max = 'Max',
+  RegularExpression = 'RegularExpression',
+  DisplayOrder = 'DisplayOrder',
+  HintText = 'HintText',
+}
+
+export enum CaseTypeTabKeys {
+  CaseTypeID = 'CaseTypeID',
+  Channel = 'Channel',
+  TabID = 'TabID',
+  TabLabel = 'TabLabel',
+  TabDisplayOrder = 'TabDisplayOrder',
+  CaseFieldID = 'CaseFieldID',
+  TabFieldDisplayOrder = 'TabFieldDisplayOrder',
+  FieldShowCondition = 'FieldShowCondition',
+  TabShowCondition = 'TabShowCondition',
+  DisplayContextParameter = 'DisplayContextParameter'
+}
+
 const sheetsObj: CCDTypes = {
   CaseEvent: null,
   CaseEventToFields: null,
   CaseField: null,
+  ComplexTypes: null,
   EventToComplexTypes: null,
   AuthorisationCaseEvent: null,
   AuthorisationCaseField: null,
-  Scrubbed: null
+  Scrubbed: null,
+  CaseTypeTab: null
 }
 
 export const sheets = Object.keys(sheetsObj) as Array<keyof (CCDTypes)>
