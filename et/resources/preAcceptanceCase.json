@@ -1,0 +1,17 @@
+{
+  "data": {
+    "preAcceptCase": {
+      "caseAccepted": "Yes",
+      "dateAccepted": "2022-09-06",
+      "dateRejected": null,
+      "rejectReason": []
+    }
+  },
+  "event": {
+    "id": "preAcceptanceCase",
+    "summary": "",
+    "description": ""
+  },
+  "event_token": "",
+  "ignore_warning": false
+}

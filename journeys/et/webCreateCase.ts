@@ -52,19 +52,6 @@ export async function loginToIdam(username = 'et.dev@hmcts.net', password = 'Pa5
   const callbackRes = await fetch(redirectUrl, {
     method: 'get',
     headers: {
-      // 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0) Gecko/20100101 Firefox/102.0',
-      // 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-      // 'Accept-Language': 'en-GB,en;q=0.5',
-      // 'Accept-Encoding': 'gzip, deflate, br',
-      // 'Referer': 'http://localhost:5000/',
-      // 'Connection': 'keep-alive',
-      // 'Upgrade-Insecure-Requests': '1',
-      // 'Sec-Fetch-Dest': 'document',
-      // 'Sec-Fetch-Mode': 'navigate',
-      // 'Sec-Fetch-Site': 'cross-site',
-      // 'Sec-Fetch-User': '?1',
-      // 'Pragma': 'no-cache',
-      // 'Host': 'localhost:3455',
       Cookie: cookieHeader
     },
     redirect: 'manual'
@@ -131,9 +118,17 @@ async function makeAuthorisedRequest(url: string, cookieJar: Record<string, stri
 
 export async function createNewCase(region: string) {
   const cookieJar = await loginToIdam()
-  const eventToken = await createCaseInit(cookieJar, region)
+  let eventToken = await createCaseInit(cookieJar, region)
 
-  await createCasePages(eventToken, cookieJar, region)
+  const caseId = await postCase(cookieJar, eventToken, region)
+  eventToken = await pingEventTrigger(caseId, 'et1Vetting', cookieJar)
+  await postGeneric('et1Vetting', caseId, cookieJar, eventToken)
+
+  eventToken = await pingEventTrigger(caseId, 'preAcceptanceCase', cookieJar)
+  await postGeneric('preAcceptanceCase', caseId, cookieJar, eventToken)
+
+  eventToken = await pingEventTrigger(caseId, 'et3Response', cookieJar)
+  await postGeneric('et3Response', caseId, cookieJar, eventToken)
 }
 
 async function createCaseInit(cookieJar: Record<string, string>, region = 'ET_EnglandWales') {
@@ -145,35 +140,24 @@ async function createCaseInit(cookieJar: Record<string, string>, region = 'ET_En
   return json.event_token
 }
 
-async function createCasePages(eventToken: string, cookieJar: Record<string, string>, region: string) {
-  // const jsons: Record<string, any> = {
-  //   initiateCase1: require(resolve(process.env.APP_ROOT, '../et/resources/initiateCase1.json')),
-  //   initiateCase2: require(resolve(process.env.APP_ROOT, '../et/resources/initiateCase2.json')),
-  //   initiateCase3: require(resolve(process.env.APP_ROOT, '../et/resources/initiateCase3.json')),
-  //   initiateCase4: require(resolve(process.env.APP_ROOT, '../et/resources/initiateCase4.json')),
-  //   initiateCase7: require(resolve(process.env.APP_ROOT, '../et/resources/initiateCase7.json')),
-  //   initiateCase8: require(resolve(process.env.APP_ROOT, '../et/resources/initiateCase8.json')),
-  //   initiateCase9: require(resolve(process.env.APP_ROOT, '../et/resources/initiateCase9.json'))
-  // }
+async function postGeneric(jsonResourcePath: string, caseId: string, cookieJar: Record<string, string>, eventToken: string) {
+  const caseData = { ...require(resolve(process.env.APP_ROOT, `../et/resources/${jsonResourcePath}.json`)), event_token: eventToken }
+  const url = `http://localhost:3455/data/cases/${caseId}/events`
 
-  // for (const name in jsons) {
-  //   const json = jsons[name]
+  const res = await makeAuthorisedRequest(url, cookieJar, {
+    method: 'POST',
+    body: JSON.stringify(caseData),
+    headers: { 'Content-Type': 'application/json' }
+  })
 
-  //   const url = `http://localhost:3455/data/case-types/ET_EnglandWales/validate?pageId=${name}`
-  //   const body = { ...json, event_token: eventToken }
-  //   const res = await makeAuthorisedRequest(url, cookieJar, {
-  //     method: 'POST',
-  //     body: JSON.stringify(body),
-  //     headers: { 'Content-Type': 'application/json' }
-  //   })
-  //   console.log(`${name} status: ${res.status}`)
-  // }
+  const json = await res.json()
 
-  const finalCaseData = { ...require(resolve(process.env.APP_ROOT, '../et/resources/initiateCaseFinal.json')), event_token: eventToken }
-  await postCase(finalCaseData, cookieJar, region)
+  console.log(`POST case status: ${res.status}`)
+  return json.id
 }
 
-async function postCase(caseData: any, cookieJar: Record<string, string>, region: string) {
+async function postCase(cookieJar: Record<string, string>, eventToken: string, region: string) {
+  const caseData = { ...require(resolve(process.env.APP_ROOT, '../et/resources/initiateCaseFinal.json')), event_token: eventToken }
   const url = `http://localhost:3455/data/case-types/${region}/cases?ignore-warning=false`
 
   const res = await makeAuthorisedRequest(url, cookieJar, {
@@ -182,7 +166,19 @@ async function postCase(caseData: any, cookieJar: Record<string, string>, region
     headers: { 'Content-Type': 'application/json' }
   })
 
+  const json = await res.json()
+
   console.log(`POST case status: ${res.status}`)
+  return json.id
+}
+
+async function pingEventTrigger(caseId: string, eventName: string, cookieJar: Record<string, string>) {
+  const url = `http://localhost:3455/data/internal/cases/${caseId}/event-triggers/${eventName}?ignore-warning=false`
+
+  const res = await makeAuthorisedRequest(url, cookieJar)
+  const json = await res.json()
+
+  return json.event_token
 }
 
 export default {
