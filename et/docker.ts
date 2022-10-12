@@ -8,10 +8,17 @@ export async function ensureUp() {
   await ccdLogin()
   await ccdComposePull()
   await ccdInit()
-  await ccdComposeUp()
-  await initEcm()
+  await startContainers()
   await initDb()
   clearCurrentLine()
+}
+
+/**
+ * Start and setup containers from existing images
+ */
+export async function startContainers() {
+  await ccdComposeUp()
+  await initEcm()
 }
 
 /**
