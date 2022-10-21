@@ -61,7 +61,7 @@ async function ccdComposeUp() {
 
 /**
  * Run the init-ecm command responsible for creating roles and loading data.
- * This command will automatically retry every 30 seconds (if the usual error messages occur)
+ * This command will automatically retry every 5 seconds (if the usual error messages occur)
  * until it is successful (can take around 5 mins depending on hardware)
  */
 async function initEcm() {
@@ -70,8 +70,8 @@ async function initEcm() {
     return await new Promise(resolve => {
       exec('./bin/ecm/init-ecm.sh', { cwd: process.env.ECM_DOCKER_DIR }, (error?: ExecException) => {
         if (error?.message?.includes('Empty reply from server')) {
-          temporaryLog('init-ecm.sh failed with empty reply, waiting for 30s and trying again\r')
-          return setTimeout(() => { promise().then(() => resolve('')).catch(() => undefined) }, 1000 * 30)
+          temporaryLog('init-ecm.sh failed with empty reply, waiting for 5s and trying again\r')
+          return setTimeout(() => { promise().then(() => resolve('')).catch(() => undefined) }, 1000 * 5)
         }
         temporaryLog('init-ecm.sh successful')
         resolve('')
