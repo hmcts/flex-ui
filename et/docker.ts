@@ -63,8 +63,8 @@ async function initEcm() {
     return await new Promise(resolve => {
       exec('./bin/ecm/init-ecm.sh', { cwd: process.env.ECM_DOCKER_DIR }, (error?: ExecException) => {
         if (error?.message?.includes('Empty reply from server')) {
-          temporaryLog('init-ecm.sh failed with empty reply, waiting for 30s and trying again\r')
-          return setTimeout(() => { promise().then(() => resolve('')).catch(() => undefined) }, 1000 * 30)
+          temporaryLog('init-ecm.sh failed with empty reply, waiting for 10s and trying again\r')
+          return setTimeout(() => { promise().then(() => resolve('')).catch(() => undefined) }, 1000 * 10)
         }
         temporaryLog('init-ecm.sh successful')
         resolve('')
@@ -130,7 +130,8 @@ async function ccdComposePull() {
   return await new Promise((resolve, reject) => {
     const stdout: string[] = []
     const stderr: string[] = []
-    let timeout = 6
+    let noProgressFor = 0
+    const progressInterval = 10
 
     const progress: { [image: string]: string } = {}
 
@@ -140,19 +141,12 @@ async function ccdComposePull() {
     const checkProgress = setInterval(() => {
       const progressJson = JSON.stringify(progress)
       if (lastProgress === progressJson) {
-        // No progress has been made in the last 10 seconds. sus
-        console.warn('!No progress has been made in the last 10 seconds!')
-        console.warn(progress)
-        timeout--
-        if (!timeout) {
-          try { child.kill() } catch (e) { }
-          cleanupAndExit(() => reject(new Error('Progress has stalled')))
-        }
-        return
+        noProgressFor += progressInterval
+        return temporaryLog(`./ccd compose pull - No progress has been made in the last ${noProgressFor} seconds`)
       }
       lastProgress = progressJson
       temporaryLog(`pulling images... ${Object.values(progress).filter(o => o !== 'done').length} left`)
-    }, 10000)
+    }, progressInterval * 1000)
 
     const cleanupAndExit = (fn: () => void) => {
       clearInterval(checkProgress)

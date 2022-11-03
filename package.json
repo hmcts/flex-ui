@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "tsc --build --clean && tsc && node dist/index.js",
+    "start": "rm -rf /dist && tsc && node dist/index.js",
     "test": "tsc && mocha -r ts-node/register *.spec.ts",
     "prepare": "husky install"
   },

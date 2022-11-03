@@ -3,8 +3,9 @@ import { readFileSync, writeFileSync } from 'fs'
 import { sep } from 'path'
 import { execCommand } from 'app/helpers'
 
-async function updateIP() {
+export async function updateIP() {
   const ip = (await execCommand("hostname -I | awk '{print $1}'")).stdout.trim()
+  if (!ip) return
   updateRegion(process.env.ENGWALES_DEF_DIR, ip)
   updateRegion(process.env.SCOTLAND_DEF_DIR, ip)
 }

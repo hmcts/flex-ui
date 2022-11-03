@@ -20,12 +20,11 @@ async function askDiscard() {
 
     await execCommand('git restore .', path, false)
     temporaryLog(`Cleaned ${repo}`)
-    console.log('')
   }
 }
 
 export default {
-  group: 'git',
+  group: 'et-git',
   text: 'Discard changes in repos...',
   fn: askDiscard
 } as Journey

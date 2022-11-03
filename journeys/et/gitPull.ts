@@ -25,7 +25,7 @@ async function askDiscard() {
 }
 
 export default {
-  group: 'git',
+  group: 'et-git',
   text: 'Git pull in repos...',
   fn: askDiscard
 } as Journey
