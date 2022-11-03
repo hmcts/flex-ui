@@ -31,6 +31,13 @@ export const FIELD_TYPES_EXCLUDE_MIN_MAX = [
   'DynamicRadioList'
 ]
 
+/**
+ * Checks if a given field type is in the exclusion list provided
+ */
+export function isFieldTypeInExclusionList(fieldType: string, exclusionList: string[]) {
+  return exclusionList.includes(fieldType)
+}
+
 export const NONE = '<none>'
 export const CUSTOM = '<custom>'
 export const CANCEL = '<cancel>'
@@ -41,6 +48,8 @@ export const COMPOUND_KEYS: CompoundKeys<CCDTypes> = {
   CaseEvent: ['ID', 'CaseTypeID'],
   CaseEventToFields: ['CaseFieldID', 'CaseEventID', 'CaseTypeID'],
   CaseField: ['ID', 'CaseTypeID'],
+  CaseTypeTab: ['CaseTypeID', 'Channel', 'TabID', 'CaseFieldID'],
+  ComplexTypes: ['ID', 'ListElementCode'],
   EventToComplexTypes: ['ID', 'CaseEventID', 'CaseFieldID', 'ListElementCode'],
   Scrubbed: ['ID', 'ListElementCode']
 }

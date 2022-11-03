@@ -1,12 +1,13 @@
 import { prompt } from 'inquirer'
 import { CaseEventToFieldKeys, CaseFieldKeys } from 'types/ccd'
 import { Journey } from 'types/journey'
-import { Answers, askCaseTypeID } from 'app/questions'
+import { Answers, askForPageFieldDisplayOrder, askForPageID } from 'app/questions'
 import { createNewCaseEventToField, createNewCaseField, trimCaseEventToField, trimCaseField } from 'app/ccd'
 import { addToInMemoryConfig, createCaseFieldAuthorisations } from 'app/et/configs'
-import { askCaseEvent, askFirstOnPageQuestions, askForPageIDAndDisplayOrder, QUESTION_FIELD_SHOW_CONDITION, QUESTION_ID } from './createSingleField'
+import { askFirstOnPageQuestions, QUESTION_FIELD_SHOW_CONDITION, QUESTION_ID } from './createSingleField'
 import { addOnDuplicateQuestion } from './manageDuplicateField'
 import { addToLastAnswers } from 'app/session'
+import { askCaseEvent, askCaseTypeID } from 'app/et/questions'
 
 export async function createCallbackPopulatedLabel(answers: Answers = {}) {
   answers = await askCaseTypeID(answers)
@@ -19,7 +20,8 @@ export async function createCallbackPopulatedLabel(answers: Answers = {}) {
     ], answers
   )
 
-  answers = await askForPageIDAndDisplayOrder(answers)
+  answers = await askForPageID(answers)
+  answers = await askForPageFieldDisplayOrder(answers)
 
   if (answers[CaseEventToFieldKeys.PageFieldDisplayOrder] === 1) {
     answers = await askFirstOnPageQuestions(answers)
