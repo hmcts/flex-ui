@@ -67,7 +67,8 @@ function checkFieldForAuths(field: CaseField, existingAuths: AuthorisationCaseFi
 }
 
 export default {
-  group: 'et-session',
+  disabled: true,
+  group: 'et-validate',
   text: 'Validate CaseFields have correct authorisations',
   fn: validateCaseFieldAuths
 } as Journey

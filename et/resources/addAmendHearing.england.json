@@ -1,0 +1,262 @@
+{
+  "data": {
+    "hearingCollection": [
+      {
+        "value": {
+          "hearingNumber": "1",
+          "Hearing_type": "Hearing",
+          "hearingPublicPrivate": null,
+          "judicialMediation": null,
+          "Hearing_venue": {
+            "value": {
+              "code": "Barnstaple",
+              "label": "Barnstaple"
+            },
+            "selectedLabel": "Barnstaple",
+            "selectedCode": "Barnstaple",
+            "list_items": [
+              {
+                "code": "Barnstaple",
+                "label": "Barnstaple"
+              },
+              {
+                "code": "Bath Law Courts",
+                "label": "Bath Law Courts"
+              },
+              {
+                "code": "Bodmin",
+                "label": "Bodmin"
+              },
+              {
+                "code": "Bournemouth MC",
+                "label": "Bournemouth MC"
+              },
+              {
+                "code": "Brighton",
+                "label": "Brighton"
+              },
+              {
+                "code": "Brighton CC",
+                "label": "Brighton CC"
+              },
+              {
+                "code": "Bristol",
+                "label": "Bristol"
+              },
+              {
+                "code": "Bristol 1",
+                "label": "Bristol 1"
+              },
+              {
+                "code": "Bristol 2",
+                "label": "Bristol 2"
+              },
+              {
+                "code": "Bristol 3",
+                "label": "Bristol 3"
+              },
+              {
+                "code": "Bristol 4",
+                "label": "Bristol 4"
+              },
+              {
+                "code": "Bristol 5",
+                "label": "Bristol 5"
+              },
+              {
+                "code": "Bristol 6",
+                "label": "Bristol 6"
+              },
+              {
+                "code": "Bristol CFJC",
+                "label": "Bristol CFJC"
+              },
+              {
+                "code": "BristolCityHall",
+                "label": "BristolCityHall"
+              },
+              {
+                "code": "Bristol Crown",
+                "label": "Bristol Crown"
+              },
+              {
+                "code": "Bristol Mags",
+                "label": "Bristol Mags"
+              },
+              {
+                "code": "Bristol TBC",
+                "label": "Bristol TBC"
+              },
+              {
+                "code": "Bristol Vintry",
+                "label": "Bristol Vintry"
+              },
+              {
+                "code": "Cardiff CFJC",
+                "label": "Cardiff CFJC"
+              },
+              {
+                "code": "Exeter",
+                "label": "Exeter"
+              },
+              {
+                "code": "Exeter Combined",
+                "label": "Exeter Combined"
+              },
+              {
+                "code": "Exeter Mags",
+                "label": "Exeter Mags"
+              },
+              {
+                "code": "Floating Case",
+                "label": "Floating Case"
+              },
+              {
+                "code": "Gloucester CCFC",
+                "label": "Gloucester CCFC"
+              },
+              {
+                "code": "Havant",
+                "label": "Havant"
+              },
+              {
+                "code": "Plymouth Mags",
+                "label": "Plymouth Mags"
+              },
+              {
+                "code": "Plym St Cath Ho",
+                "label": "Plym St Cath Ho"
+              },
+              {
+                "code": "Queensway House",
+                "label": "Queensway House"
+              },
+              {
+                "code": "Remote Hearing",
+                "label": "Remote Hearing"
+              },
+              {
+                "code": "ROIT",
+                "label": "ROIT"
+              },
+              {
+                "code": "Southampton",
+                "label": "Southampton"
+              },
+              {
+                "code": "Swindon",
+                "label": "Swindon"
+              },
+              {
+                "code": "Swindon2",
+                "label": "Swindon2"
+              },
+              {
+                "code": "Taunton",
+                "label": "Taunton"
+              },
+              {
+                "code": "Truro",
+                "label": "Truro"
+              },
+              {
+                "code": "Truro Mags",
+                "label": "Truro Mags"
+              },
+              {
+                "code": "UWE Bristol",
+                "label": "UWE Bristol"
+              },
+              {
+                "code": "Vintry House",
+                "label": "Vintry House"
+              },
+              {
+                "code": "Worle",
+                "label": "Worle"
+              },
+              {
+                "code": "Yeovil Mags",
+                "label": "Yeovil Mags"
+              }
+            ]
+          },
+          "hearingEstLengthNum": "60",
+          "hearingEstLengthNumType": "Days",
+          "hearingSitAlone": "Sit Alone",
+          "Hearing_stage": null,
+          "Hearing_notes": null,
+          "hearingShowDetails": null,
+          "judge": null,
+          "hearingERMember": null,
+          "hearingEEMember": null,
+          "hearingFormat": [
+            "In person"
+          ],
+          "hearingDateCollection": [
+            {
+              "value": {
+                "listedDate": "2022-05-16T01:00:00.000",
+                "Hearing_status": null,
+                "Postponed_by": null,
+                "postponedDate": null,
+                "hearingVenueDay": null,
+                "hearingRoom": null,
+                "hearingClerk": null,
+                "hearingCaseDisposed": null,
+                "Hearing_part_heard": null,
+                "Hearing_reserved_judgement": null,
+                "attendee_claimant": null,
+                "attendee_non_attendees": null,
+                "attendee_resp_no_rep": null,
+                "attendee_resp_&_rep": null,
+                "attendee_rep_only": null,
+                "hearingTimingStart": null,
+                "hearingTimingBreak": null,
+                "hearingTimingResume": null,
+                "hearingTimingFinish": null,
+                "hearingTimingDuration": null,
+                "HearingNotes2": null
+              },
+              "id": "bfd521ce-355f-4f89-9e45-c80be48710d8"
+            },
+            {
+              "value": {
+                "listedDate": "2069-05-16T01:00:00.000",
+                "Hearing_status": null,
+                "Postponed_by": null,
+                "postponedDate": null,
+                "hearingVenueDay": null,
+                "hearingRoom": null,
+                "hearingClerk": null,
+                "hearingCaseDisposed": null,
+                "Hearing_part_heard": null,
+                "Hearing_reserved_judgement": null,
+                "attendee_claimant": null,
+                "attendee_non_attendees": null,
+                "attendee_resp_no_rep": null,
+                "attendee_resp_&_rep": null,
+                "attendee_rep_only": null,
+                "hearingTimingStart": null,
+                "hearingTimingBreak": null,
+                "hearingTimingResume": null,
+                "hearingTimingFinish": null,
+                "hearingTimingDuration": null,
+                "HearingNotes2": null
+              },
+              "id": "4d7724a0-643d-4137-9e41-7966c0f1f9a4"
+            }
+          ]
+        },
+        "id": "c73bcbc4-430e-41c9-9790-182543914c0c"
+      }
+    ]
+  },
+  "event": {
+    "id": "addAmendHearing",
+    "summary": "",
+    "description": ""
+  },
+  "event_token": "",
+  "ignore_warning": false
+}

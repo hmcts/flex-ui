@@ -1,4 +1,6 @@
 export interface Journey {
+  /** Flag to disable showing up iin the main menu */
+  disabled?: boolean
   /** Alias used for grouping related journeys together */
   group?: string
   /** The text to display as an option to the user. Use a function to generate context-dependant text */

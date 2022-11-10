@@ -24,6 +24,7 @@ async function askDiscard() {
 }
 
 export default {
+  disabled: true,
   group: 'et-git',
   text: 'Discard changes in repos...',
   fn: askDiscard

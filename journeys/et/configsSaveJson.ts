@@ -8,6 +8,7 @@ async function save() {
 }
 
 export default {
+  disabled: true,
   group: 'et-configs',
   text: 'Save to JSONs and Generate spreadsheets',
   fn: save

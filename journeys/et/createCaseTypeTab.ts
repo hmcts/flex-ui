@@ -4,7 +4,7 @@ import { createNewCaseTypeTab } from 'app/ccd'
 import { createTemplate } from 'app/et/questions'
 import { addToInMemoryConfig } from 'app/et/configs'
 
-async function createCaseTypeTab() {
+export async function createCaseTypeTab() {
   const answers = await createTemplate<unknown, CaseTypeTab>({}, CaseTypeTabKeys, createNewCaseTypeTab())
   const caseTypeTab = createNewCaseTypeTab(answers)
 
@@ -14,7 +14,8 @@ async function createCaseTypeTab() {
 }
 
 export default {
+  disabled: true,
   group: 'et-create',
-  text: 'Create CaseTypeTab',
+  text: 'Create/Modify a CaseTypeTab',
   fn: createCaseTypeTab
 } as Journey

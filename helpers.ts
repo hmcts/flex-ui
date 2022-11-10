@@ -170,6 +170,27 @@ export function getUniqueByKeyAsArray<T>(arr: T[], key: keyof (T)) {
   return Object.keys(getUniqueByKey(arr, key))
 }
 
+export function groupBy<T>(arr: T[], key?: keyof T) {
+  return arr.reduce((acc, obj) => {
+    if (!key) {
+      if (!acc[obj]) {
+        //@ts-ignore
+        acc[obj] = []
+      }
+      acc[obj].push(obj)
+      return acc
+    }
+
+    if (!acc[obj[key]]) {
+      //@ts-ignore
+      acc[obj[key]] = []
+    }
+
+    acc[obj[key]].push(obj)
+    return acc
+  }, {} as Record<any, T[]>)
+}
+
 /** Clears the current terminal line and writes a new message with no ending newline */
 export function temporaryLog(message: string) {
   clearCurrentLine()

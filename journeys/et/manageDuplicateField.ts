@@ -10,7 +10,7 @@ import { askCaseTypeID } from 'app/et/questions'
 const QUESTION_DUPLICATE = "What's the ID of the field to duplicate?"
 const QUESTION_DUPLICATE_ADDON = 'Do we need this field duplicated under another caseTypeID?'
 
-async function duplicateCaseField() {
+export async function duplicateCaseField() {
   const { CaseTypeID } = await askCaseTypeID()
   const region = getConfigSheetsForCaseTypeID(CaseTypeID)
 
@@ -52,6 +52,7 @@ export async function addOnDuplicateQuestion(answers: { CaseTypeID: string, ID: 
 }
 
 export default {
+  disabled: true,
   group: 'et-manage',
   text: 'Duplicate case field',
   fn: duplicateCaseField

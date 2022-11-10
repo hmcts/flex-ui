@@ -5,7 +5,7 @@ import { prompt } from 'inquirer'
 import { Journey } from 'types/journey'
 import { generateSpreadsheets } from './configsGenerateSpreadsheet'
 import { importConfigs } from './configsImportCcd'
-import { updateIP } from './dockerUpdateIP'
+import { setIPToWslHostAddress } from './dockerUpdateIP'
 
 const QUESTION_DESTROY_DOCKER = 'Do you want to tear down any existing containers?'
 const QUESTION_CALLBACKS_IN_WSL = 'Do you run callbacks in WSL? (will fix IP if yes)'
@@ -27,13 +27,14 @@ async function wslResume() {
   await ensureUp()
   if (answers.ip === YES) {
     temporaryLog('Updating WSL IP in EnglandWales and Scotland')
-    await updateIP()
+    await setIPToWslHostAddress()
   }
   temporaryLog('Importing configs into CCD')
   await importConfigs()
 }
 
 export default {
+  disabled: true,
   group: 'et-wsl',
   text: 'Bring up ECM, fix WSL IP and import CCD configs',
   fn: wslResume

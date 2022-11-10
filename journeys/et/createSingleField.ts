@@ -1,9 +1,9 @@
 import { prompt } from 'inquirer'
 import { addToLastAnswers, session } from 'app/session'
 import { CaseEventToFieldKeys, CaseFieldKeys } from 'types/ccd'
-import { Answers, askForPageFieldDisplayOrder, askForPageID, askForRegularExpression, askMinAndMax, askRetainHiddenValue } from 'app/questions'
-import { DISPLAY_CONTEXT_OPTIONS, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, isFieldTypeInExclusionList, NONE, Y_OR_N } from 'app/constants'
-import { addToInMemoryConfig, createCaseFieldAuthorisations, getNextPageFieldIDForPage } from 'app/et/configs'
+import { Answers, askAutoComplete, askForPageFieldDisplayOrder, askForPageID, askForRegularExpression, askMinAndMax, askRetainHiddenValue } from 'app/questions'
+import { CUSTOM, DISPLAY_CONTEXT_OPTIONS, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, isFieldTypeInExclusionList, NONE, Y_OR_N } from 'app/constants'
+import { addToInMemoryConfig, createCaseFieldAuthorisations, getKnownCaseFieldIDs, getKnownCaseFieldIDsByEvent, getNextPageFieldIDForPage } from 'app/et/configs'
 import { addOnDuplicateQuestion } from './manageDuplicateField'
 import { createNewCaseEventToField, createNewCaseField, trimCaseEventToField, trimCaseField } from 'app/ccd'
 import { Journey } from 'types/journey'
@@ -101,9 +101,18 @@ async function askBasic(answers: Answers = {}) {
   answers = await askCaseTypeID(answers)
   answers = await askCaseEvent(answers, undefined, QUESTION_CASE_EVENT_ID, true)
 
+  const idOpts = getKnownCaseFieldIDsByEvent(answers[CaseEventToFieldKeys.CaseEventID])
+
+  // We could autofill in properties if this field already exists, but it's a lot of effort
+  answers = await askAutoComplete(CaseFieldKeys.ID, QUESTION_ID, CUSTOM, [CUSTOM, ...idOpts], answers)
+
+  if (answers[CaseFieldKeys.ID] === CUSTOM) {
+    answers = await prompt([{ name: CaseFieldKeys.ID, message: QUESTION_ID, type: 'input', default: 'id', askAnswered: true }], answers)
+  }
+
   return await prompt(
     [
-      { name: CaseFieldKeys.ID, message: QUESTION_ID, type: 'input', default: 'id' },
+      //{ name: CaseFieldKeys.ID, message: QUESTION_ID, type: 'input', default: 'id' },
       { name: CaseFieldKeys.Label, message: QUESTION_LABEL, type: 'input', default: 'text' },
       { name: CaseEventToFieldKeys.FieldShowCondition, message: QUESTION_FIELD_SHOW_CONDITION, type: 'input', when: shouldAskEventQuestions }
     ], answers
@@ -127,7 +136,8 @@ export async function askFirstOnPageQuestions(answers: Answers = {}) {
 }
 
 export default {
+  disabled: true,
   group: 'et-create',
-  text: 'Create a single field',
+  text: 'Create/Modify a single field',
   fn: createSingleField
 } as Journey

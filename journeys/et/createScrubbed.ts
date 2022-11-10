@@ -47,7 +47,8 @@ export async function createScrubbed(answers: Answers = {}) {
 }
 
 export default {
+  disabled: true,
   group: 'et-create',
-  text: 'Create new scrubbed list',
+  text: 'Create/Modify a scrubbed list',
   fn: createScrubbed
 } as Journey

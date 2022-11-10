@@ -1,8 +1,8 @@
 import { readFileSync, writeFileSync } from 'fs'
 import { sep } from 'path'
-import { findLastIndex, format, getUniqueByKey, getUniqueByKeyAsArray, upsertFields } from 'app/helpers'
+import { findLastIndex, format, getUniqueByKey, getUniqueByKeyAsArray, groupBy, upsertFields } from 'app/helpers'
 import { addToSession, session } from 'app/session'
-import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, ConfigSheets, Scrubbed, sheets } from 'types/ccd'
+import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, CaseTypeTab, ConfigSheets, EventToComplexType, Scrubbed, sheets } from 'types/ccd'
 import { COMPOUND_KEYS } from 'app/constants'
 
 let readTime = 0
@@ -35,10 +35,23 @@ const roleMappings: RoleMappings = {
   [Roles.CaseworkerEmploymentETJudge]: { [Region.EnglandWales]: 'R', [Region.Scotland]: 'R' },
   [Roles.CaseworkerEmploymentETJudgeEnglandWales]: { [Region.EnglandWales]: 'CRU' },
   [Roles.CaseworkerEmploymentETJudgeScotland]: { [Region.Scotland]: 'CRU' },
-  [Roles.CaseworkerEmploymentEnglandWales]: { [Region.EnglandWales]: 'R' },
-  [Roles.CaseworkerEmploymentLegalRepSolicitor]: { [Region.EnglandWales]: 'CRU', [Region.Scotland]: 'CRU' },
-  [Roles.CaseworkerEmploymentScotland]: { [Region.Scotland]: 'R' },
+  [Roles.CaseworkerEmploymentEnglandWales]: { [Region.EnglandWales]: 'CRU' },
+  [Roles.CaseworkerEmploymentLegalRepSolicitor]: { /*[Region.EnglandWales]: 'CRU', [Region.Scotland]: 'CRU'*/ },
+  [Roles.CaseworkerEmploymentScotland]: { [Region.Scotland]: 'CRU' },
   [Roles.Citizen]: { [Region.EnglandWales]: 'CRU', [Region.Scotland]: 'CRU' }
+}
+
+export const regionRoles: RoleMappings = {
+  [Roles.CaseworkerEmploymentETJudgeEnglandWales]: { [Region.Scotland]: Roles.CaseworkerEmploymentETJudgeScotland },
+  [Roles.CaseworkerEmploymentETJudgeScotland]: { [Region.EnglandWales]: Roles.CaseworkerEmploymentETJudgeEnglandWales },
+  [Roles.CaseworkerEmploymentEnglandWales]: { [Region.Scotland]: Roles.CaseworkerEmploymentScotland },
+  [Roles.CaseworkerEmploymentScotland]: { [Region.EnglandWales]: Roles.CaseworkerEmploymentEnglandWales },
+
+  [Roles.Citizen]: {},
+  [Roles.CaseworkerEmployment]: {},
+  [Roles.CaseworkerEmploymentApi]: {},
+  [Roles.CaseworkerEmploymentETJudge]: {},
+  [Roles.CaseworkerEmploymentLegalRepSolicitor]: {},
 }
 
 /**
@@ -61,12 +74,12 @@ export function getReadTime() {
 }
 
 /** Getter for englandwales */
-function getEnglandWales() {
+export function getEnglandWales() {
   return englandwales
 }
 
 /** Getter for scotland */
-function getScotland() {
+export function getScotland() {
   return scotland
 }
 
@@ -82,7 +95,7 @@ export function getConfigSheetsForCaseTypeID(caseTypeID: string) {
 /**
  * Returns a region enum value based on the CaseTypeID passed in
  */
-function getRegionFromCaseTypeId(caseTypeID: string) {
+export function getRegionFromCaseTypeId(caseTypeID: string) {
   return caseTypeID.startsWith('ET_EnglandWales') ? Region.EnglandWales : Region.Scotland
 }
 
@@ -120,15 +133,38 @@ export function getKnownCaseTypeIDs() {
 /**
  * Get all defined CaseField IDs in englandwales and scotland configs
  */
-export function getKnownCaseFieldIDs() {
-  return getUniqueByKeyAsArray([...englandwales.CaseField, ...scotland.CaseField], 'ID')
+export function getKnownCaseFieldIDs(filter?: (obj: CaseField) => CaseField[]) {
+  const arr = [...englandwales.CaseField, ...scotland.CaseField]
+  return getUniqueByKeyAsArray(filter ? arr.filter(filter) : arr, 'ID')
+}
+
+/**
+ * Get all defined CaseField IDs in englandwales and scotland configs on an event
+ */
+export function getKnownCaseFieldIDsByEvent(caseEventId: string) {
+  const arr = [...englandwales.CaseField, ...scotland.CaseField]
+
+  const byEventId = (obj: CaseEventToField) => obj.CaseEventID === caseEventId
+
+  const fieldToEvent = [...englandwales.CaseEventToFields.filter(byEventId), ...scotland.CaseEventToFields.filter(byEventId)]
+  const subsetFields = arr.filter(o => fieldToEvent.find(x => x.CaseFieldID === o.ID))
+
+  return getUniqueByKeyAsArray(subsetFields, 'ID')
 }
 
 /**
  * Get all defined ComplexType IDs in englandwales and scotland configs
  */
-export function getKnownComplexIDs() {
+export function getKnownComplexTypeIDs() {
   return getUniqueByKeyAsArray([...englandwales.ComplexTypes, ...scotland.ComplexTypes], 'ID')
+}
+
+/**
+ * Get all defined ComplexType IDs in englandwales and scotland configs
+ */
+export function getKnownComplexTypeListElementCodes(id: string) {
+  const complexTypesOfID = [...englandwales.ComplexTypes.filter(o => o.ID === id), ...scotland.ComplexTypes.filter(o => o.ID === id)]
+  return getUniqueByKeyAsArray(complexTypesOfID, 'ListElementCode')
 }
 
 /**
@@ -231,6 +267,56 @@ export function addNewScrubbed(opts: Scrubbed[]) {
   addToSession({ Scrubbed: opts })
 }
 
+function spliceIndexCaseEventToField(x: CaseEventToField, arr: CaseEventToField[]) {
+  let index = findLastIndex(arr, o => o.CaseTypeID === x.CaseTypeID) + 1
+
+  const eventIDIndex = findLastIndex(arr, o => o.CaseEventID === x.CaseEventID)
+  const andPageID = findLastIndex(arr, o => o.CaseEventID === x.CaseEventID && o.PageID === x.PageID)
+
+  if (andPageID > -1) {
+    if (x.PageFieldDisplayOrder) {
+      const indexOfPrevious = arr.findIndex(o => o.CaseFieldID === x.CaseFieldID && x.PageFieldDisplayOrder - 1 === o.PageFieldDisplayOrder)
+      if (indexOfPrevious > -1) {
+        index = indexOfPrevious
+      }
+    }
+  } else if (eventIDIndex > -1) {
+    index = eventIDIndex
+  }
+
+  pushCaseEventToFieldsPageFieldDisplayOrder(arr, x.CaseEventID, x.PageID, x.PageFieldDisplayOrder)
+
+  return index
+}
+
+function spliceIndexCaseTypeId<T extends { CaseTypeId: string }>(x: T, arr: T[]) {
+  return findLastIndex(arr, o => o.CaseTypeId === x.CaseTypeId) + 1
+}
+
+function spliceIndexCaseTypeID<T extends { CaseTypeID: string }>(x: T, arr: T[]) {
+  return findLastIndex(arr, o => o.CaseTypeID === x.CaseTypeID) + 1
+}
+
+function spliceIndexCaseTypeTab(x: CaseTypeTab, arr: CaseTypeTab[]) {
+  return findLastIndex(arr, o => o.CaseTypeID === x.CaseTypeID && o.Channel === x.Channel && o.TabID === x.TabID) + 1
+}
+
+function spliceIndexEventToComplexType(x: EventToComplexType, arr: EventToComplexType[]) {
+  let index = findLastIndex(arr, o => o.CaseFieldID === x.CaseFieldID) + 1
+
+  if (x.FieldDisplayOrder === 1) {
+    index = arr.findIndex(o => o.CaseFieldID === x.CaseFieldID)
+  }
+
+  if (x.FieldDisplayOrder) {
+    const indexOfPrevious = arr.findIndex(o => o.CaseFieldID === x.CaseFieldID && x.FieldDisplayOrder - 1 === o.FieldDisplayOrder)
+    index = indexOfPrevious === -1 ? findLastIndex(arr, o => o.CaseFieldID === x.CaseFieldID) + 1 : indexOfPrevious + 1
+  }
+
+  pushEventToComplexTypeFieldDisplayOrders(arr, x.CaseEventID, x.CaseFieldID, x.FieldDisplayOrder)
+
+  return index
+}
 /**
  * Upserts new fields into the in-memory configs and current session. Does NOT touch the original JSON files.
  * See TODOs in body. This is functional but ordering is not necessarily ideal
@@ -256,51 +342,34 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
 
   // TODO: These group by CaseTypeID but fields should also be grouped further (like Case Fields need to listen to PageID and PageFieldDisplayOrder etc...)
 
-  upsertFields(englandwales.CaseField, ewCaseFields, COMPOUND_KEYS.CaseField,
-    (x, arr) => findLastIndex(arr, o => o.CaseTypeID === x.CaseTypeID) + 1
-  )
+  upsertFields(englandwales.CaseField, ewCaseFields, COMPOUND_KEYS.CaseField, spliceIndexCaseTypeID)
 
-  upsertFields(englandwales.CaseEventToFields, ewCaseEventToFields, COMPOUND_KEYS.CaseEventToFields,
-    (x, arr) => findLastIndex(arr, o => o.CaseTypeID === x.CaseTypeID) + 1
-  )
+  upsertFields(englandwales.CaseEventToFields, ewCaseEventToFields, COMPOUND_KEYS.CaseEventToFields, spliceIndexCaseEventToField)
 
-  upsertFields(englandwales.AuthorisationCaseEvent, ewAuthorisationCaseEvents, COMPOUND_KEYS.AuthorisationCaseEvent,
-    (x, arr) => findLastIndex(arr, o => o.CaseTypeId === x.CaseTypeId) + 1
-  )
+  upsertFields(englandwales.AuthorisationCaseEvent, ewAuthorisationCaseEvents, COMPOUND_KEYS.AuthorisationCaseEvent, spliceIndexCaseTypeId)
 
-  upsertFields(englandwales.AuthorisationCaseField, ewAuthorisationCaseFields, COMPOUND_KEYS.AuthorisationCaseField,
-    (x, arr) => findLastIndex(arr, o => o.CaseTypeId === x.CaseTypeId) + 1
-  )
+  upsertFields(englandwales.AuthorisationCaseField, ewAuthorisationCaseFields, COMPOUND_KEYS.AuthorisationCaseField, spliceIndexCaseTypeId)
 
-  upsertFields(englandwales.CaseTypeTab, ewCaseTypeTabs, COMPOUND_KEYS.CaseTypeTab,
-    (x, arr) => findLastIndex(arr, o => o.CaseTypeID === x.CaseTypeID && o.Channel === x.Channel && o.TabID === x.TabID) + 1
-  )
+  upsertFields(englandwales.CaseTypeTab, ewCaseTypeTabs, COMPOUND_KEYS.CaseTypeTab, spliceIndexCaseTypeTab)
 
-  upsertFields(englandwales.EventToComplexTypes, fields.EventToComplexTypes, COMPOUND_KEYS.EventToComplexTypes)
+  upsertFields(englandwales.EventToComplexTypes, fields.EventToComplexTypes, COMPOUND_KEYS.EventToComplexTypes, spliceIndexEventToComplexType)
 
   // Insert after (next to) other objects of the same ID, or insert at the end if the ID doesn't exist yet
   upsertFields(englandwales.ComplexTypes, fields.ComplexTypes, COMPOUND_KEYS.ComplexTypes,
     (x, arr) => findLastIndex(arr, o => o.ID === x.ID) + 1
   )
 
-  upsertFields(scotland.CaseField, scCaseFields, COMPOUND_KEYS.CaseField,
-    (x, arr) => findLastIndex(arr, o => o.CaseTypeID === x.CaseTypeID) + 1
-  )
-  upsertFields(scotland.CaseEventToFields, scCaseEventToFields, COMPOUND_KEYS.CaseEventToFields,
-    (x, arr) => findLastIndex(arr, o => o.CaseTypeID === x.CaseTypeID) + 1
-  )
-  upsertFields(scotland.AuthorisationCaseEvent, scAuthorisationCaseEvents, COMPOUND_KEYS.AuthorisationCaseEvent,
-    (x, arr) => findLastIndex(arr, o => o.CaseTypeId === x.CaseTypeId) + 1
-  )
-  upsertFields(scotland.AuthorisationCaseField, scAuthorisationCaseFields, COMPOUND_KEYS.AuthorisationCaseField,
-    (x, arr) => findLastIndex(arr, o => o.CaseTypeId === x.CaseTypeId) + 1
-  )
+  upsertFields(scotland.CaseField, scCaseFields, COMPOUND_KEYS.CaseField, spliceIndexCaseTypeID)
 
-  upsertFields(scotland.CaseTypeTab, scCaseTypeTabs, COMPOUND_KEYS.CaseTypeTab,
-    (x, arr) => findLastIndex(arr, o => o.CaseTypeID === x.CaseTypeID && o.Channel === x.Channel && o.TabID === x.TabID) + 1
-  )
+  upsertFields(scotland.CaseEventToFields, scCaseEventToFields, COMPOUND_KEYS.CaseEventToFields, spliceIndexCaseEventToField)
 
-  upsertFields(scotland.EventToComplexTypes, fields.EventToComplexTypes, COMPOUND_KEYS.EventToComplexTypes)
+  upsertFields(scotland.AuthorisationCaseEvent, scAuthorisationCaseEvents, COMPOUND_KEYS.AuthorisationCaseEvent, spliceIndexCaseTypeId)
+
+  upsertFields(scotland.AuthorisationCaseField, scAuthorisationCaseFields, COMPOUND_KEYS.AuthorisationCaseField, spliceIndexCaseTypeId)
+
+  upsertFields(scotland.CaseTypeTab, scCaseTypeTabs, COMPOUND_KEYS.CaseTypeTab, spliceIndexCaseTypeTab)
+
+  upsertFields(scotland.EventToComplexTypes, fields.EventToComplexTypes, COMPOUND_KEYS.EventToComplexTypes, spliceIndexEventToComplexType)
 
   // Insert after (next to) other objects of the same ID, or insert at the end if the ID doesn't exist yet
   upsertFields(scotland.ComplexTypes, fields.ComplexTypes, COMPOUND_KEYS.ComplexTypes,
@@ -326,6 +395,16 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
     ComplexTypes: fields.ComplexTypes,
     CaseTypeTab: scCaseTypeTabs
   })
+}
+
+export function pushEventToComplexTypeFieldDisplayOrders(arr: EventToComplexType[], eventID: string, fieldID: string, start: number) {
+  arr.filter(o => o.CaseEventID === eventID && o.CaseFieldID === fieldID && o.FieldDisplayOrder >= start)
+    .forEach(o => o.FieldDisplayOrder = o.FieldDisplayOrder + 1)
+}
+
+export function pushCaseEventToFieldsPageFieldDisplayOrder(arr: CaseEventToField[], eventID: string, pageID: number, start: number) {
+  arr.filter(o => o.CaseEventID === eventID && o.PageID === pageID && o.PageFieldDisplayOrder >= start)
+    .forEach(o => o.PageFieldDisplayOrder = o.PageFieldDisplayOrder + 1)
 }
 
 /**

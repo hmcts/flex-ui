@@ -6,8 +6,9 @@ import { prompt, Separator, registerPrompt } from 'inquirer'
 import autocomplete from 'inquirer-autocomplete-prompt'
 import { readInCurrentConfig } from 'app/et/configs'
 import { ensurePathExists, format, getFiles, getIdealSizeForInquirer } from 'app/helpers'
-import { cleanupEmptySessions, saveSession, session, SESSION_DIR } from 'app/session'
-import { DIST_JOURNEY_DIR } from 'app/constants'
+import { cleanupEmptySessions, isCurrentSessionEmpty, saveSession, session, SESSION_DIR } from 'app/session'
+import { DIST_JOURNEY_DIR, YES, YES_OR_NO } from 'app/constants'
+import { setSessionName } from 'app/journeys/et/sessionSetName'
 import { Journey } from 'types/journey'
 import { resolve } from 'path'
 
@@ -63,7 +64,7 @@ async function discoverJourneys() {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const module = require(o).default
     return module && isJourneyValid(module, o) ? module : undefined
-  }).filter(o => o) as Journey[]
+  }).filter(o => o && !o.disabled) as Journey[]
 }
 
 /**
@@ -97,6 +98,26 @@ function findSelectedJourney(choices: Journey[], selected: string) {
     }
     return o.matchText?.(selected)
   })
+}
+
+/**
+ * Ask the user for a session name if the current session has a default name (session_TIME) and has data in it
+ */
+async function conditionalAskForSessionName() {
+  const isDefaultName = session.name.match(/^session_\d+$/)
+  if (isCurrentSessionEmpty() || !isDefaultName) {
+    return
+  }
+
+  const notEmptyQuestion = `Current session (${session.name}) is not empty but has not had a name set. Would you like to do that now?`
+  const answers = await prompt([
+    { name: 'name', message: notEmptyQuestion, type: 'list', choices: YES_OR_NO }
+  ])
+
+  if (answers.name === YES) {
+    await setSessionName()
+    saveSession(session)
+  }
 }
 
 /**
@@ -149,6 +170,7 @@ async function start() {
     }
 
     saveSession(session)
+    await conditionalAskForSessionName()
   }
   console.log('Bye!')
 }

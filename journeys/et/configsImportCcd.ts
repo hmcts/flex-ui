@@ -26,6 +26,7 @@ export async function importConfigs() {
 }
 
 export default {
+  disabled: true,
   group: 'et-configs',
   text: 'Import configs into CCD',
   fn: importConfigs

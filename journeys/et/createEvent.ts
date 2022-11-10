@@ -49,7 +49,8 @@ export async function createEvent(answers: Answers = {}) {
 }
 
 export default {
+  disabled: true,
   group: 'et-create',
-  text: 'Create Event',
+  text: 'Create/Modify an Event',
   fn: createEvent
 } as Journey

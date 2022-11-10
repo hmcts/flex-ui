@@ -16,7 +16,12 @@ export async function generateSpreadsheets(env = 'local') {
   temporaryLog(`Spreadsheets generated successfully for ${env}`)
 }
 
+export async function uploadToDemo(username: string, password: string) {
+  
+}
+
 export default {
+  disabled: true,
   group: 'et-configs',
   text: 'Generate spreadsheets',
   fn: journeyGenerateSpreadsheets

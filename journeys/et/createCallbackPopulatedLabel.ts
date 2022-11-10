@@ -75,7 +75,8 @@ export async function createCallbackPopulatedLabel(answers: Answers = {}) {
 }
 
 export default {
+  disabled: true,
   group: 'et-create',
-  text: 'Create callback-populated label',
+  text: 'Create/Modify a callback-populated label',
   fn: createCallbackPopulatedLabel
 } as Journey
