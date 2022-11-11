@@ -61,6 +61,7 @@ export async function doCreateCaseTasks(answers: Record<string, any>) {
     await generateSpreadsheets('local')
     await importConfigs()
     await startAndWaitForCallbacksToBeReady()
+    temporaryLog('Callbacks has started up')
   }
 
   for (const region of answers.region) {

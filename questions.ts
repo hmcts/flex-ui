@@ -2,7 +2,7 @@ import { prompt } from 'inquirer'
 import { CUSTOM, YES_OR_NO } from 'app/constants'
 import { session } from 'app/session'
 import fuzzy from 'fuzzy'
-import { AllCCDKeys, CaseEventToFieldKeys, CaseFieldKeys } from 'types/ccd'
+import { AllCCDKeys, CaseEventToFieldKeys, CaseField, CaseFieldKeys } from 'types/ccd'
 import { getIdealSizeForInquirer } from 'app/helpers'
 
 const QUESTION_REGULAR_EXPRESSION = 'Do we need a RegularExpression for the field?'
@@ -18,16 +18,16 @@ export type Answers = AllCCDKeys & Record<string, unknown>
  * Asks for generic input selecting from a list
  * @returns extended answers object as passed in
  */
-async function list(answers: Answers = {}, name: string, message: string, choices: string[], defaultValue?: unknown) {
-  return await prompt([{ name, message, type: 'list', choices, default: defaultValue, pageSize: getIdealSizeForInquirer() }], answers)
+async function list(answers: Answers = {}, name: string, message: string, choices: string[], defaultValue?: unknown, askAnswered?: boolean) {
+  return await prompt([{ name, message, type: 'list', choices, default: defaultValue, pageSize: getIdealSizeForInquirer(), askAnswered }], answers)
 }
 
 /**
  * Asks for generic input select from a list AND allowing free typing
  * @returns extended answers object as passed in
  */
-export async function listOrFreeType(answers: Answers = {}, name: string, message: string, choices: string[], defaultValue?: unknown) {
-  answers = await list(answers, name, message, [CUSTOM, ...choices], defaultValue)
+export async function listOrFreeType(answers: Answers = {}, name: string, message: string, choices: string[], defaultValue?: unknown, askAnswered?: boolean) {
+  answers = await list(answers, name, message, [CUSTOM, ...choices], defaultValue, askAnswered)
 
   if (answers[name] !== CUSTOM) {
     return answers
@@ -64,20 +64,21 @@ export async function askForRegularExpression(answers: Answers = {}, key?: strin
   ], answers)
 }
 
-export async function askRetainHiddenValue(answers: Answers = {}, key?: string, message?: string) {
+export async function askRetainHiddenValue(answers: Answers = {}, key?: string, message?: string, defaultValue?: string) {
   return await prompt([{
     name: key || CaseEventToFieldKeys.RetainHiddenValue,
     message: message || QUESTION_RETAIN_HIDDEN_VALUE,
     type: 'list',
-    choices: YES_OR_NO
+    choices: YES_OR_NO,
+    default: defaultValue
   }
   ], answers)
 }
 
-export async function askMinAndMax(answers: Answers = {}) {
+export async function askMinAndMax(answers: Answers = {}, existingCaseField?: CaseField) {
   return await prompt([
-    { name: CaseFieldKeys.Min, message: QUESTION_MIN },
-    { name: CaseFieldKeys.Max, message: QUESTION_MAX }
+    { name: CaseFieldKeys.Min, message: QUESTION_MIN, default: existingCaseField?.Min },
+    { name: CaseFieldKeys.Max, message: QUESTION_MAX, default: existingCaseField?.Max }
   ], answers)
 }
 

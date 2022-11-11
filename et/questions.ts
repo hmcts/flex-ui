@@ -1,11 +1,11 @@
-import { CUSTOM, NONE } from 'app/constants'
+import { COMPOUND_KEYS, CUSTOM, NONE } from 'app/constants'
 import { format, getIdealSizeForInquirer } from 'app/helpers'
 import { createEvent } from 'app/journeys/et/createEvent'
 import { Answers, askBasicFreeEntry, fuzzySearch } from 'app/questions'
 import { session } from 'app/session'
-import { CaseEventKeys, CaseEventToFieldKeys, CaseFieldKeys, ComplexTypeKeys, EventToComplexTypeKeys } from 'app/types/ccd'
+import { CaseEventKeys, CaseEventToFieldKeys, CaseFieldKeys, CCDSheets, CCDTypes, ComplexTypeKeys, EventToComplexTypeKeys } from 'app/types/ccd'
 import { prompt } from 'inquirer'
-import { getCaseEventIDOpts, getEnglandWales, getKnownCaseFieldIDs, getKnownCaseFieldTypeParameters, getKnownCaseFieldTypes, getKnownCaseTypeIDs, getKnownComplexTypeIDs, getKnownComplexTypeListElementCodes, getScotland } from 'app/et/configs'
+import { findObject, getCaseEventIDOpts, getEnglandWales, getKnownCaseFieldIDs, getKnownCaseFieldTypeParameters, getKnownCaseFieldTypes, getKnownCaseTypeIDs, getKnownComplexTypeIDs, getKnownComplexTypeListElementCodes, getScotland } from 'app/et/configs'
 import { createSingleField } from 'app/journeys/et/createSingleField'
 import { createScrubbed } from 'app/journeys/et/createScrubbed'
 import { createComplexType } from 'app/journeys/et/createComplexType'
@@ -28,26 +28,36 @@ const QUESTION_CASE_TYPE_ID_CUSTOM = 'Enter a custom value for CaseTypeID'
  * @param obj A blank/default object of the target type (ie, createNewCaseField)
  * @returns An answers object with answers to questions automatically asked based on the passed in object
  */
-export async function createTemplate<T, P>(answers: Answers = {}, keys: T, obj: P) {
+export async function createTemplate<T, P>(answers: Answers = {}, keys: T, obj: P, sheet: keyof CCDSheets<CCDTypes>) {
   const fields = Object.keys(keys)
+  const compoundKeys = COMPOUND_KEYS[sheet]
 
   const tasks: Array<() => Promise<void>> = []
+  let existing: T | undefined
 
   for (const field of fields) {
-    const question = { name: field, message: `Give a value for ${field}`, type: 'input', default: session.lastAnswers[field] }
+    if (!compoundKeys.some(o => !answers[o])) {
+      existing = findObject(answers, sheet)
+    }
+
+    const question = { name: field, message: `Give a value for ${field}`, type: 'input', default: existing?.[field] || session.lastAnswers[field] }
 
     if (typeof (obj[field]) === 'number') {
       question.type = 'number'
     }
 
     if (field === 'CaseEventID') {
-      tasks.push(async () => { answers = await askCaseEvent(answers, undefined, undefined, true) })
+      //tasks.push(async () => { answers = await askCaseEvent(answers, undefined, undefined, true) })
+      answers = await askCaseEvent(answers, undefined, undefined, true)
     } else if (field === 'CaseTypeID') {
-      tasks.push(async () => { answers = await askCaseTypeID(answers) })
+      //tasks.push(async () => { answers = await askCaseTypeID(answers) })
+      answers = await askCaseTypeID(answers)
     } else if (field === 'CaseFieldID') {
-      tasks.push(async () => { answers = await askCaseFieldID(answers) })
+      //tasks.push(async () => { answers = await askCaseFieldID(answers) })
+      answers = await askCaseFieldID(answers)
     } else {
-      tasks.push(async () => { answers = await prompt([question], answers) })
+      //tasks.push(async () => { answers = await prompt([question], answers) })
+      answers = await prompt([question], answers)
     }
   }
 
@@ -203,7 +213,7 @@ export async function askEventToComplexTypeListElementCode(answers: Answers = {}
   return answers
 }
 
-export async function askFieldTypeParameter(answers: Answers = {}, key?: string, message?: string) {
+export async function askFieldTypeParameter(answers: Answers = {}, key?: string, message?: string, defaultValue?: string) {
   const opts = getKnownCaseFieldTypeParameters()
   key = key || CaseFieldKeys.FieldTypeParameter
 
@@ -213,7 +223,8 @@ export async function askFieldTypeParameter(answers: Answers = {}, key?: string,
       message: message || format(QUESTION_FIELD_TYPE_PARAMETER, answers[CaseFieldKeys.FieldType]),
       type: 'autocomplete',
       source: (_answers: unknown, input: string) => fuzzySearch([NONE, CUSTOM, ...opts], input),
-      pageSize: getIdealSizeForInquirer()
+      pageSize: getIdealSizeForInquirer(),
+      default: defaultValue
     }
   ], answers)
 
@@ -226,7 +237,7 @@ export async function askFieldTypeParameter(answers: Answers = {}, key?: string,
   return answers
 }
 
-export async function askFieldType(answers: Answers = {}, key?: string, message?: string) {
+export async function askFieldType(answers: Answers = {}, key?: string, message?: string, defaultValue?: string) {
   const opts = getKnownCaseFieldTypes()
   key = key || CaseFieldKeys.FieldType
 
@@ -236,7 +247,7 @@ export async function askFieldType(answers: Answers = {}, key?: string, message?
       message: message || QUESTION_FIELD_TYPE,
       type: 'autocomplete',
       source: (_answers: unknown, input: string) => fuzzySearch([CUSTOM, ...opts], input),
-      default: 'Label',
+      default: defaultValue || 'Label',
       pageSize: getIdealSizeForInquirer()
     }
   ], answers)

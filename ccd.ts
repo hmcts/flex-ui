@@ -70,7 +70,9 @@ export function createNewCaseEventToField(answers?: AllCCDKeys): CaseEventToFiel
     PageLabel: answers?.PageLabel || '',
     PageColumnNumber: answers?.PageColumnNumber || 1,
     ShowSummaryContentOption: answers?.ShowSummaryContentOption,
-    RetriesTimeoutURLMidEvent: answers?.RetriesTimeoutURLMidEvent
+    RetriesTimeoutURLMidEvent: answers?.RetriesTimeoutURLMidEvent,
+    CaseEventFieldLabel: answers?.CaseEventFieldLabel,
+    CaseEventFieldHint: answers?.CaseEventFieldHint
   }
 }
 

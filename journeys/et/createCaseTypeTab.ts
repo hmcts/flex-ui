@@ -5,7 +5,7 @@ import { createTemplate } from 'app/et/questions'
 import { addToInMemoryConfig } from 'app/et/configs'
 
 export async function createCaseTypeTab() {
-  const answers = await createTemplate<unknown, CaseTypeTab>({}, CaseTypeTabKeys, createNewCaseTypeTab())
+  const answers = await createTemplate<unknown, CaseTypeTab>({}, CaseTypeTabKeys, createNewCaseTypeTab(), 'CaseTypeTab')
   const caseTypeTab = createNewCaseTypeTab(answers)
 
   addToInMemoryConfig({

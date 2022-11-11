@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync } from 'fs'
 import { sep } from 'path'
 import { findLastIndex, format, getUniqueByKey, getUniqueByKeyAsArray, groupBy, upsertFields } from 'app/helpers'
 import { addToSession, session } from 'app/session'
-import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, CaseTypeTab, ConfigSheets, EventToComplexType, Scrubbed, sheets } from 'types/ccd'
+import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, CaseTypeTab, CCDSheets, CCDTypes, ConfigSheets, EventToComplexType, Scrubbed, sheets } from 'types/ccd'
 import { COMPOUND_KEYS } from 'app/constants'
 
 let readTime = 0
@@ -81,6 +81,36 @@ export function getEnglandWales() {
 /** Getter for scotland */
 export function getScotland() {
   return scotland
+}
+
+export function getCombinedSheets() {
+  return sheets.reduce((acc, sheet) => {
+    //@ts-ignore
+    acc[sheet] = [...englandwales[sheet], ...scotland[sheet]]
+    return acc
+  }, {} as CCDSheets<CCDTypes>)
+}
+
+export function findObject<T>(keys: Record<string, any>, sheetName: keyof CCDTypes): T | undefined {
+  const ccd = getCombinedSheets()
+  const arr = ccd[sheetName] as Array<Record<string, any>>
+  const keysThatMatter = COMPOUND_KEYS[sheetName] as string[]
+  const found = arr.find(o => {
+    for (const key in keys) {
+      if (!keysThatMatter.includes(key)) {
+        continue
+      }
+
+      if (keys[key] && keys[key] !== NaN && o[key] !== keys[key]) {
+        return false
+      }
+    }
+    return true
+  })
+
+  if (found) {
+    return found as T
+  }
 }
 
 /**
@@ -284,7 +314,7 @@ function spliceIndexCaseEventToField(x: CaseEventToField, arr: CaseEventToField[
     index = eventIDIndex
   }
 
-  pushCaseEventToFieldsPageFieldDisplayOrder(arr, x.CaseEventID, x.PageID, x.PageFieldDisplayOrder)
+  pushCaseEventToFieldsPageFieldDisplayOrder(arr, x.CaseTypeID, x.CaseEventID, x.PageID, x.PageFieldDisplayOrder)
 
   return index
 }
@@ -298,7 +328,22 @@ function spliceIndexCaseTypeID<T extends { CaseTypeID: string }>(x: T, arr: T[])
 }
 
 function spliceIndexCaseTypeTab(x: CaseTypeTab, arr: CaseTypeTab[]) {
-  return findLastIndex(arr, o => o.CaseTypeID === x.CaseTypeID && o.Channel === x.Channel && o.TabID === x.TabID) + 1
+  let index = findLastIndex(arr, o => o.CaseTypeID === x.CaseTypeID && o.Channel === x.Channel && o.TabID === x.TabID) + 1
+
+  if (x.TabFieldDisplayOrder === 1) {
+    index = arr.findIndex(o => o.CaseTypeID === x.CaseTypeID && o.Channel === x.Channel && o.TabID === x.TabID)
+  }
+
+  if (x.TabFieldDisplayOrder) {
+    const indexOfPrevious = arr.findIndex(o => o.CaseTypeID === x.CaseTypeID && o.Channel === x.Channel && o.TabID === x.TabID && x.TabFieldDisplayOrder - 1 === o.TabFieldDisplayOrder)
+    if (indexOfPrevious > -1) {
+      index = indexOfPrevious + 1
+    }
+  }
+
+  pushCaseTypeTabTabFieldDisplayOrders(arr, x.CaseTypeID, x.Channel, x.TabID, x.TabFieldDisplayOrder)
+
+  return index
 }
 
 function spliceIndexEventToComplexType(x: EventToComplexType, arr: EventToComplexType[]) {
@@ -402,8 +447,13 @@ export function pushEventToComplexTypeFieldDisplayOrders(arr: EventToComplexType
     .forEach(o => o.FieldDisplayOrder = o.FieldDisplayOrder + 1)
 }
 
-export function pushCaseEventToFieldsPageFieldDisplayOrder(arr: CaseEventToField[], eventID: string, pageID: number, start: number) {
-  arr.filter(o => o.CaseEventID === eventID && o.PageID === pageID && o.PageFieldDisplayOrder >= start)
+export function pushCaseTypeTabTabFieldDisplayOrders(arr: CaseTypeTab[], caseTypeID: string, channel: string, tabID: string, start: number) {
+  arr.filter(o => o.CaseTypeID === caseTypeID && o.Channel === channel && o.TabID === tabID && o.TabFieldDisplayOrder >= start)
+    .forEach(o => o.TabFieldDisplayOrder = o.TabFieldDisplayOrder + 1)
+}
+
+export function pushCaseEventToFieldsPageFieldDisplayOrder(arr: CaseEventToField[], caseTypeID: string, eventID: string, pageID: number, start: number) {
+  arr.filter(o => o.CaseTypeID === caseTypeID && o.CaseEventID === eventID && o.PageID === pageID && o.PageFieldDisplayOrder >= start)
     .forEach(o => o.PageFieldDisplayOrder = o.PageFieldDisplayOrder + 1)
 }
 

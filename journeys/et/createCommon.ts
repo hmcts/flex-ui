@@ -8,6 +8,7 @@ import { createSingleField } from './createSingleField'
 import { createCallbackPopulatedLabel } from './createCallbackPopulatedLabel'
 import { createScrubbed } from './createScrubbed'
 import { duplicateCaseField } from './manageDuplicateField'
+import { createCaseEventToFieldJourney } from './createCaseEventToField'
 
 const QUESTION_TASK = 'What task do you want to perform?'
 
@@ -15,6 +16,7 @@ const TASK_CHOICES = {
   BACK: '<< back to main menu',
   CALLBACK_LABEL: 'Upsert a callback-populated label',
   FIELD: 'Upsert a single Field',
+  CASE_EVENT_TO_FIELD: 'Upsert a CaseEventToField',
   CASE_TYPE_TAB: 'Upsert a CaseTypeTab',
   COMPLEX_TYPE: 'Upsert a ComplexType',
   EVENT: 'Upsert an Event',
@@ -30,6 +32,9 @@ export async function createJourney() {
     switch (answers.task) {
       case TASK_CHOICES.BACK:
         return
+      case TASK_CHOICES.CASE_EVENT_TO_FIELD:
+        await createCaseEventToFieldJourney()
+        break
       case TASK_CHOICES.CALLBACK_LABEL:
         await createCallbackPopulatedLabel()
         break

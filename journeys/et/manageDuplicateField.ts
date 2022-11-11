@@ -1,6 +1,6 @@
 import { prompt } from 'inquirer'
 import { Journey } from 'types/journey'
-import { fuzzySearch, listOrFreeType } from 'app/questions'
+import { Answers, fuzzySearch, listOrFreeType } from 'app/questions'
 import { getConfigSheetsForCaseTypeID, getKnownCaseTypeIDs } from 'app/et/configs'
 import { doDuplicateCaseField } from 'app/et/duplicateCaseField'
 import { CANCEL, NO_DUPLICATE } from 'app/constants'
@@ -34,6 +34,11 @@ export async function duplicateCaseField() {
   }
 
   doDuplicateCaseField(CaseTypeID, answers.ID, answers.CaseTypeID)
+}
+
+export async function askDuplicate(answers: Answers) {
+  const opts = [NO_DUPLICATE, ...getKnownCaseTypeIDs()]
+  return await listOrFreeType(answers, 'duplicate', QUESTION_DUPLICATE_ADDON, opts, undefined, true)
 }
 
 /**
