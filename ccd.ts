@@ -70,7 +70,9 @@ export function createNewCaseEventToField(answers?: AllCCDKeys): CaseEventToFiel
     PageLabel: answers?.PageLabel || '',
     PageColumnNumber: answers?.PageColumnNumber || 1,
     ShowSummaryContentOption: answers?.ShowSummaryContentOption,
-    RetriesTimeoutURLMidEvent: answers?.RetriesTimeoutURLMidEvent
+    RetriesTimeoutURLMidEvent: answers?.RetriesTimeoutURLMidEvent,
+    CaseEventFieldLabel: answers?.CaseEventFieldLabel,
+    CaseEventFieldHint: answers?.CaseEventFieldHint
   }
 }
 
@@ -150,16 +152,23 @@ export function createNewCaseTypeTab(answers?: AllCCDKeys): CaseTypeTab {
   }
 }
 
+/** Removes empty values from a CCD Object (to rely on ccd's own defaults)  */
+export function trimCcdObject<T>(obj: T): T {
+  const json: Record<string, any> = {}
+  for (const key in obj) {
+    if (obj[key as keyof (T)]) {
+      json[key] = obj[key as keyof (T)]
+    }
+  }
+
+  return json as T
+}
+
 /**
  * Removes default values from CaseEventToField to rely on ccd defaults
  */
 export function trimCaseEventToField(obj: CaseEventToField): CaseEventToField {
-  const json: Record<string, any> = {}
-  for (const key in obj) {
-    if (obj[key as keyof (CaseEventToField)]) {
-      json[key] = obj[key as keyof (CaseEventToField)]
-    }
-  }
+  const json: Record<string, any> = trimCcdObject(obj)
 
   if (!json.FieldShowCondition) {
     delete json.RetainHiddenValue
@@ -184,12 +193,7 @@ export function trimCaseEventToField(obj: CaseEventToField): CaseEventToField {
  * Removes default values from CaseField to rely on ccd defaults
  */
 export function trimCaseField(obj: CaseField): CaseField {
-  const json: Record<string, any> = {}
-  for (const key in obj) {
-    if (obj[key as keyof (CaseField)]) {
-      json[key] = obj[key as keyof (CaseField)]
-    }
-  }
+  const json: Record<string, any> = trimCcdObject(obj)
 
   for (const key in json) {
     json[key] = json[key].replace(/\\r\\n/g, '\r\n')

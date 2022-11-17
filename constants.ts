@@ -18,7 +18,8 @@ export const FIELD_TYPES_EXCLUDE_PARAMETER = [
   'YesOrNo',
   'Date',
   'TextArea',
-  'Number'
+  'Number',
+  'DynamicList'
 ]
 
 export const FIELD_TYPES_EXCLUDE_MIN_MAX = [

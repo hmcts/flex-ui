@@ -3,9 +3,8 @@ import { CaseEventToFieldKeys, CaseFieldKeys } from 'types/ccd'
 import { Journey } from 'types/journey'
 import { Answers, askForPageFieldDisplayOrder, askForPageID } from 'app/questions'
 import { createNewCaseEventToField, createNewCaseField, trimCaseEventToField, trimCaseField } from 'app/ccd'
-import { addToInMemoryConfig, createCaseFieldAuthorisations } from 'app/et/configs'
-import { askFirstOnPageQuestions, QUESTION_FIELD_SHOW_CONDITION, QUESTION_ID } from './createSingleField'
-import { addOnDuplicateQuestion } from './manageDuplicateField'
+import { addToInMemoryConfig, createCaseFieldAuthorisations, Region } from 'app/et/configs'
+import { addonDuplicateQuestion, askFirstOnPageQuestions, QUESTION_FIELD_SHOW_CONDITION, QUESTION_ID } from './createSingleField'
 import { addToLastAnswers } from 'app/session'
 import { askCaseEvent, askCaseTypeID } from 'app/et/questions'
 
@@ -60,22 +59,23 @@ export async function createCallbackPopulatedLabel(answers: Answers = {}) {
     PageShowCondition: ''
   })
 
-  const authorisations = [
-    ...createCaseFieldAuthorisations(answers.CaseTypeID, answers.ID),
-    ...createCaseFieldAuthorisations(answers.CaseTypeID, `${answers.ID}Label`)
-  ]
+  await addonDuplicateQuestion(answers, (answers: Answers) => {
+    const authorisations = [
+      ...createCaseFieldAuthorisations(answers.CaseTypeID, answers.ID),
+      ...createCaseFieldAuthorisations(answers.CaseTypeID, `${answers.ID}Label`)
+    ]
 
-  addToInMemoryConfig({
-    AuthorisationCaseField: authorisations,
-    CaseField: [trimCaseField(caseField), trimCaseField(caseFieldLabel)],
-    CaseEventToFields: [trimCaseEventToField(caseEventToField), trimCaseEventToField(caseEventToFieldLabel)]
+    addToInMemoryConfig({
+      AuthorisationCaseField: authorisations,
+      CaseField: [trimCaseField(caseField), trimCaseField(caseFieldLabel)],
+      CaseEventToFields: [trimCaseEventToField(caseEventToField), trimCaseEventToField(caseEventToFieldLabel)]
+    })
   })
-
-  await addOnDuplicateQuestion({ CaseTypeID: answers.CaseTypeID, ID: caseFieldLabel.ID })
 }
 
 export default {
+  disabled: true,
   group: 'et-create',
-  text: 'Create callback-populated label',
+  text: 'Create/Modify a callback-populated label',
   fn: createCallbackPopulatedLabel
 } as Journey
