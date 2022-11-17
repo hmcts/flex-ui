@@ -1,6 +1,6 @@
 import { AuthorisationCaseField, CaseField } from 'types/ccd'
 import { Journey } from 'types/journey'
-import { getConfigSheetsForCaseTypeID, createCaseFieldAuthorisations } from 'app/et/configs'
+import { getConfigSheetsForCaseTypeID, createCaseFieldAuthorisations, Region } from 'app/et/configs'
 import { findMissing, matcher } from 'app/helpers'
 import { COMPOUND_KEYS } from 'app/constants'
 import { writeFileSync } from 'fs'

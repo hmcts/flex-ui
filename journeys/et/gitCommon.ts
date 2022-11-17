@@ -149,14 +149,15 @@ async function getBranchOpts(path: string) {
 }
 
 async function pull(path: string) {
-  const { stdout, stderr } = await execCommand('git pull', path, false)
+  const branch = await currentBranch(path)
+  const { stdout, stderr } = await execCommand(`git pull origin ${branch}`, path, false)
   console.log(`Pull in ${path}`)
   console.log(stderr || stdout)
 }
 
 async function fetch(path: string) {
   const { stdout, stderr } = await execCommand('git fetch', path, false)
-  console.log(`Pull in ${path}`)
+  console.log(`Fetch in ${path}`)
   console.log(stderr || stdout)
 }
 

@@ -1,16 +1,23 @@
 import { Journey } from 'types/journey'
 import { CaseTypeTab, CaseTypeTabKeys } from 'app/types/ccd'
-import { createNewCaseTypeTab } from 'app/ccd'
+import { createNewCaseTypeTab, trimCcdObject } from 'app/ccd'
 import { createTemplate } from 'app/et/questions'
 import { addToInMemoryConfig } from 'app/et/configs'
+import { Answers } from 'app/questions'
+import { addonDuplicateQuestion } from './createSingleField'
 
 export async function createCaseTypeTab() {
   const answers = await createTemplate<unknown, CaseTypeTab>({}, CaseTypeTabKeys, createNewCaseTypeTab(), 'CaseTypeTab')
-  const caseTypeTab = createNewCaseTypeTab(answers)
+  
+  const createFn = (answers: Answers) => {
+    const caseTypeTab = createNewCaseTypeTab(answers)
 
-  addToInMemoryConfig({
-    CaseTypeTab: [caseTypeTab]
-  })
+    addToInMemoryConfig({
+      CaseTypeTab: [trimCcdObject(caseTypeTab)]
+    })
+  }
+
+  await addonDuplicateQuestion(answers, createFn)
 }
 
 export default {

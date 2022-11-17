@@ -1,7 +1,7 @@
-import { COMPOUND_KEYS, CUSTOM, NONE } from 'app/constants'
+import { COMPOUND_KEYS, CUSTOM, NONE, NO_DUPLICATE } from 'app/constants'
 import { format, getIdealSizeForInquirer } from 'app/helpers'
 import { createEvent } from 'app/journeys/et/createEvent'
-import { Answers, askBasicFreeEntry, fuzzySearch } from 'app/questions'
+import { Answers, askBasicFreeEntry, fuzzySearch, listOrFreeType } from 'app/questions'
 import { session } from 'app/session'
 import { CaseEventKeys, CaseEventToFieldKeys, CaseFieldKeys, CCDSheets, CCDTypes, ComplexTypeKeys, EventToComplexTypeKeys } from 'app/types/ccd'
 import { prompt } from 'inquirer'
@@ -19,6 +19,7 @@ const QUESTION_FIELD_TYPE = 'What\'s the type of this field?'
 const QUESTION_FIELD_TYPE_CUSTOM = 'What\'s the name of the FieldType?'
 const QUESTION_CASE_TYPE_ID = 'What\'s the CaseTypeID?'
 const QUESTION_CASE_TYPE_ID_CUSTOM = 'Enter a custom value for CaseTypeID'
+const QUESTION_DUPLICATE_ADDON = 'Do we need this field duplicated under another caseTypeID?'
 
 /**
  * Asks questions based on the keys contained in the target object type
@@ -259,4 +260,9 @@ export async function askFieldType(answers: Answers = {}, key?: string, message?
   }
 
   return answers
+}
+
+export async function askDuplicate(answers: Answers) {
+  const opts = [NO_DUPLICATE, ...getKnownCaseTypeIDs()]
+  return await listOrFreeType(answers, 'duplicate', QUESTION_DUPLICATE_ADDON, opts, undefined, true)
 }

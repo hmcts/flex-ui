@@ -2,10 +2,11 @@ import { prompt } from 'inquirer'
 import { Journey } from 'types/journey'
 import { Answers } from 'app/questions'
 import { createNewCaseEvent } from 'app/ccd'
-import { addToInMemoryConfig, createCaseEventAuthorisations, findObject, upsertNewCaseEvent } from 'app/et/configs'
+import { addToInMemoryConfig, createCaseEventAuthorisations, findObject, Region } from 'app/et/configs'
 import { NO, YES, YES_OR_NO, Y_OR_N } from 'app/constants'
 import { askCaseTypeID } from 'app/et/questions'
-import { CaseEvent } from 'app/types/ccd'
+import { CaseEvent, CaseEventKeys } from 'app/types/ccd'
+import { addonDuplicateQuestion } from './createSingleField'
 
 const QUESTION_NAME = 'Give the new event a name (shows in the event dropdown)'
 const QUESTION_DESCRIPTION = 'Give the new event a description'
@@ -44,16 +45,17 @@ export async function createEvent(answers: Answers = {}) {
     answers = await prompt([{ name: 'authorisations', message: 'Do you want to create authorisations for this existing event?', type: 'list', choices: YES_OR_NO, default: NO }], answers)
   }
 
-  const caseEvent = createNewCaseEvent(answers)
-  const authorisations = answers.authorisations === YES ? createCaseEventAuthorisations(answers.CaseTypeID, answers.ID) : []
-
-  upsertNewCaseEvent(caseEvent)
-
-  addToInMemoryConfig({
-    AuthorisationCaseEvent: authorisations
+  await addonDuplicateQuestion(answers, (answers: Answers) => {
+    const caseEvent = createNewCaseEvent(answers)
+    const authorisations = answers.authorisations === YES ? createCaseEventAuthorisations(answers.CaseTypeID, answers.ID) : []
+   
+    addToInMemoryConfig({
+      AuthorisationCaseEvent: authorisations,
+      CaseEvent: [caseEvent]
+    })
   })
 
-  return caseEvent.ID
+  return answers[CaseEventKeys.ID]
 }
 
 export default {

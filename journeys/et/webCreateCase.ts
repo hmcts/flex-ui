@@ -4,7 +4,7 @@ import { resolve } from 'path'
 import { prompt } from 'inquirer'
 import https from 'node:https'
 import { exists, existsSync } from 'fs'
-import { YES, YES_OR_NO } from 'app/constants'
+import { NO, YES, YES_OR_NO } from 'app/constants'
 import { execCommand, getEnvVarsFromFile, temporaryLog } from 'app/helpers'
 import { ChildProcess, exec } from 'child_process'
 import { kill } from 'process'
@@ -43,7 +43,7 @@ export async function askCreateCaseQuestions() {
   return await prompt([
     { name: 'region', message: 'What region are we creating for?', type: 'checkbox', choices: REGION_OPTS, default: REGION_OPTS },
     { name: 'events', message: QUESTION_STEPS, type: 'checkbox', choices: EVENT_OPTS, default: EVENT_OPTS },
-    { name: 'callbacks', message: QUESTION_CALLBACKS, type: 'list', choices: YES_OR_NO, default: YES },
+    { name: 'callbacks', message: QUESTION_CALLBACKS, type: 'list', choices: YES_OR_NO, default: NO },
     { name: 'kill', message: 'Do you want to kill callbacks after?', type: 'list', choices: YES_OR_NO, default: YES, when: (ans) => ans.callbacks === YES }
   ])
 }
@@ -307,7 +307,7 @@ async function postCase(cookieJar: Record<string, string>, eventToken: string, r
 
   const json = await res.json()
 
-  console.log(`POST case status: ${res.status}`)
+  temporaryLog(`POST case status: ${res.status}`)
   return json.id
 }
 

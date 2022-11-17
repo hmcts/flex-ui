@@ -7,7 +7,6 @@ import { createEventToComplexType } from './createEventToComplexType'
 import { createSingleField } from './createSingleField'
 import { createCallbackPopulatedLabel } from './createCallbackPopulatedLabel'
 import { createScrubbed } from './createScrubbed'
-import { duplicateCaseField } from './manageDuplicateField'
 import { createCaseEventToFieldJourney } from './createCaseEventToField'
 
 const QUESTION_TASK = 'What task do you want to perform?'
@@ -55,9 +54,6 @@ export async function createJourney() {
         break
       case TASK_CHOICES.SCRUBBED:
         await createScrubbed()
-        break
-      case TASK_CHOICES.DUPLICATE:
-        await duplicateCaseField()
         break
     }
   }
