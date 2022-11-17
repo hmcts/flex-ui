@@ -20,12 +20,13 @@ export async function ccdImport(region: Region, env = 'local') {
   }
 }
 
-async function importConfigs() {
+export async function importConfigs() {
   await ccdImport(Region.EnglandWales)
   await ccdImport(Region.Scotland)
 }
 
 export default {
+  disabled: true,
   group: 'et-configs',
   text: 'Import configs into CCD',
   fn: importConfigs

@@ -130,6 +130,11 @@ export function createNewSession(name: string): Session {
   }
 }
 
+/** Check if any objects exist in any sheets */
+export function isCurrentSessionEmpty() {
+  return !Object.values(session.added).some(o => o.length)
+}
+
 /** Deletes empty previous sessions */
 export async function cleanupEmptySessions() {
   const previous = await findPreviousSessions()

@@ -1,0 +1,162 @@
+{
+  "data": {
+    "hearingCollection": [
+      {
+        "value": {
+          "hearingNumber": "1",
+          "Hearing_type": "Hearing",
+          "hearingPublicPrivate": null,
+          "judicialMediation": null,
+          "Hearing_venue_Scotland": "Glasgow",
+          "Hearing_Glasgow": {
+            "value": {
+              "code": "Cambeltown HC",
+              "label": "Cambeltown Sheriff Court"
+            },
+            "selectedLabel": "Cambeltown Sheriff Court",
+            "selectedCode": "Cambeltown HC",
+            "list_items": [
+              {
+                "code": "Cambeltown HC",
+                "label": "Cambeltown Sheriff Court"
+              },
+              {
+                "code": "Dumfries HC",
+                "label": "Dumfries Sheriff Court"
+              },
+              {
+                "code": "Fort William SC",
+                "label": "Fort William Sheriff Court"
+              },
+              {
+                "code": "Glasgow COET",
+                "label": "Glasgow COET"
+              },
+              {
+                "code": "GTC",
+                "label": "GTC"
+              },
+              {
+                "code": "Kirkcudbright",
+                "label": "Kirkcudbright Sheriff Court"
+              },
+              {
+                "code": "Lochmaddy HC",
+                "label": "Lochmaddy Sheriff Court"
+              },
+              {
+                "code": "Oban HC",
+                "label": "Oban Sheriff court"
+              },
+              {
+                "code": "Portree HC",
+                "label": "Portree Sheriff Court"
+              },
+              {
+                "code": "Stirling SC",
+                "label": "Stirling Sheriff Court"
+              },
+              {
+                "code": "Stornoway HC",
+                "label": "Stornoway Sheriff Court"
+              },
+              {
+                "code": "Stranraer HC",
+                "label": "Stranraer Sheriff Court"
+              }
+            ]
+          },
+          "Hearing_Aberdeen": null,
+          "Hearing_Dundee": null,
+          "Hearing_Edinburgh": null,
+          "hearingEstLengthNum": "60",
+          "hearingEstLengthNumType": "Days",
+          "hearingSitAlone": "Sit Alone",
+          "Hearing_stage": null,
+          "Hearing_notes": null,
+          "hearingShowDetails": null,
+          "judge": null,
+          "hearingERMember": null,
+          "hearingEEMember": null,
+          "hearingFormat": [
+            "In person"
+          ],
+          "hearingDateCollection": [
+            {
+              "value": {
+                "listedDate": "2022-05-16T01:00:00.000",
+                "Hearing_typeReadingDeliberation": null,
+                "showListingDetails": null,
+                "Hearing_status": "Listed",
+                "Postponed_by": null,
+                "postponedDate": null,
+                "hearingVenueDayScotland": null,
+                "Hearing_Glasgow": null,
+                "Hearing_Aberdeen": null,
+                "Hearing_Dundee": null,
+                "Hearing_Edinburgh": null,
+                "hearingRoom": null,
+                "hearingClerk": null,
+                "hearingCaseDisposed": null,
+                "Hearing_part_heard": null,
+                "Hearing_reserved_judgement": null,
+                "attendee_claimant": null,
+                "attendee_non_attendees": null,
+                "attendee_resp_no_rep": null,
+                "attendee_resp_&_rep": null,
+                "attendee_rep_only": null,
+                "hearingTimingStart": "2022-05-16T01:00:00.000",
+                "hearingTimingBreak": null,
+                "hearingTimingResume": null,
+                "hearingTimingFinish": "2022-05-16T01:00:00.000",
+                "hearingTimingDuration": null,
+                "HearingNotes2": null
+              },
+              "id": "bfd521ce-355f-4f89-9e45-c80be48710d8"
+            },
+            {
+              "value": {
+                "listedDate": "2069-05-16T01:00:00.000",
+                "Hearing_typeReadingDeliberation": null,
+                "showListingDetails": null,
+                "Hearing_status": "Listed",
+                "Postponed_by": null,
+                "postponedDate": null,
+                "hearingVenueDayScotland": null,
+                "Hearing_Glasgow": null,
+                "Hearing_Aberdeen": null,
+                "Hearing_Dundee": null,
+                "Hearing_Edinburgh": null,
+                "hearingRoom": null,
+                "hearingClerk": null,
+                "hearingCaseDisposed": null,
+                "Hearing_part_heard": null,
+                "Hearing_reserved_judgement": null,
+                "attendee_claimant": null,
+                "attendee_non_attendees": null,
+                "attendee_resp_no_rep": null,
+                "attendee_resp_&_rep": null,
+                "attendee_rep_only": null,
+                "hearingTimingStart": "2069-05-16T01:00:00.000",
+                "hearingTimingBreak": null,
+                "hearingTimingResume": null,
+                "hearingTimingFinish": "2069-05-16T01:00:00.000",
+                "hearingTimingDuration": null,
+                "HearingNotes2": null
+              },
+              "id": "4d7724a0-643d-4137-9e41-7966c0f1f9a4"
+            }
+          ]
+        },
+        "id": "c73bcbc4-430e-41c9-9790-182543914c0c"
+      }
+    ]
+  },
+  "event": {
+    "id": "addAmendHearing",
+    "summary": "",
+    "description": ""
+  },
+  "event_token": "",
+  "ignore_warning": false
+}

@@ -7,7 +7,9 @@ const QUESTION_NAME = 'What should we called this session?'
 export async function setSessionName() {
   const answers = await prompt([{ name: 'name', message: QUESTION_NAME }])
 
-  session.name = answers.name
+  if (answers.name) {
+    session.name = answers.name
+  }
 }
 
 function getText() {

@@ -7,6 +7,7 @@ async function tearDownAndFreshStart() {
 }
 
 export default {
+  disabled: true,
   group: 'et-docker',
   text: 'Fresh start docker (destroy and rebuild)',
   fn: tearDownAndFreshStart

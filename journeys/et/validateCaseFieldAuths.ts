@@ -1,6 +1,6 @@
 import { AuthorisationCaseField, CaseField } from 'types/ccd'
 import { Journey } from 'types/journey'
-import { getConfigSheetsForCaseTypeID, createCaseFieldAuthorisations } from 'app/et/configs'
+import { getConfigSheetsForCaseTypeID, createCaseFieldAuthorisations, Region } from 'app/et/configs'
 import { findMissing, matcher } from 'app/helpers'
 import { COMPOUND_KEYS } from 'app/constants'
 import { writeFileSync } from 'fs'
@@ -67,7 +67,8 @@ function checkFieldForAuths(field: CaseField, existingAuths: AuthorisationCaseFi
 }
 
 export default {
-  group: 'et-session',
+  disabled: true,
+  group: 'et-validate',
   text: 'Validate CaseFields have correct authorisations',
   fn: validateCaseFieldAuths
 } as Journey

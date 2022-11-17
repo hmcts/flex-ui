@@ -35,6 +35,8 @@ export interface CaseEventToField {
   PageColumnNumber: number
   ShowSummaryContentOption: number
   RetriesTimeoutURLMidEvent: string
+  CaseEventFieldLabel: string
+  CaseEventFieldHint: string
 }
 
 export interface CaseEvent {
@@ -180,6 +182,8 @@ export enum CaseEventToFieldKeys {
   PageColumnNumber = 'PageColumnNumber',
   ShowSummaryContentOption = 'ShowSummaryContentOption',
   RetriesTimeoutURLMidEvent = 'RetriesTimeoutURLMidEvent',
+  CaseEventFieldLabel = 'CaseEventFieldLabel',
+  CaseEventFieldHint = 'CaseEventFieldHint'
 }
 
 export enum CaseEventKeys {

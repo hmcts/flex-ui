@@ -1,4 +1,4 @@
-import { addToInMemoryConfig, getConfigSheetsForCaseTypeID, upsertNewCaseEvent } from 'app/et/configs'
+import { addToInMemoryConfig, getConfigSheetsForCaseTypeID, getRegionFromCaseTypeId, regionRoles, upsertNewCaseEvent } from 'app/et/configs'
 import { CaseField, ConfigSheets, createNewConfigSheets } from 'app/types/ccd'
 
 /**
@@ -33,6 +33,12 @@ function swapRegions(input: string) {
   return input
 }
 
+function getEquivalentRole(caseTypeID: string, role: string) {
+  const region = getRegionFromCaseTypeId(caseTypeID)
+  const regionRole = regionRoles[role]
+  return regionRole?.[region]
+}
+
 /**
  * Duplicate object with a new CaseTypeID
  */
@@ -48,7 +54,7 @@ export function duplicateInCaseType<T extends { CaseTypeID: string }>(caseTypeID
 export function duplicateAuthorisationInCaseType<T extends { CaseTypeId: string, UserRole: string }>(caseTypeID: string, obj: T) {
   const copy = Object.assign({}, obj)
   copy.CaseTypeId = caseTypeID
-  copy.UserRole = swapRegions(copy.UserRole)
+  copy.UserRole = getEquivalentRole(caseTypeID, copy.UserRole) || copy.UserRole
   return copy
 }
 
