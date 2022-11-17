@@ -9,8 +9,7 @@ import { execCommand, getEnvVarsFromFile, temporaryLog } from 'app/helpers'
 import { ChildProcess, exec } from 'child_process'
 import { kill } from 'process'
 import { getWslHostIP, setIPToHostDockerInternal, setIPToWslHostAddress } from './dockerUpdateIP'
-import { generateSpreadsheets } from './configsGenerateSpreadsheet'
-import { importConfigs } from './configsImportCcd'
+import { generateSpreadsheets, importConfigs } from './configsCommon'
 
 https.globalAgent.options.rejectUnauthorized = false
 

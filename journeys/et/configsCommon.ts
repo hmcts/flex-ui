@@ -1,16 +1,15 @@
 import { session } from 'app/session'
 import { Journey } from 'types/journey'
 import { prompt } from 'inquirer'
-import { saveBackToProject } from 'app/et/configs'
-import { generateSpreadsheets } from './configsGenerateSpreadsheet'
-import { importConfigs } from './configsImportCcd'
+import { Region, saveBackToProject } from 'app/et/configs'
 import { setIPToHostDockerInternal, setIPToWslHostAddress } from './dockerUpdateIP'
-import { getFiles, temporaryLog } from 'app/helpers'
+import { execCommand, getFiles, temporaryLog } from 'app/helpers'
 import { createReadStream, statSync } from 'fs'
 import FormData from 'form-data'
 import fetch from 'node-fetch'
 import { YES, YES_OR_NO } from 'app/constants'
 import { cookieJarToString, loginToIdam } from './webCreateCase'
+import { sep } from 'path'
 
 const QUESTION_TASK = 'What stages of import are you interested in?'
 const QUESTION_ENVIRONMENT = 'What environment should we generate spreadsheets for?'
@@ -20,6 +19,8 @@ const QUESTION_UPLOAD = 'Would you like to upload demo configs to the demo envir
 const CHOICE_SAVE = 'Save in-memory config'
 const CHOICE_GENERATE = 'Generate spreadsheets from JSON files'
 const CHOICE_IMPORT = 'Import spreadsheet configs into local CCD'
+
+const IMPORT_SCRIPT = `${process.env.ECM_DOCKER_DIR}/bin/ccd-import-definition.sh`
 
 const IP_OPTS = [
   'host.docker.internal (if callbacks runs on Windows/Mac)',
@@ -94,9 +95,30 @@ export async function execConfigTasks(answers: Record<string, any>) {
   }
 }
 
-async function getCookieForDemoAdminInterface(user: string, pass: string) {
-  // TODO lol
-  return ''
+export async function generateSpreadsheets(env = 'local') {
+  await execCommand(`yarn generate-excel-${env}`, process.env.ENGWALES_DEF_DIR)
+  await execCommand(`yarn generate-excel-${env}`, process.env.SCOTLAND_DEF_DIR)
+  temporaryLog(`Spreadsheets generated successfully for ${env}`)
+}
+
+function getDefinitionPath(region: Region, env = 'local') {
+  if (region === Region.EnglandWales) {
+    return `${process.env.ENGWALES_DEF_DIR}${sep}definitions${sep}xlsx${sep}et-englandwales-ccd-config-${env}.xlsx`
+  }
+  return `${process.env.SCOTLAND_DEF_DIR}${sep}definitions${sep}xlsx${sep}et-scotland-ccd-config-${env}.xlsx`
+}
+
+export async function ccdImport(region: Region, env = 'local') {
+  const definitionFile = getDefinitionPath(region, env)
+  const res = await execCommand(`${IMPORT_SCRIPT} ${definitionFile}`)
+  if (!res.stdout?.includes('Case Definition data successfully imported')) {
+    console.error(res.stdout)
+  }
+}
+
+export async function importConfigs() {
+  await ccdImport(Region.EnglandWales)
+  await ccdImport(Region.Scotland)
 }
 
 async function uploadConfig(dir: string, cookie: string) {
