@@ -33,10 +33,17 @@ export async function ensureUp() {
   await ccdLogin()
   await ccdComposePull()
   await ccdInit()
-  await ccdComposeUp()
-  await initEcm()
+  await startContainers()
   await initDb()
   clearCurrentLine()
+}
+
+/**
+ * Start and setup containers from existing images
+ */
+export async function startContainers() {
+  await ccdComposeUp()
+  await initEcm()
 }
 
 /**
@@ -80,7 +87,7 @@ export async function ccdComposeUp() {
 
 /**
  * Run the init-ecm command responsible for creating roles and loading data.
- * This command will automatically retry every 30 seconds (if the usual error messages occur)
+ * This command will automatically retry every 5 seconds (if the usual error messages occur)
  * until it is successful (can take around 5 mins depending on hardware)
  */
 export async function initEcm() {
