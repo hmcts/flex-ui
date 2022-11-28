@@ -6,7 +6,7 @@ import { addToInMemoryConfig } from 'app/et/configs'
 import { Answers, askRetainHiddenValue } from 'app/questions'
 import { addToLastAnswers, session } from 'app/session'
 import { Journey } from 'types/journey'
-import { askCaseEvent, askCaseFieldID, askEventToComplexTypeListElementCode } from 'app/et/questions'
+import { addFlexRegionToCcdObject, askCaseEvent, askCaseFieldID, askEventToComplexTypeListElementCode, askFlexRegion } from 'app/et/questions'
 
 const QUESTION_CASE_EVENT_ID = 'What event does this belong to?'
 const QUESTION_ID = "What's the ID of this EventToComplexType?"
@@ -30,6 +30,8 @@ function getDefaultValueForFieldDisplayOrder() {
 }
 
 export async function createEventToComplexType(answers: Answers = {}) {
+  answers = await askFlexRegion(undefined, undefined, undefined, answers)
+
   answers = await askCaseEvent(answers, undefined, QUESTION_CASE_EVENT_ID)
 
   answers = await prompt([{ name: 'ID', message: QUESTION_ID, type: 'input', default: session.lastAnswers.ID }], answers)
@@ -49,6 +51,7 @@ export async function createEventToComplexType(answers: Answers = {}) {
   answers = await askRetainHiddenValue(answers)
 
   const eventToComplexType = createNewEventToComplexType(answers)
+  addFlexRegionToCcdObject(eventToComplexType, answers)
 
   addToInMemoryConfig({
     EventToComplexTypes: [trimCcdObject(eventToComplexType)]

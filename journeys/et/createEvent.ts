@@ -43,6 +43,8 @@ export async function createEvent(answers: Answers = {}) {
 
   if (existing) {
     answers = await prompt([{ name: 'authorisations', message: 'Do you want to create authorisations for this existing event?', type: 'list', choices: YES_OR_NO, default: NO }], answers)
+  } else {
+    answers.authorisations = YES
   }
 
   await addonDuplicateQuestion(answers, (answers: Answers) => {

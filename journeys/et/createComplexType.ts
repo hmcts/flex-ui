@@ -8,7 +8,7 @@ import { CUSTOM, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, isF
 import { session } from 'app/session'
 import { Journey } from 'types/journey'
 import { getIdealSizeForInquirer } from 'app/helpers'
-import { askFieldType, askFieldTypeParameter } from 'app/et/questions'
+import { addFlexRegionToCcdObject, askFieldType, askFieldTypeParameter, askFlexRegion } from 'app/et/questions'
 
 const QUESTION_ID = "What's the ID of this ComplexType?"
 const QUESTION_LIST_ELEMENT_CODE = 'What\'s the ListElementCode for this?'
@@ -29,6 +29,7 @@ function getDefaultValueForFieldDisplayOrder() {
 }
 
 export async function createComplexType(answers: Answers = {}) {
+  answers = await askFlexRegion(undefined, undefined, undefined, answers)
   answers = await askForID(answers)
 
   answers = await prompt([
@@ -59,6 +60,7 @@ export async function createComplexType(answers: Answers = {}) {
   }
 
   const complexType = createNewComplexType(answers)
+  addFlexRegionToCcdObject(complexType, answers)
 
   addToInMemoryConfig({
     ComplexTypes: [trimCcdObject(complexType)]

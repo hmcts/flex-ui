@@ -67,7 +67,7 @@ export async function doCreateCaseTasks(answers: Record<string, any>) {
     await createNewCase(region, answers.events)
   }
 
-  if (answers.kill) {
+  if (answers.kill === YES) {
     await killProcessesOnPort8081()
     if (needToRevert) {
       await setIPToHostDockerInternal()

@@ -91,6 +91,8 @@ export async function createSingleField(answers: Answers = {}) {
 
   if (existingField) {
     answers = await prompt([{ name: 'authorisations', message: QUESTION_AUTHORISATIONS, type: 'list', choices: YES_OR_NO, default: NO }], answers)
+  } else {
+    answers.authorisations = YES
   }
 
   addToLastAnswers(answers)

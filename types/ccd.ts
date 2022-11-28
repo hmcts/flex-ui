@@ -1,4 +1,4 @@
-export interface CaseField {
+export interface CaseField extends FlexExtensions {
   CaseTypeID: string
   ID: string
   Label: string
@@ -11,14 +11,14 @@ export interface CaseField {
   Max: number
 }
 
-export interface AuthorisationCaseField {
+export interface AuthorisationCaseField extends FlexExtensions {
   CaseTypeId: string
   CaseFieldID: string
   UserRole: string
   CRUD: string
 }
 
-export interface CaseEventToField {
+export interface CaseEventToField extends FlexExtensions {
   CaseTypeID: string
   CaseEventID: string
   CaseFieldID: string
@@ -39,7 +39,7 @@ export interface CaseEventToField {
   CaseEventFieldHint: string
 }
 
-export interface CaseEvent {
+export interface CaseEvent extends FlexExtensions {
   CaseTypeID: string
   ID: string
   Name: string
@@ -56,7 +56,7 @@ export interface CaseEvent {
   CallBackURLSubmittedEvent: string
 }
 
-export interface EventToComplexType {
+export interface EventToComplexType extends FlexExtensions {
   ID: string
   CaseEventID: string
   CaseFieldID: string
@@ -69,21 +69,21 @@ export interface EventToComplexType {
   RetainHiddenValue: 'No' | 'Yes'
 }
 
-export interface AuthorisationCaseEvent {
+export interface AuthorisationCaseEvent extends FlexExtensions {
   CaseTypeId: string
   CaseEventID: string
   UserRole: string
   CRUD: string
 }
 
-export interface Scrubbed {
+export interface Scrubbed extends FlexExtensions {
   ID: string
   ListElementCode: string
   ListElement: string
   DisplayOrder: number
 }
 
-export interface ComplexType {
+export interface ComplexType extends FlexExtensions {
   ID: string
   ListElementCode: string
   FieldType: string
@@ -100,7 +100,7 @@ export interface ComplexType {
   HintText: string
 }
 
-export interface CaseTypeTab {
+export interface CaseTypeTab extends FlexExtensions {
   CaseTypeID: string
   Channel: string
   TabID: string
@@ -111,6 +111,10 @@ export interface CaseTypeTab {
   FieldShowCondition: string
   TabShowCondition: string
   DisplayContextParameter: string
+}
+
+export interface FlexExtensions {
+  flex?: Record<string, any>
 }
 
 export interface CCDTypes {

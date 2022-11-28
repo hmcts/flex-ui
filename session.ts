@@ -5,6 +5,7 @@ import { COMPOUND_KEYS } from 'app/constants'
 import { getUniqueByKey, upsertFields } from 'app/helpers'
 import { ConfigSheets, createNewConfigSheets, sheets } from 'types/ccd'
 import { Answers } from 'app/questions'
+import { Region } from './et/configs'
 
 export interface Session {
   name: string
@@ -57,6 +58,7 @@ export function restorePreviousSession(sessionFileName: string) {
 
   session.date = json.date
   session.name = json.name
+  migrateOldSession(session)
 
   if (!json.lastAnswers) return
 
@@ -152,4 +154,21 @@ export async function cleanupEmptySessions() {
 
     rmSync(filename)
   }
+}
+
+function migrateOldSession(session: Session) {
+  migrationAddFlexRegions(session.added.Scrubbed)
+  migrationAddFlexRegions(session.added.ComplexTypes)
+  migrationAddFlexRegions(session.added.EventToComplexTypes)
+}
+
+function migrationAddFlexRegions<T extends { flex?: Record<string, any> }>(arr: Array<T>) {
+  arr.forEach(o => {
+    if (!o.flex) {
+      o.flex = {}
+    }
+    if (!o.flex?.regions) {
+      o.flex.regions = [Region.EnglandWales, Region.Scotland]
+    }
+  })
 }

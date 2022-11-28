@@ -3,13 +3,14 @@ import { format, getIdealSizeForInquirer } from 'app/helpers'
 import { createEvent } from 'app/journeys/et/createEvent'
 import { Answers, askBasicFreeEntry, fuzzySearch, listOrFreeType } from 'app/questions'
 import { session } from 'app/session'
-import { CaseEventKeys, CaseEventToFieldKeys, CaseFieldKeys, CCDSheets, CCDTypes, ComplexTypeKeys, EventToComplexTypeKeys } from 'app/types/ccd'
+import { CaseEventKeys, CaseEventToFieldKeys, CaseFieldKeys, CCDSheets, CCDTypes, ComplexTypeKeys, EventToComplexTypeKeys, FlexExtensions } from 'app/types/ccd'
 import { prompt } from 'inquirer'
-import { findObject, getCaseEventIDOpts, getEnglandWales, getKnownCaseFieldIDs, getKnownCaseFieldTypeParameters, getKnownCaseFieldTypes, getKnownCaseTypeIDs, getKnownComplexTypeIDs, getKnownComplexTypeListElementCodes, getScotland } from 'app/et/configs'
+import { findObject, getCaseEventIDOpts, getEnglandWales, getKnownCaseFieldIDs, getKnownCaseFieldTypeParameters, getKnownCaseFieldTypes, getKnownCaseTypeIDs, getKnownComplexTypeIDs, getKnownComplexTypeListElementCodes, getScotland, Region } from 'app/et/configs'
 import { createSingleField } from 'app/journeys/et/createSingleField'
 import { createScrubbed } from 'app/journeys/et/createScrubbed'
 import { createComplexType } from 'app/journeys/et/createComplexType'
 
+const QUESTION_REGION = "Which region(s) should this entry be added to?"
 const QUESTION_CASE_EVENT_ID = 'What event does this belong to?'
 const QUESTION_CASE_FIELD_ID = 'What field does this reference?'
 const QUESTION_LIST_ELEMENT_CODE = 'What ListElementCode does this reference?'
@@ -20,6 +21,12 @@ const QUESTION_FIELD_TYPE_CUSTOM = 'What\'s the name of the FieldType?'
 const QUESTION_CASE_TYPE_ID = 'What\'s the CaseTypeID?'
 const QUESTION_CASE_TYPE_ID_CUSTOM = 'Enter a custom value for CaseTypeID'
 const QUESTION_DUPLICATE_ADDON = 'Do we need this field duplicated under another caseTypeID?'
+
+const REGION_OPTS = [
+  Region.EnglandWales,
+  Region.Scotland,
+]
+
 
 /**
  * Asks questions based on the keys contained in the target object type
@@ -265,4 +272,25 @@ export async function askFieldType(answers: Answers = {}, key?: string, message?
 export async function askDuplicate(answers: Answers) {
   const opts = [NO_DUPLICATE, ...getKnownCaseTypeIDs()]
   return await listOrFreeType(answers, 'duplicate', QUESTION_DUPLICATE_ADDON, opts, undefined, true)
+}
+
+export async function askFlexRegion(key?: string, message?: string, defaultValue?: string[], answers?: Answers) {
+  return await prompt([
+    {
+      name: key || 'flexRegion',
+      message: message || QUESTION_REGION,
+      type: 'checkbox',
+      choices: REGION_OPTS,
+      default: defaultValue || answers?.['flexRegion'] || REGION_OPTS,
+      askAnswered: true,
+      pageSize: getIdealSizeForInquirer()
+    }
+  ], answers || {})
+}
+
+export function addFlexRegionToCcdObject(obj: FlexExtensions, answers: Answers, key?: string) {
+  if (!obj.flex) {
+    obj.flex = {}
+  }
+  obj.flex.regions = answers[key || 'flexRegion']
 }

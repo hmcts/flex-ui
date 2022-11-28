@@ -1,8 +1,8 @@
 import { readFileSync, writeFileSync } from 'fs'
 import { sep } from 'path'
-import { findLastIndex, format, getUniqueByKey, getUniqueByKeyAsArray, groupBy, upsertFields } from 'app/helpers'
+import { findLastIndex, format, getUniqueByKey, getUniqueByKeyAsArray, groupBy, matcher, upsertFields } from 'app/helpers'
 import { addToSession, session } from 'app/session'
-import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, CaseTypeTab, CCDSheets, CCDTypes, ConfigSheets, EventToComplexType, Scrubbed, sheets } from 'types/ccd'
+import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventKeys, CaseEventToField, CaseEventToFieldKeys, CaseField, CaseTypeTab, CaseTypeTabKeys, CCDSheets, CCDTypes, ConfigSheets, EventToComplexType, EventToComplexTypeKeys, FlexExtensions, Scrubbed, ScrubbedKeys, sheets } from 'types/ccd'
 import { COMPOUND_KEYS } from 'app/constants'
 
 let readTime = 0
@@ -276,6 +276,10 @@ export function upsertNewCaseEvent(caseEvent: CaseEvent) {
 function spliceIndexCaseEventToField(x: CaseEventToField, arr: CaseEventToField[]) {
   let index = findLastIndex(arr, o => o.CaseTypeID === x.CaseTypeID) + 1
 
+  if (index === -1) {
+    index = arr.length
+  }
+
   const eventIDIndex = findLastIndex(arr, o => o.CaseEventID === x.CaseEventID)
   const andPageID = findLastIndex(arr, o => o.CaseEventID === x.CaseEventID && o.PageID === x.PageID)
 
@@ -296,15 +300,35 @@ function spliceIndexCaseEventToField(x: CaseEventToField, arr: CaseEventToField[
 }
 
 function spliceIndexCaseTypeId<T extends { CaseTypeId: string }>(x: T, arr: T[]) {
-  return findLastIndex(arr, o => o.CaseTypeId === x.CaseTypeId) + 1
+  let index = findLastIndex(arr, o => o.CaseTypeId === x.CaseTypeId) + 1
+  if (index === -1) {
+    index = arr.length
+  }
+  return index
 }
 
 function spliceIndexCaseTypeID<T extends { CaseTypeID: string }>(x: T, arr: T[]) {
-  return findLastIndex(arr, o => o.CaseTypeID === x.CaseTypeID) + 1
+  let index = findLastIndex(arr, o => o.CaseTypeID === x.CaseTypeID) + 1
+  if (index === -1) {
+    index = arr.length
+  }
+  return index
 }
 
 function spliceIndexCaseTypeTab(x: CaseTypeTab, arr: CaseTypeTab[]) {
   let index = findLastIndex(arr, o => o.CaseTypeID === x.CaseTypeID && o.Channel === x.Channel && o.TabID === x.TabID) + 1
+
+  if (index === -1) {
+    index = findLastIndex(arr, o => o.CaseTypeID === x.CaseTypeID && o.Channel === x.Channel) + 1
+  }
+
+  if (index === -1) {
+    index = findLastIndex(arr, o => o.CaseTypeID === x.CaseTypeID) + 1
+  }
+
+  if (index === -1) {
+    index = arr.length
+  }
 
   if (x.TabFieldDisplayOrder === 1) {
     index = arr.findIndex(o => o.CaseTypeID === x.CaseTypeID && o.Channel === x.Channel && o.TabID === x.TabID)
@@ -325,6 +349,10 @@ function spliceIndexCaseTypeTab(x: CaseTypeTab, arr: CaseTypeTab[]) {
 function spliceIndexEventToComplexType(x: EventToComplexType, arr: EventToComplexType[]) {
   let index = findLastIndex(arr, o => o.CaseFieldID === x.CaseFieldID) + 1
 
+  if (index === -1) {
+    index = arr.length
+  }
+
   if (x.FieldDisplayOrder === 1) {
     index = arr.findIndex(o => o.CaseFieldID === x.CaseFieldID)
   }
@@ -341,6 +369,10 @@ function spliceIndexEventToComplexType(x: EventToComplexType, arr: EventToComple
 
 function spliceIndexScrubbed(x: Scrubbed, arr: Scrubbed[]) {
   let index = findLastIndex(arr, o => o.ID === x.ID) + 1
+
+  if (index === -1) {
+    index = arr.length
+  }
 
   if (x.DisplayOrder === 1) {
     index = arr.findIndex(o => o.ID === x.ID)
@@ -388,19 +420,34 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
     }
   }
 
-  const ewCaseFields = fields.CaseField.filter(o => o.CaseTypeID.startsWith(Region.EnglandWales))
-  const ewCaseEventToFields = fields.CaseEventToFields.filter(o => o.CaseTypeID.startsWith(Region.EnglandWales))
-  const ewAuthorisationCaseFields = fields.AuthorisationCaseField.filter(o => o.CaseTypeId.startsWith(Region.EnglandWales))
-  const ewAuthorisationCaseEvents = fields.AuthorisationCaseEvent.filter(o => o.CaseTypeId.startsWith(Region.EnglandWales))
-  const ewCaseTypeTabs = fields.CaseTypeTab.filter(o => o.CaseTypeID.startsWith(Region.EnglandWales))
-  const ewCaseEvents = fields.CaseEvent.filter(o => o.CaseTypeID.startsWith(Region.EnglandWales))
+  const ewCaseTypeIDFilter = (o: { CaseTypeID?: string, CaseTypeId?: string }) => (o.CaseTypeID || o.CaseTypeId).startsWith(Region.EnglandWales)
+  const ewRegionFilter = (o: FlexExtensions) => (o.flex.regions as string[]).includes(Region.EnglandWales)
 
-  const scCaseFields = fields.CaseField.filter(o => o.CaseTypeID.startsWith(Region.Scotland))
-  const scCaseEventToFields = fields.CaseEventToFields.filter(o => o.CaseTypeID.startsWith(Region.Scotland))
-  const scAuthorisationCaseFields = fields.AuthorisationCaseField.filter(o => o.CaseTypeId.startsWith(Region.Scotland))
-  const scAuthorisationCaseEvents = fields.AuthorisationCaseEvent.filter(o => o.CaseTypeId.startsWith(Region.Scotland))
-  const scCaseTypeTabs = fields.CaseTypeTab.filter(o => o.CaseTypeID.startsWith(Region.Scotland))
-  const scCaseEvents = fields.CaseEvent.filter(o => o.CaseTypeID.startsWith(Region.Scotland))
+  const scCaseTypeIDFilter = (o: { CaseTypeID?: string, CaseTypeId?: string }) => (o.CaseTypeID || o.CaseTypeId).startsWith(Region.Scotland)
+  const scRegionFilter = (o: FlexExtensions) => (o.flex.regions as string[]).includes(Region.Scotland)
+
+  const ewCaseFields = fields.CaseField.filter(ewCaseTypeIDFilter)
+  const ewCaseEventToFields = fields.CaseEventToFields.filter(ewCaseTypeIDFilter)
+  const ewAuthorisationCaseFields = fields.AuthorisationCaseField.filter(ewCaseTypeIDFilter)
+  const ewAuthorisationCaseEvents = fields.AuthorisationCaseEvent.filter(ewCaseTypeIDFilter)
+  const ewCaseTypeTabs = fields.CaseTypeTab.filter(ewCaseTypeIDFilter)
+  const ewCaseEvents = fields.CaseEvent.filter(ewCaseTypeIDFilter)
+
+  const ewScrubbed = fields.Scrubbed.filter(ewRegionFilter)
+  const ewComplexTypes = fields.ComplexTypes.filter(ewRegionFilter)
+  const ewEventToComplexTypes = fields.EventToComplexTypes.filter(ewRegionFilter)
+
+  const scCaseFields = fields.CaseField.filter(scCaseTypeIDFilter)
+  const scCaseEventToFields = fields.CaseEventToFields.filter(scCaseTypeIDFilter)
+  const scAuthorisationCaseFields = fields.AuthorisationCaseField.filter(scCaseTypeIDFilter)
+  const scAuthorisationCaseEvents = fields.AuthorisationCaseEvent.filter(scCaseTypeIDFilter)
+  const scCaseTypeTabs = fields.CaseTypeTab.filter(scCaseTypeIDFilter)
+  const scCaseEvents = fields.CaseEvent.filter(scCaseTypeIDFilter)
+
+  const scScrubbed = fields.Scrubbed.filter(scRegionFilter)
+  const scComplexTypes = fields.ComplexTypes.filter(scRegionFilter)
+  const scEventToComplexTypes = fields.EventToComplexTypes.filter(scRegionFilter)
+
 
   // TODO: These group by CaseTypeID but fields should also be grouped further (like Case Fields need to listen to PageID and PageFieldDisplayOrder etc...)
 
@@ -414,14 +461,14 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
 
   upsertFields(englandwales.CaseTypeTab, ewCaseTypeTabs, COMPOUND_KEYS.CaseTypeTab, spliceIndexCaseTypeTab)
 
-  upsertFields(englandwales.EventToComplexTypes, fields.EventToComplexTypes, COMPOUND_KEYS.EventToComplexTypes, spliceIndexEventToComplexType)
+  upsertFields(englandwales.EventToComplexTypes, ewEventToComplexTypes, COMPOUND_KEYS.EventToComplexTypes, spliceIndexEventToComplexType)
 
   // Insert after (next to) other objects of the same ID, or insert at the end if the ID doesn't exist yet
-  upsertFields(englandwales.ComplexTypes, fields.ComplexTypes, COMPOUND_KEYS.ComplexTypes,
+  upsertFields(englandwales.ComplexTypes, ewComplexTypes, COMPOUND_KEYS.ComplexTypes,
     (x, arr) => findLastIndex(arr, o => o.ID === x.ID) + 1
   )
 
-  upsertFields(englandwales.Scrubbed, fields.Scrubbed, COMPOUND_KEYS.Scrubbed, spliceIndexScrubbed)
+  upsertFields(englandwales.Scrubbed, ewScrubbed, COMPOUND_KEYS.Scrubbed, spliceIndexScrubbed)
 
   upsertFields(englandwales.CaseEvent, ewCaseEvents, COMPOUND_KEYS.CaseEvent, spliceIndexCaseEvent)
 
@@ -435,15 +482,15 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
 
   upsertFields(scotland.CaseTypeTab, scCaseTypeTabs, COMPOUND_KEYS.CaseTypeTab, spliceIndexCaseTypeTab)
 
-  upsertFields(scotland.EventToComplexTypes, fields.EventToComplexTypes, COMPOUND_KEYS.EventToComplexTypes, spliceIndexEventToComplexType)
+  upsertFields(scotland.EventToComplexTypes, scEventToComplexTypes, COMPOUND_KEYS.EventToComplexTypes, spliceIndexEventToComplexType)
 
   // Insert after (next to) other objects of the same ID, or insert at the end if the ID doesn't exist yet
-  upsertFields(scotland.ComplexTypes, fields.ComplexTypes, COMPOUND_KEYS.ComplexTypes,
+  upsertFields(scotland.ComplexTypes, scComplexTypes, COMPOUND_KEYS.ComplexTypes,
     (x, arr) => findLastIndex(arr, o => o.ID === x.ID) + 1
   )
 
   // Dirty hack to avoid pushing DisplayOrder up twice
-  upsertFields(scotland.Scrubbed, fields.Scrubbed.map(o => { return { ...o } }), COMPOUND_KEYS.Scrubbed, spliceIndexScrubbed)
+  upsertFields(scotland.Scrubbed, scScrubbed, COMPOUND_KEYS.Scrubbed, spliceIndexScrubbed)
 
   upsertFields(scotland.CaseEvent, scCaseEvents, COMPOUND_KEYS.CaseEvent, spliceIndexCaseEvent)
 
@@ -455,7 +502,7 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
     EventToComplexTypes: fields.EventToComplexTypes,
     ComplexTypes: fields.ComplexTypes,
     CaseTypeTab: ewCaseTypeTabs,
-    Scrubbed: fields.Scrubbed,
+    Scrubbed: ewScrubbed,
     CaseEvent: ewCaseEvents
   })
 
@@ -467,34 +514,50 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
     EventToComplexTypes: fields.EventToComplexTypes,
     ComplexTypes: fields.ComplexTypes,
     CaseTypeTab: scCaseTypeTabs,
-    Scrubbed: fields.Scrubbed,
+    Scrubbed: scScrubbed,
     CaseEvent: scCaseEvents
   })
 }
 
 export function pushEventToComplexTypeFieldDisplayOrders(arr: EventToComplexType[], eventID: string, fieldID: string, start: number) {
-  arr.filter(o => o.CaseEventID === eventID && o.CaseFieldID === fieldID && o.FieldDisplayOrder >= start)
-    .forEach(o => o.FieldDisplayOrder = o.FieldDisplayOrder + 1)
+  const matching = arr.filter(o => o.CaseEventID === eventID && o.CaseFieldID === fieldID && o.FieldDisplayOrder >= start)
+  pushByDisplayOrderField(matching, start, EventToComplexTypeKeys.FieldDisplayOrder)
 }
 
 export function pushCaseTypeTabTabFieldDisplayOrders(arr: CaseTypeTab[], caseTypeID: string, channel: string, tabID: string, start: number) {
-  arr.filter(o => o.CaseTypeID === caseTypeID && o.Channel === channel && o.TabID === tabID && o.TabFieldDisplayOrder >= start)
-    .forEach(o => o.TabFieldDisplayOrder = o.TabFieldDisplayOrder + 1)
+  const matching = arr.filter(o => o.CaseTypeID === caseTypeID && o.Channel === channel && o.TabID === tabID && o.TabFieldDisplayOrder >= start)
+  pushByDisplayOrderField(matching, start, CaseTypeTabKeys.TabFieldDisplayOrder)
 }
 
 export function pushCaseEventToFieldsPageFieldDisplayOrder(arr: CaseEventToField[], caseTypeID: string, eventID: string, pageID: number, start: number) {
-  arr.filter(o => o.CaseTypeID === caseTypeID && o.CaseEventID === eventID && o.PageID === pageID && o.PageFieldDisplayOrder >= start)
-    .forEach(o => o.PageFieldDisplayOrder = o.PageFieldDisplayOrder + 1)
+  const matching = arr.filter(o => o.CaseTypeID === caseTypeID && o.CaseEventID === eventID && o.PageID === pageID && o.PageFieldDisplayOrder >= start)
+  pushByDisplayOrderField(matching, start, CaseEventToFieldKeys.PageFieldDisplayOrder)
 }
 
 export function pushScrubbedDisplayOrder(arr: Scrubbed[], id: string, start: number) {
-  arr.filter(o => o.ID === id && o.DisplayOrder >= start)
-    .forEach(o => o.DisplayOrder = o.DisplayOrder + 1)
+  const matching = arr.filter(o => o.ID === id && o.DisplayOrder >= start)
+  pushByDisplayOrderField(matching, start, ScrubbedKeys.DisplayOrder)
 }
 
 export function pushCaseEventsDisplayOrder(arr: CaseEvent[], caseTypeID: string, start: number) {
-  const tmp = arr.filter(o => o.CaseTypeID === caseTypeID && o.DisplayOrder >= start)
-  tmp.forEach(o => o.DisplayOrder = o.DisplayOrder + 1)
+  const matching = arr.filter(o => o.CaseTypeID === caseTypeID && o.DisplayOrder >= start)
+  pushByDisplayOrderField(matching, start, CaseEventKeys.DisplayOrder)
+}
+
+function pushByDisplayOrderField(arr: any[], start: number, displayOrderKey: string) {
+  let changesMade = false
+  do {
+    changesMade = false
+    let num = start
+    for (const field of arr) {
+      if (field[displayOrderKey] === num) {
+        field[displayOrderKey]++
+        num++
+        changesMade = true
+      }
+    }
+  }
+  while (changesMade)
 }
 
 /**
