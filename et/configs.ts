@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync } from 'fs'
 import { sep } from 'path'
-import { findLastIndex, format, getUniqueByKey, getUniqueByKeyAsArray, upsertFields } from 'app/helpers'
+import { findLastIndex, format, getUniqueByKey, getUniqueByKeyAsArray, groupBy, upsertFields } from 'app/helpers'
 import { addToSession, session } from 'app/session'
 import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventKeys, CaseEventToField, CaseEventToFieldKeys, CaseField, CaseTypeTab, CaseTypeTabKeys, CCDSheets, CCDTypes, ConfigSheets, EventToComplexType, EventToComplexTypeKeys, FlexExtensions, Scrubbed, ScrubbedKeys, sheets } from 'types/ccd'
 import { COMPOUND_KEYS } from 'app/constants'
@@ -143,7 +143,9 @@ export function getCaseEventIDOpts() {
  * Get all currently known FieldType IDs in englandwales and scotland configs (FieldTypes that are referenced by at least one CaseField)
  */
 export function getKnownCaseFieldTypes() {
-  return getUniqueByKeyAsArray([...englandwales.CaseField, ...scotland.CaseField], 'FieldType')
+  const knownFieldTypes = [...englandwales.CaseField, ...scotland.CaseField].map(o => o.FieldType)
+  const knownComplexTypes = [...englandwales.ComplexTypes, ...scotland.ComplexTypes].map(o => o.ID)
+  return Object.keys(groupBy([...knownFieldTypes, ...knownComplexTypes]))
 }
 
 /**

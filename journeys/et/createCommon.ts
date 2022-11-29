@@ -8,6 +8,10 @@ import { createSingleField } from './createSingleField'
 import { createCallbackPopulatedLabel } from './createCallbackPopulatedLabel'
 import { createScrubbed } from './createScrubbed'
 import { createCaseEventToFieldJourney } from './createCaseEventToField'
+import { isCurrentSessionEmpty, saveSession, session } from 'app/session'
+import { setSessionName } from './sessionSetName'
+import { prompt } from 'inquirer'
+import { YES, YES_OR_NO } from 'app/constants'
 
 const QUESTION_TASK = 'What task do you want to perform?'
 
@@ -56,6 +60,29 @@ export async function createJourney() {
         await createScrubbed()
         break
     }
+
+    saveSession(session)
+    await conditionalAskForSessionName()
+  }
+}
+
+/**
+ * Ask the user for a session name if the current session has a default name (session_TIME) and has data in it
+ */
+async function conditionalAskForSessionName() {
+  const isDefaultName = session.name.match(/^session_\d+$/)
+  if (isCurrentSessionEmpty() || !isDefaultName) {
+    return
+  }
+
+  const notEmptyQuestion = `Current session (${session.name}) is not empty but has not had a name set. Would you like to do that now?`
+  const answers = await prompt([
+    { name: 'name', message: notEmptyQuestion, type: 'list', choices: YES_OR_NO }
+  ])
+
+  if (answers.name === YES) {
+    await setSessionName()
+    saveSession(session)
   }
 }
 
