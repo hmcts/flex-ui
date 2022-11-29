@@ -39,7 +39,7 @@ export async function askConfigTasks() {
   const TASK_CHOICES = getConfigChoices()
 
   let answers = await prompt([
-    { name: 'tasks', message: QUESTION_TASK, type: 'checkbox', choices: Object.values(TASK_CHOICES), default: Object.values(TASK_CHOICES).slice(0, 3) },
+    { name: 'tasks', message: QUESTION_TASK, type: 'checkbox', choices: Object.values(TASK_CHOICES), default: Object.values(TASK_CHOICES).slice(0, 3) }
   ])
 
   if (answers.tasks.includes(TASK_CHOICES.GENERATE) && !answers.tasks.includes(TASK_CHOICES.IMPORT)) {
@@ -129,11 +129,11 @@ async function uploadConfig(dir: string, cookie: string) {
     return temporaryLog(`Could not find a demo config file in ${dir}/definitions/xlsx`)
   }
 
-  const form = new FormData();
-  const stats = statSync(configFile);
-  const fileSizeInBytes = stats.size;
-  const fileStream = createReadStream(configFile);
-  form.append('file', fileStream, { knownLength: fileSizeInBytes });
+  const form = new FormData()
+  const stats = statSync(configFile)
+  const fileSizeInBytes = stats.size
+  const fileStream = createReadStream(configFile)
+  form.append('file', fileStream, { knownLength: fileSizeInBytes })
 
   await fetch('https://ccd-admin-web.demo.platform.hmcts.net/import', {
     method: 'POST',

@@ -10,13 +10,11 @@ import { addFlexRegionToCcdObject, askCaseEvent, askCaseFieldID, askEventToCompl
 
 const QUESTION_CASE_EVENT_ID = 'What event does this belong to?'
 const QUESTION_ID = "What's the ID of this EventToComplexType?"
-const QUESTION_LIST_ELEMENT_CODE = 'What\'s the ListElementCode for this?'
 const QUESTION_EVENT_ELEMENT_LABEL = 'What\'s the custom label for this control?'
 const QUESTION_FIELD_DISPLAY_ORDER = 'What\'s the FieldDisplayOrder for this?'
 const QUESTION_DISPLAY_CONTEXT = 'Should this field be READONLY, OPTIONAL or MANDATORY?'
 const QUESTION_FIELD_SHOW_CONDITION = 'Enter a FieldShowCondition (optional)'
 const DISPLAY_CONTEXT_OPTIONS = ['READONLY', 'OPTIONAL', 'MANDATORY']
-const QUESTION_REPEAT = 'Add another?'
 
 /**
  * Gets the default value for FieldDisplayOrder question

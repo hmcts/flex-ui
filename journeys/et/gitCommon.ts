@@ -1,5 +1,5 @@
 import { CUSTOM } from 'app/constants'
-import { execCommand, getIdealSizeForInquirer, groupBy, temporaryLog } from 'app/helpers'
+import { execCommand, groupBy } from 'app/helpers'
 import { askAutoComplete, askBasicFreeEntry } from 'app/questions'
 import { prompt } from 'inquirer'
 import { Journey } from 'types/journey'
@@ -31,20 +31,20 @@ export async function getRepos() {
   return {
     [`et-ccd-definitions-englandwales (${await getBranchStatus(process.env.ENGWALES_DEF_DIR)})`]: process.env.ENGWALES_DEF_DIR,
     [`et-ccd-definitions-scotland (${await getBranchStatus(process.env.SCOTLAND_DEF_DIR)})`]: process.env.SCOTLAND_DEF_DIR,
-    [`et-ccd-callbacks (${await getBranchStatus(process.env.ET_CCD_CALLBACKS_DIR)})`]: process.env.ET_CCD_CALLBACKS_DIR,
+    [`et-ccd-callbacks (${await getBranchStatus(process.env.ET_CCD_CALLBACKS_DIR)})`]: process.env.ET_CCD_CALLBACKS_DIR
   }
 }
 
 async function gitJourney() {
   const REPOS = await getRepos()
 
-  let answers = await prompt([
-    { name: 'repos', message: QUESTION_REPOS, type: 'checkbox', choices: Object.keys(REPOS), default: Object.keys(REPOS) },
+  const answers = await prompt([
+    { name: 'repos', message: QUESTION_REPOS, type: 'checkbox', choices: Object.keys(REPOS), default: Object.keys(REPOS) }
   ])
 
   while (true) {
     let followup: any = { repos: answers.repos }
-    let branchOpts = await getBranchOpts(REPOS[followup.repos[0]])
+    const branchOpts = await getBranchOpts(REPOS[followup.repos[0]])
 
     followup = await askAutoComplete('task', QUESTION_TASK, TASK_CHOICES.PULL, Object.values(TASK_CHOICES), followup)
 
@@ -108,7 +108,7 @@ async function getBranchStatus(path: string) {
 }
 
 async function currentBranch(path: string) {
-  const { stdout, stderr } = await execCommand('git rev-parse --symbolic-full-name --abbrev-ref HEAD', path, false)
+  const { stdout } = await execCommand('git rev-parse --symbolic-full-name --abbrev-ref HEAD', path, false)
   return stdout.replace(/\r\n|\n/, '')
 }
 
@@ -143,7 +143,7 @@ async function deleteBranch(path: string, branch: string) {
 }
 
 async function getBranchOpts(path: string) {
-  const { stdout, stderr } = await execCommand('git branch -a', path, false)
+  const { stdout } = await execCommand('git branch -a', path, false)
   const opts = stdout.split(/\r\n|\n/).filter(o => !o.includes('->') && o.length > 2).map(o => o.replace('remotes/origin/', '').substring(2))
   return Object.keys(groupBy(opts))
 }

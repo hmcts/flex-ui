@@ -2,7 +2,7 @@ import { prompt } from 'inquirer'
 import { Journey } from 'types/journey'
 import { Answers } from 'app/questions'
 import { createNewCaseEvent } from 'app/ccd'
-import { addToInMemoryConfig, createCaseEventAuthorisations, findObject, Region } from 'app/et/configs'
+import { addToInMemoryConfig, createCaseEventAuthorisations, findObject } from 'app/et/configs'
 import { NO, YES, YES_OR_NO, Y_OR_N } from 'app/constants'
 import { askCaseTypeID } from 'app/et/questions'
 import { CaseEvent, CaseEventKeys } from 'app/types/ccd'
@@ -50,7 +50,7 @@ export async function createEvent(answers: Answers = {}) {
   await addonDuplicateQuestion(answers, (answers: Answers) => {
     const caseEvent = createNewCaseEvent(answers)
     const authorisations = answers.authorisations === YES ? createCaseEventAuthorisations(answers.CaseTypeID, answers.ID) : []
-   
+
     addToInMemoryConfig({
       AuthorisationCaseEvent: authorisations,
       CaseEvent: [caseEvent]

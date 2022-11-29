@@ -3,11 +3,11 @@ import fetch, { RequestInit } from 'node-fetch'
 import { resolve } from 'path'
 import { prompt } from 'inquirer'
 import https from 'node:https'
-import { exists, existsSync } from 'fs'
+// eslint-disable-next-line n/no-deprecated-api
+import { existsSync } from 'fs'
 import { NO, YES, YES_OR_NO } from 'app/constants'
 import { execCommand, getEnvVarsFromFile, temporaryLog } from 'app/helpers'
 import { ChildProcess, exec } from 'child_process'
-import { kill } from 'process'
 import { getWslHostIP, setIPToHostDockerInternal, setIPToWslHostAddress } from './dockerUpdateIP'
 import { generateSpreadsheets, importConfigs } from './configsCommon'
 
@@ -47,12 +47,12 @@ export async function askCreateCaseQuestions() {
   ])
 }
 
-async function killProcessesOnPort8081(){
+async function killProcessesOnPort8081() {
   return await execCommand(`lsof -i:8081 -Fp | head -n 1 | sed 's/^p//' | xargs kill`, undefined, false)
 }
 
 export async function doCreateCaseTasks(answers: Record<string, any>) {
-  let needToRevert = getWslHostIP() === 'host.docker.internal'
+  const needToRevert = getWslHostIP() === 'host.docker.internal'
 
   if (answers.callbacks === YES) {
     await killProcessesOnPort8081()

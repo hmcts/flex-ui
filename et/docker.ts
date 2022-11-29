@@ -157,15 +157,13 @@ async function dockerImageRm() {
 
 export async function killAndRemoveContainers() {
   return await Promise.allSettled(DOCKER_CONTAINERS.map(async o => {
-    const { stdout, stderr } = await execCommand(`docker container rm ${o} --force`, undefined, false)
-    // We could collect stats but lets not bother for now
+    await execCommand(`docker container rm ${o} --force`, undefined, false)
   }))
 }
 
 export async function dockerDeleteVolumes() {
   return await Promise.allSettled(DOCKER_VOLUMES.map(async o => {
-    const { stdout, stderr } = await execCommand(`docker volume rm ${o}`, undefined, false)
-    // We could collect stats on removed images but lets not bother for now
+    await execCommand(`docker volume rm ${o}`, undefined, false)
   }))
 }
 

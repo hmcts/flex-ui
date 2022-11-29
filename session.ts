@@ -162,7 +162,7 @@ function migrateOldSession(session: Session) {
   migrationAddFlexRegions(session.added.EventToComplexTypes)
 }
 
-function migrationAddFlexRegions<T extends { flex?: Record<string, any> }>(arr: Array<T>) {
+function migrationAddFlexRegions<T extends { flex?: Record<string, any> }>(arr: T[]) {
   arr.forEach(o => {
     if (!o.flex) {
       o.flex = {}

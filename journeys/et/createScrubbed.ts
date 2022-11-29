@@ -1,5 +1,5 @@
 import { YES_OR_NO } from 'app/constants'
-import { addToInMemoryConfig, Region } from 'app/et/configs'
+import { addToInMemoryConfig } from 'app/et/configs'
 import { addFlexRegionToCcdObject, askFlexRegion } from 'app/et/questions'
 import { Answers } from 'app/questions'
 import { prompt } from 'inquirer'

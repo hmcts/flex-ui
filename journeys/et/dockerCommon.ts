@@ -22,7 +22,7 @@ export async function configsJourney() {
   }
 
   const answers = await prompt([
-    { name: 'tasks', message: QUESTION_TASK, type: 'checkbox', choices: Object.values(TASK_CHOICES), default: Object.values(TASK_CHOICES).slice(5), pageSize: getIdealSizeForInquirer() },
+    { name: 'tasks', message: QUESTION_TASK, type: 'checkbox', choices: Object.values(TASK_CHOICES), default: Object.values(TASK_CHOICES).slice(5), pageSize: getIdealSizeForInquirer() }
   ])
 
   let configAnswers: any = {}

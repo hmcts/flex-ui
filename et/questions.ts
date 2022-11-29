@@ -3,18 +3,16 @@ import { format, getIdealSizeForInquirer } from 'app/helpers'
 import { createEvent } from 'app/journeys/et/createEvent'
 import { Answers, askBasicFreeEntry, fuzzySearch, listOrFreeType } from 'app/questions'
 import { session } from 'app/session'
-import { CaseEventKeys, CaseEventToFieldKeys, CaseFieldKeys, CCDSheets, CCDTypes, ComplexTypeKeys, EventToComplexTypeKeys, FlexExtensions } from 'app/types/ccd'
+import { CaseEventKeys, CaseEventToFieldKeys, CaseFieldKeys, CCDSheets, CCDTypes, EventToComplexTypeKeys, FlexExtensions } from 'app/types/ccd'
 import { prompt } from 'inquirer'
-import { findObject, getCaseEventIDOpts, getEnglandWales, getKnownCaseFieldIDs, getKnownCaseFieldTypeParameters, getKnownCaseFieldTypes, getKnownCaseTypeIDs, getKnownComplexTypeIDs, getKnownComplexTypeListElementCodes, getScotland, Region } from 'app/et/configs'
+import { findObject, getCaseEventIDOpts, getEnglandWales, getKnownCaseFieldIDs, getKnownCaseFieldTypeParameters, getKnownCaseFieldTypes, getKnownCaseTypeIDs, getKnownComplexTypeListElementCodes, getScotland, Region } from 'app/et/configs'
 import { createSingleField } from 'app/journeys/et/createSingleField'
 import { createScrubbed } from 'app/journeys/et/createScrubbed'
-import { createComplexType } from 'app/journeys/et/createComplexType'
 
-const QUESTION_REGION = "Which region(s) should this entry be added to?"
+const QUESTION_REGION = 'Which region(s) should this entry be added to?'
 const QUESTION_CASE_EVENT_ID = 'What event does this belong to?'
 const QUESTION_CASE_FIELD_ID = 'What field does this reference?'
 const QUESTION_LIST_ELEMENT_CODE = 'What ListElementCode does this reference?'
-const QUESTION_LIST_ELEMENT_CODE_FULL = 'What ListElementCode does this reference? (enter the full name)'
 const QUESTION_FIELD_TYPE_PARAMETER = 'What\'s the parameter for this {0} field?'
 const QUESTION_FIELD_TYPE = 'What\'s the type of this field?'
 const QUESTION_FIELD_TYPE_CUSTOM = 'What\'s the name of the FieldType?'
@@ -22,11 +20,12 @@ const QUESTION_CASE_TYPE_ID = 'What\'s the CaseTypeID?'
 const QUESTION_CASE_TYPE_ID_CUSTOM = 'Enter a custom value for CaseTypeID'
 const QUESTION_DUPLICATE_ADDON = 'Do we need this field duplicated under another caseTypeID?'
 
+const FLEX_REGION_ANSWERS_KEY = 'flexRegion'
+
 const REGION_OPTS = [
   Region.EnglandWales,
-  Region.Scotland,
+  Region.Scotland
 ]
-
 
 /**
  * Asks questions based on the keys contained in the target object type
@@ -55,16 +54,12 @@ export async function createTemplate<T, P>(answers: Answers = {}, keys: T, obj: 
     }
 
     if (field === 'CaseEventID') {
-      //tasks.push(async () => { answers = await askCaseEvent(answers, undefined, undefined, true) })
       answers = await askCaseEvent(answers, undefined, undefined, true)
     } else if (field === 'CaseTypeID') {
-      //tasks.push(async () => { answers = await askCaseTypeID(answers) })
       answers = await askCaseTypeID(answers)
     } else if (field === 'CaseFieldID') {
-      //tasks.push(async () => { answers = await askCaseFieldID(answers) })
       answers = await askCaseFieldID(answers)
     } else {
-      //tasks.push(async () => { answers = await prompt([question], answers) })
       answers = await prompt([question], answers)
     }
   }
@@ -206,9 +201,10 @@ export async function askEventToComplexTypeListElementCode(answers: Answers = {}
     return await askEventToComplexTypeListElementCodeFallback(answers, key)
   }
 
+  const SUBLEVEL_KEY = 'sublevel'
   answers = await prompt([
     {
-      name: 'sublevel',
+      name: SUBLEVEL_KEY,
       message: message || `${QUESTION_LIST_ELEMENT_CODE} (${answers[key]}.?)`,
       type: 'autocomplete',
       source: (_answers: unknown, input: string) => fuzzySearch([CUSTOM, ...obj], input),
@@ -216,7 +212,7 @@ export async function askEventToComplexTypeListElementCode(answers: Answers = {}
     }
   ], answers)
 
-  answers[key] = `${answers[key]}.${answers['sublevel']}`
+  answers[key] = `${answers[key]}.${answers[SUBLEVEL_KEY]}`
 
   return answers
 }
@@ -277,11 +273,11 @@ export async function askDuplicate(answers: Answers) {
 export async function askFlexRegion(key?: string, message?: string, defaultValue?: string[], answers?: Answers) {
   return await prompt([
     {
-      name: key || 'flexRegion',
+      name: key || FLEX_REGION_ANSWERS_KEY,
       message: message || QUESTION_REGION,
       type: 'checkbox',
       choices: REGION_OPTS,
-      default: defaultValue || answers?.['flexRegion'] || REGION_OPTS,
+      default: defaultValue || answers?.[FLEX_REGION_ANSWERS_KEY] || REGION_OPTS,
       askAnswered: true,
       pageSize: getIdealSizeForInquirer()
     }
@@ -292,5 +288,5 @@ export function addFlexRegionToCcdObject(obj: FlexExtensions, answers: Answers, 
   if (!obj.flex) {
     obj.flex = {}
   }
-  obj.flex.regions = answers[key || 'flexRegion']
+  obj.flex.regions = answers[key || FLEX_REGION_ANSWERS_KEY]
 }

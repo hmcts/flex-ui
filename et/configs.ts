@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync } from 'fs'
 import { sep } from 'path'
-import { findLastIndex, format, getUniqueByKey, getUniqueByKeyAsArray, groupBy, matcher, upsertFields } from 'app/helpers'
+import { findLastIndex, format, getUniqueByKey, getUniqueByKeyAsArray, upsertFields } from 'app/helpers'
 import { addToSession, session } from 'app/session'
 import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventKeys, CaseEventToField, CaseEventToFieldKeys, CaseField, CaseTypeTab, CaseTypeTabKeys, CCDSheets, CCDTypes, ConfigSheets, EventToComplexType, EventToComplexTypeKeys, FlexExtensions, Scrubbed, ScrubbedKeys, sheets } from 'types/ccd'
 import { COMPOUND_KEYS } from 'app/constants'
@@ -38,7 +38,7 @@ const roleMappings: RoleMappings = {
   [Roles.CaseworkerEmploymentETJudgeEnglandWales]: { [Region.EnglandWales]: 'CRU' },
   [Roles.CaseworkerEmploymentETJudgeScotland]: { [Region.Scotland]: 'CRU' },
   [Roles.CaseworkerEmploymentEnglandWales]: { [Region.EnglandWales]: 'CRU' },
-  [Roles.CaseworkerEmploymentLegalRepSolicitor]: { /*[Region.EnglandWales]: 'CRU', [Region.Scotland]: 'CRU'*/ },
+  [Roles.CaseworkerEmploymentLegalRepSolicitor]: { /* [Region.EnglandWales]: 'CRU', [Region.Scotland]: 'CRU' */ },
   [Roles.CaseworkerEmploymentScotland]: { [Region.Scotland]: 'CRU' },
   [Roles.Citizen]: { [Region.EnglandWales]: 'CRU', [Region.Scotland]: 'CRU' }
 }
@@ -88,7 +88,7 @@ export function getScotland() {
 
 export function getCombinedSheets() {
   return sheets.reduce((acc, sheet) => {
-    //@ts-ignore
+    // @ts-expect-error TS doesn't know that ConfigSheets can be merged with ConfigSheets (bug bounty: fix this)
     acc[sheet] = [...englandwales[sheet], ...scotland[sheet]]
     return acc
   }, {} as CCDSheets<CCDTypes>)
@@ -447,9 +447,6 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
   const scScrubbed = fields.Scrubbed.filter(scRegionFilter)
   const scComplexTypes = fields.ComplexTypes.filter(scRegionFilter)
   const scEventToComplexTypes = fields.EventToComplexTypes.filter(scRegionFilter)
-
-
-  // TODO: These group by CaseTypeID but fields should also be grouped further (like Case Fields need to listen to PageID and PageFieldDisplayOrder etc...)
 
   upsertFields(englandwales.CaseField, ewCaseFields, COMPOUND_KEYS.CaseField, spliceIndexCaseTypeID)
 

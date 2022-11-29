@@ -174,7 +174,7 @@ export function groupBy<T>(arr: T[], key?: keyof T) {
   return arr.reduce((acc, obj) => {
     if (!key) {
       if (!acc[obj]) {
-        //@ts-ignore
+        // @ts-expect-error Setting this up to be added to later
         acc[obj] = []
       }
       acc[obj].push(obj)
@@ -182,7 +182,7 @@ export function groupBy<T>(arr: T[], key?: keyof T) {
     }
 
     if (!acc[obj[key]]) {
-      //@ts-ignore
+      // @ts-expect-error Setting this up to be added to later
       acc[obj[key]] = []
     }
 

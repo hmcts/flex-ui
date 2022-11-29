@@ -8,7 +8,7 @@ import { addonDuplicateQuestion } from './createSingleField'
 
 export async function createCaseTypeTab() {
   const answers = await createTemplate<unknown, CaseTypeTab>({}, CaseTypeTabKeys, createNewCaseTypeTab(), 'CaseTypeTab')
-  
+
   const createFn = (answers: Answers) => {
     const caseTypeTab = createNewCaseTypeTab(answers)
 
