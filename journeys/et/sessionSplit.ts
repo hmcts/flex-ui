@@ -162,6 +162,7 @@ function getText() {
 }
 
 export default {
+  disabled: true,
   group: 'et-session',
   text: getText,
   fn: splitSession
