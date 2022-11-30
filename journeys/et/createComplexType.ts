@@ -1,16 +1,16 @@
 import { prompt } from 'inquirer'
 import { CaseFieldKeys, ComplexTypeKeys } from 'types/ccd'
 import { QUESTION_HINT_TEXT } from './createSingleField'
-import { createNewComplexType } from 'app/ccd'
-import { addToInMemoryConfig, getKnownComplexIDs } from 'app/et/configs'
+import { createNewComplexType, trimCcdObject } from 'app/ccd'
+import { addToInMemoryConfig, getKnownComplexTypeIDs } from 'app/et/configs'
 import { Answers, askBasicFreeEntry, askForRegularExpression, askMinAndMax, askRetainHiddenValue, fuzzySearch } from 'app/questions'
 import { CUSTOM, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, isFieldTypeInExclusionList } from 'app/constants'
 import { session } from 'app/session'
 import { Journey } from 'types/journey'
 import { getIdealSizeForInquirer } from 'app/helpers'
-import { askFieldType, askFieldTypeParameter } from 'app/et/questions'
+import { addFlexRegionToCcdObject, askFieldType, askFieldTypeParameter, askFlexRegion } from 'app/et/questions'
 
-const QUESTION_ID = "What's the ID of this EventToComplexType?"
+const QUESTION_ID = "What's the ID of this ComplexType?"
 const QUESTION_LIST_ELEMENT_CODE = 'What\'s the ListElementCode for this?'
 const QUESTION_ELEMENT_LABEL = 'What\'s the custom label for this control?'
 const QUESTION_DISPLAY_ORDER = 'What\'s the DisplayOrder for this? (use 0 to leave blank)'
@@ -28,7 +28,8 @@ function getDefaultValueForFieldDisplayOrder() {
   return 0
 }
 
-async function createComplexType(answers: Answers = {}) {
+export async function createComplexType(answers: Answers = {}) {
+  answers = await askFlexRegion(undefined, undefined, undefined, answers)
   answers = await askForID(answers)
 
   answers = await prompt([
@@ -59,14 +60,17 @@ async function createComplexType(answers: Answers = {}) {
   }
 
   const complexType = createNewComplexType(answers)
+  addFlexRegionToCcdObject(complexType, answers)
 
   addToInMemoryConfig({
-    ComplexTypes: [complexType]
+    ComplexTypes: [trimCcdObject(complexType)]
   })
+
+  return answers[ComplexTypeKeys.ID]
 }
 
 async function askForID(answers: Answers = {}) {
-  const opts = getKnownComplexIDs()
+  const opts = getKnownComplexTypeIDs()
   const key = ComplexTypeKeys.ID
 
   answers = await prompt([
@@ -89,7 +93,8 @@ async function askForID(answers: Answers = {}) {
 }
 
 export default {
+  disabled: true,
   group: 'et-create',
-  text: 'Create a ComplexType',
+  text: 'Create/Modify a ComplexType',
   fn: createComplexType
 } as Journey

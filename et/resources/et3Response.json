@@ -1,0 +1,70 @@
+{
+  "data": {
+    "et3ResponseShowInset": "Yes",
+    "et3ResponseClaimantName": "<pre> ET1 claimant name&#09&#09&#09&#09 Jack Reeve</pre><hr>",
+    "et3ResponseIsClaimantNameCorrect": "Yes",
+    "et3ResponseClaimantNameCorrection": null,
+    "et3ResponseRespondentLegalName": "Jack Reeve",
+    "et3ResponseRespondentCompanyNumber": "123456",
+    "et3ResponseRespondentEmployerType": "Individual",
+    "et3ResponseRespondentPreferredTitle": "Doctor Professor",
+    "et3ResponseRespondentContactName": "Alter Ego",
+    "et3ResponseNameShowInset": "Yes",
+    "et3RespondentAddress": {
+      "AddressLine1": "49 Bridge Road",
+      "AddressLine2": "",
+      "AddressLine3": "",
+      "PostTown": "Erith",
+      "County": "",
+      "PostCode": "DA8 2DE",
+      "Country": "United Kingdom"
+    },
+    "et3ResponseDXAddress": "DX123",
+    "et3ResponsePhone": "+446666666666",
+    "et3ResponseContactPreference": "Email",
+    "et3ResponseContactReason": null,
+    "et3ResponseHearingRepresentative": [
+      "Phone hearings",
+      "Video hearings"
+    ],
+    "et3ResponseHearingRespondent": [
+      "Phone hearings"
+    ],
+    "et3ResponseEmploymentCount": "100",
+    "et3ResponseMultipleSites": "Yes",
+    "et3ResponseSiteEmploymentCount": "5",
+    "et3ResponseAcasAgree": "No",
+    "et3ResponseAcasAgreeReason": "I disagree with ACAS conciliation because idklol",
+    "et3ResponseAreDatesCorrect": "No",
+    "et3ResponseEmploymentStartDate": "2022-09-05",
+    "et3ResponseEmploymentEndDate": "2022-09-06",
+    "et3ResponseEmploymentInformation": "Further information about employment dates",
+    "et3ResponseContinuingEmployment": "No",
+    "et3ResponseIsJobTitleCorrect": "No",
+    "et3ResponseCorrectJobTitle": "Fall Guy",
+    "et3ResponseClaimantWeeklyHours": "No",
+    "et3ResponseClaimantCorrectHours": "128",
+    "et3ResponseEarningDetailsCorrect": "No",
+    "et3ResponsePayFrequency": "Annually",
+    "et3ResponsePayBeforeTax": "690000",
+    "et3ResponsePayTakehome": "250000",
+    "et3ResponseIsNoticeCorrect": "No",
+    "et3ResponseCorrectNoticeDetails": "Details here about the correct notice",
+    "et3ResponseIsPensionCorrect": "No",
+    "et3ResponsePensionCorrectDetails": "Correct details about pension",
+    "et3ResponseRespondentContestClaim": "Yes",
+    "et3ResponseContestClaimDocument": [],
+    "et3ResponseContestClaimDetails": "Explanation as to why the respondent contests the claim",
+    "et3ResponseEmployerClaim": "Yes",
+    "et3ResponseEmployerClaimDetails": "Employers contract claim background details",
+    "et3ResponseRespondentSupportNeeded": "Yes",
+    "et3ResponseRespondentSupportDetails": "Details about the support required"
+  },
+  "event": {
+    "id": "et3Response",
+    "summary": "",
+    "description": ""
+  },
+  "event_token": "",
+  "ignore_warning": false
+}

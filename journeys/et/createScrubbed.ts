@@ -1,5 +1,6 @@
 import { YES_OR_NO } from 'app/constants'
-import { addNewScrubbed } from 'app/et/configs'
+import { addToInMemoryConfig } from 'app/et/configs'
+import { addFlexRegionToCcdObject, askFlexRegion } from 'app/et/questions'
 import { Answers } from 'app/questions'
 import { prompt } from 'inquirer'
 import { Scrubbed } from 'types/ccd'
@@ -18,10 +19,11 @@ export async function createScrubbed(answers: Answers = {}) {
 
   let x = 0
   while (answers.More !== 'No') {
+    answers = await askFlexRegion(undefined, undefined, undefined, answers)
     answers = await prompt([
       { name: 'ListElement', message: QUESTION_LIST_ELEMENT, askAnswered: true },
       { name: 'ListElementCode', message: QUESTION_LIST_ELEMENT_CODE, default: (answers: Answers) => answers.ListElement, askAnswered: true },
-      { name: 'DisplayOrder', message: QUESTION_DISPLAY_ORDER, default: ++x, askAnswered: true },
+      { name: 'DisplayOrder', type: 'number', message: QUESTION_DISPLAY_ORDER, default: ++x, askAnswered: true },
       { name: 'More', message: QUESTION_ADD_ANOTHER, type: 'list', choices: YES_OR_NO, askAnswered: true }
     ], answers)
 
@@ -33,21 +35,28 @@ export async function createScrubbed(answers: Answers = {}) {
       answers.DisplayOrder = x
     }
 
-    createdItems.push({
+    const obj: any = {
       ID: answers.ID,
       ListElement: answers.ListElement,
       ListElementCode: answers.ListElementCode,
       DisplayOrder: answers.DisplayOrder
-    })
+    }
+
+    addFlexRegionToCcdObject(obj, answers)
+
+    createdItems.push(obj)
   }
 
-  addNewScrubbed(createdItems)
+  addToInMemoryConfig({
+    Scrubbed: createdItems
+  })
 
   return answers.ID
 }
 
 export default {
+  disabled: true,
   group: 'et-create',
-  text: 'Create new scrubbed list',
+  text: 'Create/Modify a scrubbed list',
   fn: createScrubbed
 } as Journey

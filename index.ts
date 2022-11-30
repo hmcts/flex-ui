@@ -6,11 +6,13 @@ import { prompt, Separator, registerPrompt } from 'inquirer'
 import autocomplete from 'inquirer-autocomplete-prompt'
 import { readInCurrentConfig } from 'app/et/configs'
 import { ensurePathExists, format, getFiles, getIdealSizeForInquirer } from 'app/helpers'
-import { cleanupEmptySessions, saveSession, session, SESSION_DIR } from 'app/session'
+import { cleanupEmptySessions, SESSION_DIR } from 'app/session'
 import { DIST_JOURNEY_DIR } from 'app/constants'
 import { Journey } from 'types/journey'
+import { resolve } from 'path'
 
 envConfig()
+process.env.APP_ROOT = resolve(__dirname)
 registerPrompt('autocomplete', autocomplete)
 
 /**
@@ -61,7 +63,7 @@ async function discoverJourneys() {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const module = require(o).default
     return module && isJourneyValid(module, o) ? module : undefined
-  }).filter(o => o) as Journey[]
+  }).filter(o => o && !o.disabled) as Journey[]
 }
 
 /**
@@ -145,10 +147,10 @@ async function start() {
       console.error(e)
       break
     }
-
-    saveSession(session)
   }
   console.log('Bye!')
 }
+
+console.log(process.env.APP_ROOT)
 
 void start()

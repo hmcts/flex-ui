@@ -170,10 +170,32 @@ export function getUniqueByKeyAsArray<T>(arr: T[], key: keyof (T)) {
   return Object.keys(getUniqueByKey(arr, key))
 }
 
+export function groupBy<T>(arr: T[], key?: keyof T) {
+  return arr.reduce((acc, obj) => {
+    if (!key) {
+      if (!acc[obj]) {
+        // @ts-expect-error Setting this up to be added to later
+        acc[obj] = []
+      }
+      acc[obj].push(obj)
+      return acc
+    }
+
+    if (!acc[obj[key]]) {
+      // @ts-expect-error Setting this up to be added to later
+      acc[obj[key]] = []
+    }
+
+    acc[obj[key]].push(obj)
+    return acc
+  }, {} as Record<any, T[]>)
+}
+
 /** Clears the current terminal line and writes a new message with no ending newline */
 export function temporaryLog(message: string) {
   clearCurrentLine()
-  process.stdout.write(`${new Date().toLocaleTimeString()} || ${message}`)
+  const msgNoNewLine = message.replace(/\n/g, '').substring(0, process.stdout.columns - 15)
+  process.stdout.write(`${new Date().toLocaleTimeString()} || ${msgNoNewLine}`)
 }
 
 /** Clears the current line by sending a special character command */

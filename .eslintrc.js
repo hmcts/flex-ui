@@ -22,6 +22,16 @@ module.exports = {
     // Prevented us console logging answers (useful for debug)
     "@typescript-eslint/restrict-template-expressions": 0,
     // Team agreed style choice to have no spaces before function params fn(env: string) vs fn (env:string)
-    "@typescript-eslint/space-before-function-paren": 0
+    "@typescript-eslint/space-before-function-paren": 0,
+    // There are some false positives being produced between TS and ESLint here
+    "@typescript-eslint/prefer-reduce-type-parameter": 0,
+    // This rule complicates expressions in code (ie preferring "!isNaN(answers.key as number)" over "answers.key !== NaN")
+    "use-isnan": 0,
+    // Preference, using double quotes is easier where single quotes may need to be escaped
+    "@typescript-eslint/quotes": 0,
+    // Results in false positives
+    "@typescript-eslint/no-base-to-string": 0,
+    // Perference, This rule can be useful for logic flow, but in cases of Promise.allSettled it results in superfluous code
+    "@typescript-eslint/promise-function-async": 1
   }
 }
