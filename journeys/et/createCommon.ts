@@ -24,8 +24,7 @@ const TASK_CHOICES = {
   COMPLEX_TYPE: 'Upsert a ComplexType',
   EVENT: 'Upsert an Event',
   EVENT_TO_COMPLEX_TYPE: 'Upsert an EventToComplexType',
-  SCRUBBED: 'Upsert a scrubbed list',
-  DUPLICATE: 'Duplicate case field'
+  SCRUBBED: 'Upsert a scrubbed list'
 }
 
 export async function createJourney() {

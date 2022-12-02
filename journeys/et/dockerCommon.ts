@@ -1,6 +1,6 @@
 import { Journey } from 'types/journey'
 import { prompt } from 'inquirer'
-import { ccdComposePull, ccdComposeUp, ccdInit, ccdLogin, dockerDeleteVolumes, dockerSystemPrune, initDb, initEcm, killAndRemoveContainers } from 'app/et/docker'
+import { ccdComposePull, ccdComposeUp, ccdInit, ccdLogin, dockerDeleteVolumes, dockerSystemPrune, initDb, initEcm, killAndRemoveContainers, recreateWslUptimeContainer } from 'app/et/docker'
 import { askConfigTasks, execConfigTasks } from './configsCommon'
 import { getIdealSizeForInquirer } from 'app/helpers'
 import { askCreateCaseQuestions, doCreateCaseTasks } from './webCreateCase'
@@ -59,6 +59,7 @@ export async function configsJourney() {
 
   if (answers.tasks.includes(TASK_CHOICES.UP)) {
     await ccdComposeUp()
+    await recreateWslUptimeContainer()
   }
 
   if (answers.tasks.includes(TASK_CHOICES.INIT_ECM)) {
