@@ -235,3 +235,31 @@ export async function ccdComposePull() {
     })
   })
 }
+
+/**
+ * Checks for containers that have exited and restarts them if the name is included in the list at the top
+ */
+export async function fixExitedContainers() {
+  const { stdout } = await execCommand('docker ps -a')
+  const lines = stdout.split(/\n|\r\n/)
+
+  const down = lines.map(line => {
+    if (line.includes(' Exited ')) {
+      return /([^\s]+)$/.exec(line)?.[0]
+    }
+    return undefined
+  }).filter(o => o)
+
+  await Promise.allSettled([down.map(name => {
+    if (DOCKER_CONTAINERS.includes(name)) {
+      return execCommand(`docker start ${name}`)
+    }
+    return Promise.resolve()
+  })])
+}
+
+export async function recreateWslUptimeContainer() {
+  await execCommand('wsl docker kill wsl_uptime', null, false)
+  await execCommand('wsl docker rm wsl_uptime', null, false)
+  await execCommand('wsl docker run -e "WSL_HOSTNAME=$(hostname -I)" -d --name "wsl_uptime" jackreeve532/wsluptimechecker:latest', null, false)
+}

@@ -10,6 +10,7 @@ import fetch from 'node-fetch'
 import { YES, YES_OR_NO } from 'app/constants'
 import { cookieJarToString, loginToIdam } from './webCreateCase'
 import { sep } from 'path'
+import { fixExitedContainers } from 'app/et/docker'
 
 const QUESTION_TASK = 'What stages of import are you interested in?'
 const QUESTION_ENVIRONMENT = 'What environment should we generate spreadsheets for?'
@@ -117,6 +118,7 @@ export async function ccdImport(region: Region, env = 'local') {
 }
 
 export async function importConfigs() {
+  await fixExitedContainers()
   await ccdImport(Region.EnglandWales)
   await ccdImport(Region.Scotland)
 }

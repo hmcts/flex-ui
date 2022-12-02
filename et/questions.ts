@@ -198,7 +198,7 @@ export async function askEventToComplexTypeListElementCode(answers: Answers = {}
   const obj = getKnownComplexTypeListElementCodes(selected[0].FieldType)
 
   if (!obj.length) {
-    return await askEventToComplexTypeListElementCodeFallback(answers, key)
+    return answers
   }
 
   const SUBLEVEL_KEY = 'sublevel'

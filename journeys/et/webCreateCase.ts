@@ -10,6 +10,7 @@ import { execCommand, getEnvVarsFromFile, temporaryLog } from 'app/helpers'
 import { ChildProcess, exec } from 'child_process'
 import { getWslHostIP, setIPToHostDockerInternal, setIPToWslHostAddress } from './dockerUpdateIP'
 import { generateSpreadsheets, importConfigs } from './configsCommon'
+import { fixExitedContainers } from 'app/et/docker'
 
 https.globalAgent.options.rejectUnauthorized = false
 
@@ -55,6 +56,7 @@ export async function doCreateCaseTasks(answers: Record<string, any>) {
   const needToRevert = getWslHostIP() === 'host.docker.internal'
 
   if (answers.callbacks === YES) {
+    await fixExitedContainers()
     await killProcessesOnPort8081()
     await setIPToWslHostAddress()
     await generateSpreadsheets('local')

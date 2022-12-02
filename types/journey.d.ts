@@ -1,5 +1,5 @@
 export interface Journey {
-  /** Flag to disable showing up iin the main menu */
+  /** Flag to disable showing up in the main menu */
   disabled?: boolean
   /** Alias used for grouping related journeys together */
   group?: string
