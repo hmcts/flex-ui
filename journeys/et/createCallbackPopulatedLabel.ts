@@ -28,38 +28,38 @@ export async function createCallbackPopulatedLabel(answers: Answers = {}) {
 
   addToLastAnswers(answers)
 
-  const caseField = createNewCaseField({
-    ...answers,
-    FieldType: 'Text',
-    Label: 'Placeholder'
-  })
-
-  const caseFieldLabel = createNewCaseField({
-    ...answers,
-    ID: `${answers.ID}Label`,
-    FieldType: 'Label',
-    Label: '${' + caseField.ID + '}'
-  })
-
-  const caseEventToField = createNewCaseEventToField({
-    ...answers,
-    ShowSummaryChangeOption: 'N',
-    DisplayContext: 'READONLY',
-    FieldShowCondition: `${answers.ID}Label="dummy"`,
-    RetainHiddenValue: 'No'
-  })
-
-  const caseEventToFieldLabel = createNewCaseEventToField({
-    ...answers,
-    ShowSummaryChangeOption: 'N',
-    DisplayContext: 'READONLY',
-    RetainHiddenValue: 'No',
-    CaseFieldID: `${answers.ID}Label`,
-    PageFieldDisplayOrder: (answers.PageFieldDisplayOrder) + 1,
-    PageShowCondition: ''
-  })
-
   await addonDuplicateQuestion(answers, (answers: Answers) => {
+    const caseField = createNewCaseField({
+      ...answers,
+      FieldType: 'Text',
+      Label: 'Placeholder'
+    })
+
+    const caseFieldLabel = createNewCaseField({
+      ...answers,
+      ID: `${answers.ID}Label`,
+      FieldType: 'Label',
+      Label: '${' + caseField.ID + '}'
+    })
+
+    const caseEventToField = createNewCaseEventToField({
+      ...answers,
+      ShowSummaryChangeOption: 'N',
+      DisplayContext: 'READONLY',
+      FieldShowCondition: `${answers.ID}Label="dummy"`,
+      RetainHiddenValue: 'No'
+    })
+
+    const caseEventToFieldLabel = createNewCaseEventToField({
+      ...answers,
+      ShowSummaryChangeOption: 'N',
+      DisplayContext: 'READONLY',
+      RetainHiddenValue: 'No',
+      CaseFieldID: `${answers.ID}Label`,
+      PageFieldDisplayOrder: (answers.PageFieldDisplayOrder) + 1,
+      PageShowCondition: ''
+    })
+
     const authorisations = [
       ...createCaseFieldAuthorisations(answers.CaseTypeID, answers.ID),
       ...createCaseFieldAuthorisations(answers.CaseTypeID, `${answers.ID}Label`)
