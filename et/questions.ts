@@ -3,7 +3,7 @@ import { format, getIdealSizeForInquirer } from 'app/helpers'
 import { createEvent } from 'app/journeys/et/createEvent'
 import { Answers, askBasicFreeEntry, fuzzySearch, listOrFreeType } from 'app/questions'
 import { session } from 'app/session'
-import { CaseEventKeys, CaseEventToFieldKeys, CaseFieldKeys, CCDSheets, CCDTypes, EventToComplexTypeKeys, FlexExtensions } from 'app/types/ccd'
+import { CaseEventKeys, CaseEventToFieldKeys, CaseFieldKeys, CCDSheets, CCDTypes, ComplexTypeKeys, EventToComplexTypeKeys, FlexExtensions } from 'app/types/ccd'
 import { prompt } from 'inquirer'
 import { findObject, getCaseEventIDOpts, getEnglandWales, getKnownCaseFieldIDs, getKnownCaseFieldTypeParameters, getKnownCaseFieldTypes, getKnownCaseTypeIDs, getKnownComplexTypeListElementCodes, getScotland, Region } from 'app/et/configs'
 import { createSingleField } from 'app/journeys/et/createSingleField'
@@ -20,7 +20,7 @@ const QUESTION_CASE_TYPE_ID = 'What\'s the CaseTypeID?'
 const QUESTION_CASE_TYPE_ID_CUSTOM = 'Enter a custom value for CaseTypeID'
 const QUESTION_DUPLICATE_ADDON = 'Do we need this field duplicated under another caseTypeID?'
 
-const FLEX_REGION_ANSWERS_KEY = 'flexRegion'
+export const FLEX_REGION_ANSWERS_KEY = 'flexRegion'
 
 const REGION_OPTS = [
   Region.EnglandWales,
@@ -260,6 +260,29 @@ export async function askFieldType(answers: Answers = {}, key?: string, message?
     const customFieldType = await askBasicFreeEntry({}, key, QUESTION_FIELD_TYPE_CUSTOM)
     answers[key] = customFieldType[key]
     // TODO: Add ComplexType creation route here when ComplexType support is added
+  }
+
+  return answers
+}
+
+export async function askComplexTypeListElementCode(answers: Answers = {}, key?: string, message?: string, defaultValue?: string) {
+  const opts = getKnownComplexTypeListElementCodes(answers[ComplexTypeKeys.ID])
+  key = key || ComplexTypeKeys.ListElementCode
+
+  answers = await prompt([
+    {
+      name: key,
+      message: message || QUESTION_LIST_ELEMENT_CODE,
+      type: 'autocomplete',
+      source: (_answers: unknown, input: string) => fuzzySearch([CUSTOM, ...opts], input),
+      default: defaultValue || answers[ComplexTypeKeys.ListElementCode] || CUSTOM,
+      pageSize: getIdealSizeForInquirer()
+    }
+  ], answers)
+
+  if (answers[key] === CUSTOM) {
+    const customFieldType = await askBasicFreeEntry({}, key, QUESTION_LIST_ELEMENT_CODE)
+    answers[key] = customFieldType[key]
   }
 
   return answers

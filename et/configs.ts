@@ -3,7 +3,7 @@ import { sep } from 'path'
 import { findLastIndex, format, getUniqueByKey, getUniqueByKeyAsArray, groupBy, upsertFields } from 'app/helpers'
 import { addToSession, session } from 'app/session'
 import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventKeys, CaseEventToField, CaseEventToFieldKeys, CaseField, CaseTypeTab, CaseTypeTabKeys, CCDSheets, CCDTypes, ConfigSheets, EventToComplexType, EventToComplexTypeKeys, FlexExtensions, Scrubbed, ScrubbedKeys, sheets } from 'types/ccd'
-import { COMPOUND_KEYS } from 'app/constants'
+import { COMPOUND_KEYS, NONE } from 'app/constants'
 
 let readTime = 0
 let englandwales: ConfigSheets
@@ -38,7 +38,7 @@ const roleMappings: RoleMappings = {
   [Roles.CaseworkerEmploymentETJudgeEnglandWales]: { [Region.EnglandWales]: 'CRU' },
   [Roles.CaseworkerEmploymentETJudgeScotland]: { [Region.Scotland]: 'CRU' },
   [Roles.CaseworkerEmploymentEnglandWales]: { [Region.EnglandWales]: 'CRU' },
-  [Roles.CaseworkerEmploymentLegalRepSolicitor]: { /* [Region.EnglandWales]: 'CRU', [Region.Scotland]: 'CRU' */ },
+  [Roles.CaseworkerEmploymentLegalRepSolicitor]: { [Region.EnglandWales]: 'CRU', [Region.Scotland]: 'CRU' },
   [Roles.CaseworkerEmploymentScotland]: { [Region.Scotland]: 'CRU' },
   [Roles.Citizen]: { [Region.EnglandWales]: 'CRU', [Region.Scotland]: 'CRU' }
 }
@@ -94,8 +94,11 @@ export function getCombinedSheets() {
   }, {} as CCDSheets<CCDTypes>)
 }
 
-export function findObject<T>(keys: Record<string, any>, sheetName: keyof CCDTypes): T | undefined {
-  const ccd = getCombinedSheets()
+export function findObject<T>(keys: Record<string, any>, sheetName: keyof CCDTypes, region?: Region): T | undefined {
+  const ccd = region === Region.EnglandWales ?
+    getEnglandWales() : region === Region.Scotland ?
+      getScotland() : getCombinedSheets()
+
   const arr = ccd[sheetName] as Array<Record<string, any>>
   const keysThatMatter = COMPOUND_KEYS[sheetName] as string[]
   const found = arr.find(o => {
@@ -176,13 +179,16 @@ export function getKnownCaseFieldIDs(filter?: (obj: CaseField) => CaseField[]) {
 /**
  * Get all defined CaseField IDs in englandwales and scotland configs on an event
  */
-export function getKnownCaseFieldIDsByEvent(caseEventId: string) {
+export function getKnownCaseFieldIDsByEvent(caseEventId?: string) {
   const arr = [...englandwales.CaseField, ...scotland.CaseField]
 
   const byEventId = (obj: CaseEventToField) => obj.CaseEventID === caseEventId
 
-  const fieldToEvent = [...englandwales.CaseEventToFields.filter(byEventId), ...scotland.CaseEventToFields.filter(byEventId)]
-  const subsetFields = arr.filter(o => fieldToEvent.find(x => x.CaseFieldID === o.ID))
+  const allCaseEventToFields = [...englandwales.CaseEventToFields, ...scotland.CaseEventToFields]
+  const fieldToEvent = allCaseEventToFields.filter(byEventId)
+  const subsetFields = caseEventId === NONE ?
+    arr.filter(o => !allCaseEventToFields.some(x => o.ID === x.CaseFieldID))
+    : arr.filter(o => fieldToEvent.find(x => x.CaseFieldID === o.ID))
 
   return getUniqueByKeyAsArray(subsetFields, 'ID')
 }

@@ -2,7 +2,7 @@ import { prompt } from 'inquirer'
 import { CUSTOM, YES_OR_NO } from 'app/constants'
 import { session } from 'app/session'
 import fuzzy from 'fuzzy'
-import { AllCCDKeys, CaseEventToFieldKeys, CaseField, CaseFieldKeys } from 'types/ccd'
+import { AllCCDKeys, CaseEventToFieldKeys, CaseField, CaseFieldKeys, ComplexType } from 'types/ccd'
 import { getIdealSizeForInquirer } from 'app/helpers'
 
 const QUESTION_REGULAR_EXPRESSION = 'Do we need a RegularExpression for the field?'
@@ -75,7 +75,7 @@ export async function askRetainHiddenValue(answers: Answers = {}, key?: string, 
   ], answers)
 }
 
-export async function askMinAndMax(answers: Answers = {}, existingCaseField?: CaseField) {
+export async function askMinAndMax(answers: Answers = {}, existingCaseField?: CaseField | ComplexType) {
   return await prompt([
     { name: CaseFieldKeys.Min, message: QUESTION_MIN, default: existingCaseField?.Min },
     { name: CaseFieldKeys.Max, message: QUESTION_MAX, default: existingCaseField?.Max }
