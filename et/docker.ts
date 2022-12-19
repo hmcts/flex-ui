@@ -259,7 +259,18 @@ export async function fixExitedContainers() {
 }
 
 export async function recreateWslUptimeContainer() {
-  await execCommand('wsl docker kill wsl_uptime', null, false)
-  await execCommand('wsl docker rm wsl_uptime', null, false)
-  await execCommand('wsl docker run -e "WSL_HOSTNAME=$(hostname -I)" -d --name "wsl_uptime" jackreeve532/wsluptimechecker:latest', null, false)
+  await execCommand('docker kill wsl_uptime', null, false)
+  await execCommand('docker rm wsl_uptime', null, false)
+  await execCommand('docker run -e "WSL_HOSTNAME=$(hostname -I)" -d --name "wsl_uptime" jackreeve532/wsluptimechecker:latest', null, false)
+}
+
+export async function isDmStoreReady() {
+  const { stdout } = await execCommand('docker logs compose-dm-store-1')
+  const logs = stdout.split('\n')
+  const currentSessionLogs = logs.slice(logs.findIndex(o => o.startsWith(' :: Spring Boot ::')))
+  return !!currentSessionLogs.find(o => o.match(/Started DmApp in [\d.]+ seconds/))
+}
+
+export async function rebootDmStore() {
+  return await execCommand('docker restart compose-dm-store-1')
 }

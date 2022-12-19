@@ -1,8 +1,8 @@
 import { Journey } from 'types/journey'
 import { prompt } from 'inquirer'
-import { ccdComposePull, ccdComposeUp, ccdInit, ccdLogin, dockerDeleteVolumes, dockerSystemPrune, initDb, initEcm, killAndRemoveContainers, recreateWslUptimeContainer } from 'app/et/docker'
+import { ccdComposePull, ccdComposeUp, ccdInit, ccdLogin, dockerDeleteVolumes, dockerSystemPrune, initDb, initEcm, isDmStoreReady, killAndRemoveContainers, rebootDmStore, recreateWslUptimeContainer } from 'app/et/docker'
 import { askConfigTasks, execConfigTasks } from './configsCommon'
-import { getIdealSizeForInquirer } from 'app/helpers'
+import { getIdealSizeForInquirer, temporaryLog, wait } from 'app/helpers'
 import { askCreateCaseQuestions, doCreateCaseTasks } from './webCreateCase'
 
 const QUESTION_TASK = 'What stages of setup are you interested in?'
@@ -60,6 +60,7 @@ export async function configsJourney() {
   if (answers.tasks.includes(TASK_CHOICES.UP)) {
     await ccdComposeUp()
     await recreateWslUptimeContainer()
+    await waitForDmStore()
   }
 
   if (answers.tasks.includes(TASK_CHOICES.INIT_ECM)) {
@@ -76,6 +77,30 @@ export async function configsJourney() {
 
   if (answers.tasks.includes(TASK_CHOICES.CREATE_CASE)) {
     await doCreateCaseTasks(createAnswers)
+  }
+}
+
+async function waitForDmStore() {
+  let timeout = 30
+  let left = timeout
+  while (true) {
+    const ready = await isDmStoreReady()
+    if (ready) {
+      return
+    }
+
+    temporaryLog(`Waiting for dm-store to be ready (or will restart in ${left} seconds)`)
+
+    if (left <= 0) {
+      // Makeshift backoff (30, 45, 68, 102, 152 etc...)
+      timeout *= 1.5
+      left = timeout
+      temporaryLog(`Restarting dm-store container`)
+      await rebootDmStore()
+    }
+
+    await wait(10000)
+    left -= 10
   }
 }
 
