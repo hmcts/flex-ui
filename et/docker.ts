@@ -259,7 +259,7 @@ export async function fixExitedContainers() {
 }
 
 export async function recreateWslUptimeContainer() {
-  await execCommand('wsl docker kill wsl_uptime', null, false)
-  await execCommand('wsl docker rm wsl_uptime', null, false)
-  await execCommand('wsl docker run -e "WSL_HOSTNAME=$(hostname -I)" -d --name "wsl_uptime" jackreeve532/wsluptimechecker:latest', null, false)
+  await execCommand('docker kill wsl_uptime', null, false)
+  await execCommand('docker rm wsl_uptime', null, false)
+  await execCommand('docker run -e "WSL_HOSTNAME=$(hostname -I)" -d --name "wsl_uptime" jackreeve532/wsluptimechecker:latest', null, false)
 }
