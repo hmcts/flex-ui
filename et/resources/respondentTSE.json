@@ -1,0 +1,15 @@
+{
+  "data": {
+    "resTseSelectApplication": "Change personal details",
+    "resTseTextBox2": "look ma, flexUI populated",
+    "resTseCopyToOtherPartyYesOrNo": "I confirm I want to copy",
+    "resTseCopyToOtherPartyTextArea": null
+  },
+  "event": {
+    "id": "respondentTSE",
+    "summary": "",
+    "description": ""
+  },
+  "event_token": "",
+  "ignore_warning": false
+}

@@ -27,7 +27,8 @@ const EVENT_OPTS = [
   'et1Vetting',
   'preAcceptanceCase',
   'et3Response',
-  'addAmendHearing'
+  'addAmendHearing',
+  'respondentTSE'
 ]
 
 const REGION_OPTS = [

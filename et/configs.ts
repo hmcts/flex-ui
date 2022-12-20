@@ -107,7 +107,7 @@ export function findObject<T>(keys: Record<string, any>, sheetName: keyof CCDTyp
         continue
       }
 
-      if (keys[key] && keys[key] !== NaN && o[key] !== keys[key]) {
+      if (keys[key] && !Number.isNaN(keys[key]) && o[key] !== keys[key]) {
         return false
       }
     }
@@ -429,10 +429,10 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
   }
 
   const ewCaseTypeIDFilter = (o: { CaseTypeID?: string, CaseTypeId?: string }) => (o.CaseTypeID || o.CaseTypeId).startsWith(Region.EnglandWales)
-  const ewRegionFilter = (o: FlexExtensions) => (o.flex.regions as string[]).includes(Region.EnglandWales)
+  const ewRegionFilter = (o: FlexExtensions) => (o.flex?.regions as string[]).includes(Region.EnglandWales)
 
   const scCaseTypeIDFilter = (o: { CaseTypeID?: string, CaseTypeId?: string }) => (o.CaseTypeID || o.CaseTypeId).startsWith(Region.Scotland)
-  const scRegionFilter = (o: FlexExtensions) => (o.flex.regions as string[]).includes(Region.Scotland)
+  const scRegionFilter = (o: FlexExtensions) => (o.flex?.regions as string[]).includes(Region.Scotland)
 
   const ewCaseFields = fields.CaseField.filter(ewCaseTypeIDFilter)
   const ewCaseEventToFields = fields.CaseEventToFields.filter(ewCaseTypeIDFilter)

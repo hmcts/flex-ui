@@ -192,6 +192,18 @@ export function groupBy<T>(arr: T[], key?: keyof T) {
   }, {} as Record<any, T[]>)
 }
 
+export function groupByKeys<T>(arr: T[], keys: Array<keyof T>) {
+  return arr.reduce((acc, obj) => {
+    const composite = keys.map(o => obj[o]).join('-')
+    if (!acc[composite]) {
+      acc[composite] = []
+    }
+
+    acc[composite].push(obj)
+    return acc
+  }, {} as Record<any, T[]>)
+}
+
 /** Clears the current terminal line and writes a new message with no ending newline */
 export function temporaryLog(message: string) {
   clearCurrentLine()

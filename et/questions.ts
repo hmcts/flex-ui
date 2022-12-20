@@ -22,7 +22,7 @@ const QUESTION_DUPLICATE_ADDON = 'Do we need this field duplicated under another
 
 export const FLEX_REGION_ANSWERS_KEY = 'flexRegion'
 
-const REGION_OPTS = [
+export const REGION_OPTS = [
   Region.EnglandWales,
   Region.Scotland
 ]
