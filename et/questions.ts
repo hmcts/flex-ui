@@ -71,10 +71,10 @@ export async function createTemplate<T, P>(answers: Answers = {}, keys: T, obj: 
   return answers
 }
 
-export async function askCaseEvent(answers: Answers = {}, key?: string, message?: string, allowNone = false) {
+export async function askCaseEvent(answers: Answers = {}, key?: string, message?: string, allowNone = false, addOpts: string[] = []) {
   const opts = getCaseEventIDOpts()
   key = key || CaseEventToFieldKeys.CaseEventID
-  const choices = [CUSTOM, ...opts]
+  const choices = [...addOpts, CUSTOM, ...opts]
   if (allowNone) {
     choices.splice(0, 0, NONE)
   }

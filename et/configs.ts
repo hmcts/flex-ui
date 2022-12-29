@@ -14,7 +14,7 @@ export enum Region {
   Scotland = 'ET_Scotland',
 }
 
-enum Roles {
+export enum Roles {
   AcasApi = 'et-acas-api',
   CaseworkerEmployment = 'caseworker-employment',
   CaseworkerEmploymentLegalRepSolicitor = 'caseworker-employment-legalrep-solicitor',
@@ -28,9 +28,9 @@ enum Roles {
 }
 
 type RegionPermissions = Record<Region, string>
-type RoleMappings = Record<Roles, Partial<RegionPermissions>>
+export type RoleMappings = Record<Roles, Partial<RegionPermissions>>
 
-const roleMappings: RoleMappings = {
+export const defaultRoleMappings: RoleMappings = {
   [Roles.AcasApi]: { [Region.EnglandWales]: 'R', [Region.Scotland]: 'R' },
   [Roles.CaseworkerEmployment]: { [Region.EnglandWales]: 'R', [Region.Scotland]: 'R' },
   [Roles.CaseworkerEmploymentApi]: { [Region.EnglandWales]: 'CRUD', [Region.Scotland]: 'CRUD' },
@@ -38,7 +38,7 @@ const roleMappings: RoleMappings = {
   [Roles.CaseworkerEmploymentETJudgeEnglandWales]: { [Region.EnglandWales]: 'CRU' },
   [Roles.CaseworkerEmploymentETJudgeScotland]: { [Region.Scotland]: 'CRU' },
   [Roles.CaseworkerEmploymentEnglandWales]: { [Region.EnglandWales]: 'CRU' },
-  [Roles.CaseworkerEmploymentLegalRepSolicitor]: { [Region.EnglandWales]: 'CRU', [Region.Scotland]: 'CRU' },
+  [Roles.CaseworkerEmploymentLegalRepSolicitor]: { [Region.EnglandWales]: 'D', [Region.Scotland]: 'D' },
   [Roles.CaseworkerEmploymentScotland]: { [Region.Scotland]: 'CRU' },
   [Roles.Citizen]: { [Region.EnglandWales]: 'CRU', [Region.Scotland]: 'CRU' }
 }
@@ -179,8 +179,16 @@ export function getKnownCaseFieldIDs(filter?: (obj: CaseField) => CaseField[]) {
 /**
  * Get all defined CaseField IDs in englandwales and scotland configs on an event
  */
-export function getKnownCaseFieldIDsByEvent(caseEventId?: string) {
-  const arr = [...englandwales.CaseField, ...scotland.CaseField]
+export function getKnownCaseFieldIDsByEvent(caseEventId?: string, regions: Region[] = [Region.EnglandWales, Region.Scotland]) {
+  let arr = []
+
+  if (regions.includes(Region.EnglandWales)) {
+    arr = [...englandwales.CaseField]
+  }
+
+  if (regions.includes(Region.Scotland)) {
+    arr = arr.concat(scotland.CaseField)
+  }
 
   const byEventId = (obj: CaseEventToField) => obj.CaseEventID === caseEventId
 
@@ -456,48 +464,29 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
   const scComplexTypes = fields.ComplexTypes.filter(scRegionFilter)
   const scEventToComplexTypes = fields.EventToComplexTypes.filter(scRegionFilter)
 
-  upsertFields(englandwales.CaseField, ewCaseFields, COMPOUND_KEYS.CaseField, spliceIndexCaseTypeID)
+  addToConfig(englandwales, {
+    AuthorisationCaseEvent: ewAuthorisationCaseEvents,
+    AuthorisationCaseField: ewAuthorisationCaseFields,
+    CaseEvent: ewCaseEvents,
+    CaseEventToFields: ewCaseEventToFields,
+    CaseField: ewCaseFields,
+    CaseTypeTab: ewCaseTypeTabs,
+    ComplexTypes: ewComplexTypes,
+    EventToComplexTypes: ewEventToComplexTypes,
+    Scrubbed: ewScrubbed
+  })
 
-  upsertFields(englandwales.CaseEventToFields, ewCaseEventToFields, COMPOUND_KEYS.CaseEventToFields, spliceIndexCaseEventToField)
-
-  upsertFields(englandwales.AuthorisationCaseEvent, ewAuthorisationCaseEvents, COMPOUND_KEYS.AuthorisationCaseEvent, spliceIndexCaseTypeId)
-
-  upsertFields(englandwales.AuthorisationCaseField, ewAuthorisationCaseFields, COMPOUND_KEYS.AuthorisationCaseField, spliceIndexCaseTypeId)
-
-  upsertFields(englandwales.CaseTypeTab, ewCaseTypeTabs, COMPOUND_KEYS.CaseTypeTab, spliceIndexCaseTypeTab)
-
-  upsertFields(englandwales.EventToComplexTypes, ewEventToComplexTypes, COMPOUND_KEYS.EventToComplexTypes, spliceIndexEventToComplexType)
-
-  // Insert after (next to) other objects of the same ID, or insert at the end if the ID doesn't exist yet
-  upsertFields(englandwales.ComplexTypes, ewComplexTypes, COMPOUND_KEYS.ComplexTypes,
-    (x, arr) => findLastIndex(arr, o => o.ID === x.ID) + 1
-  )
-
-  upsertFields(englandwales.Scrubbed, ewScrubbed, COMPOUND_KEYS.Scrubbed, spliceIndexScrubbed)
-
-  upsertFields(englandwales.CaseEvent, ewCaseEvents, COMPOUND_KEYS.CaseEvent, spliceIndexCaseEvent)
-
-  upsertFields(scotland.CaseField, scCaseFields, COMPOUND_KEYS.CaseField, spliceIndexCaseTypeID)
-
-  upsertFields(scotland.CaseEventToFields, scCaseEventToFields, COMPOUND_KEYS.CaseEventToFields, spliceIndexCaseEventToField)
-
-  upsertFields(scotland.AuthorisationCaseEvent, scAuthorisationCaseEvents, COMPOUND_KEYS.AuthorisationCaseEvent, spliceIndexCaseTypeId)
-
-  upsertFields(scotland.AuthorisationCaseField, scAuthorisationCaseFields, COMPOUND_KEYS.AuthorisationCaseField, spliceIndexCaseTypeId)
-
-  upsertFields(scotland.CaseTypeTab, scCaseTypeTabs, COMPOUND_KEYS.CaseTypeTab, spliceIndexCaseTypeTab)
-
-  upsertFields(scotland.EventToComplexTypes, scEventToComplexTypes, COMPOUND_KEYS.EventToComplexTypes, spliceIndexEventToComplexType)
-
-  // Insert after (next to) other objects of the same ID, or insert at the end if the ID doesn't exist yet
-  upsertFields(scotland.ComplexTypes, scComplexTypes, COMPOUND_KEYS.ComplexTypes,
-    (x, arr) => findLastIndex(arr, o => o.ID === x.ID) + 1
-  )
-
-  // Dirty hack to avoid pushing DisplayOrder up twice
-  upsertFields(scotland.Scrubbed, scScrubbed, COMPOUND_KEYS.Scrubbed, spliceIndexScrubbed)
-
-  upsertFields(scotland.CaseEvent, scCaseEvents, COMPOUND_KEYS.CaseEvent, spliceIndexCaseEvent)
+  addToConfig(scotland, {
+    AuthorisationCaseEvent: scAuthorisationCaseEvents,
+    AuthorisationCaseField: scAuthorisationCaseFields,
+    CaseEvent: scCaseEvents,
+    CaseEventToFields: scCaseEventToFields,
+    CaseField: scCaseFields,
+    CaseTypeTab: scCaseTypeTabs,
+    ComplexTypes: scComplexTypes,
+    EventToComplexTypes: scEventToComplexTypes,
+    Scrubbed: scScrubbed
+  })
 
   addToSession({
     AuthorisationCaseField: ewAuthorisationCaseFields,
@@ -522,6 +511,30 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
     Scrubbed: scScrubbed,
     CaseEvent: scCaseEvents
   })
+}
+
+export function addToConfig(to: Partial<ConfigSheets>, from: Partial<ConfigSheets>) {
+  upsertFields(to.CaseField, from.CaseField, COMPOUND_KEYS.CaseField, spliceIndexCaseTypeID)
+
+  upsertFields(to.CaseEventToFields, from.CaseEventToFields, COMPOUND_KEYS.CaseEventToFields, spliceIndexCaseEventToField)
+
+  upsertFields(to.AuthorisationCaseEvent, from.AuthorisationCaseEvent, COMPOUND_KEYS.AuthorisationCaseEvent, spliceIndexCaseTypeId)
+
+  upsertFields(to.AuthorisationCaseField, from.AuthorisationCaseField, COMPOUND_KEYS.AuthorisationCaseField, spliceIndexCaseTypeId)
+
+  upsertFields(to.CaseTypeTab, from.CaseTypeTab, COMPOUND_KEYS.CaseTypeTab, spliceIndexCaseTypeTab)
+
+  upsertFields(to.EventToComplexTypes, from.EventToComplexTypes, COMPOUND_KEYS.EventToComplexTypes, spliceIndexEventToComplexType)
+
+  // Insert after (next to) other objects of the same ID, or insert at the end if the ID doesn't exist yet
+  upsertFields(to.ComplexTypes, from.ComplexTypes, COMPOUND_KEYS.ComplexTypes,
+    (x, arr) => findLastIndex(arr, o => o.ID === x.ID) + 1
+  )
+
+  // Dirty hack to avoid pushing DisplayOrder up twice
+  upsertFields(to.Scrubbed, from.Scrubbed, COMPOUND_KEYS.Scrubbed, spliceIndexScrubbed)
+
+  upsertFields(to.CaseEvent, from.CaseEvent, COMPOUND_KEYS.CaseEvent, spliceIndexCaseEvent)
 }
 
 export function pushEventToComplexTypeFieldDisplayOrders(arr: EventToComplexType[], eventID: string, fieldID: string, start: number) {
@@ -603,7 +616,7 @@ function createAuthorisations<T>(mappings: RoleMappings, caseTypeID: string, fn:
 /**
  * Creates an array of AuthorisationCaseEvent objects
  */
-export function createCaseEventAuthorisations(caseTypeID: string = Region.EnglandWales, eventID: string) {
+export function createCaseEventAuthorisations(caseTypeID: string = Region.EnglandWales, eventID: string, roleMappings: RoleMappings = defaultRoleMappings) {
   return createAuthorisations<AuthorisationCaseEvent>(roleMappings, caseTypeID, (role, crud) => {
     return { CaseTypeId: caseTypeID, CaseEventID: eventID, UserRole: role, CRUD: crud }
   })
@@ -612,7 +625,7 @@ export function createCaseEventAuthorisations(caseTypeID: string = Region.Englan
 /**
  * Creates an array of AuthorisationCaseEvent objects
  */
-export function createCaseFieldAuthorisations(caseTypeID: string = Region.EnglandWales, fieldID: string) {
+export function createCaseFieldAuthorisations(caseTypeID: string = Region.EnglandWales, fieldID: string, roleMappings: RoleMappings = defaultRoleMappings) {
   return createAuthorisations<AuthorisationCaseField>(roleMappings, caseTypeID, (role, crud) => {
     return { CaseTypeId: caseTypeID, CaseFieldID: fieldID, UserRole: role, CRUD: crud }
   })

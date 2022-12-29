@@ -23,7 +23,10 @@ const DOCKER_CONTAINERS = [
   'compose-wsl-uptime-1',
   'compose-azure-storage-emulator-azurite-1',
   'rse-idam-simulator',
-  'wsl_uptime'
+  'wsl_uptime',
+  'manage-case-assignment',
+  'compose-xui-manage-org-1',
+  'compose-rd-professional-reference-data-1'
 ]
 
 /**
