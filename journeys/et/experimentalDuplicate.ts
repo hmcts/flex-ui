@@ -6,6 +6,7 @@ import { addFlexRegionToCcdObject, askCaseEvent, askCaseTypeID, FLEX_REGION_ANSW
 import { CaseEventToFieldKeys, CaseFieldKeys, createNewConfigSheets } from 'app/types/ccd'
 import { NONE } from 'app/constants'
 import { duplicateAuthorisationInCaseType, duplicateInCaseType, getObjectsReferencedByCaseFields } from 'app/et/duplicateCaseField'
+import { saveSession, session } from 'app/session'
 
 const QUESTION_ID_SELECT = 'What fields do you want to change authorisations for?'
 
@@ -47,6 +48,7 @@ async function extractFieldsAndDependants(fromRegion: Region, toCaseTypeID: stri
   relatedConfig.AuthorisationCaseField = relatedConfig.AuthorisationCaseField.map(o => duplicateAuthorisationInCaseType(toCaseTypeID, o))
 
   addToInMemoryConfig(relatedConfig)
+  saveSession(session)
 }
 
 async function askFields() {

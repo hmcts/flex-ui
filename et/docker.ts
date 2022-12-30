@@ -20,10 +20,8 @@ const DOCKER_CONTAINERS = [
   'compose-ccd-user-profile-api-1',
   'compose-service-auth-provider-api-1',
   'compose-ccd-shared-database-v11-1',
-  'compose-wsl-uptime-1',
   'compose-azure-storage-emulator-azurite-1',
   'rse-idam-simulator',
-  'wsl_uptime',
   'manage-case-assignment',
   'compose-xui-manage-org-1',
   'compose-rd-professional-reference-data-1'

@@ -7,6 +7,7 @@ import { format } from 'app/helpers'
 import { askCaseEvent, askCaseTypeID } from 'app/et/questions'
 import { CaseEventToFieldKeys, CaseFieldKeys } from 'app/types/ccd'
 import { NONE } from 'app/constants'
+import { addonDuplicateQuestion } from './createSingleField'
 
 const QUESTION_ID_SELECT = 'What fields do you want to change authorisations for?'
 const QUESTION_AUTHORISATIONS = 'What permissions are we giving {0} for {1}?'
@@ -69,25 +70,43 @@ function getFieldOptions(caseTypeID: string, caseEventID: string) {
 
 async function changeAuthorisationsForCaseEvent(caseTypeID: string, caseEventID: string, region: Region) {
   const newMapping = await askAuthorisations(QUESTION_AUTHORISATIONS.replace('{1}', caseEventID), region)
+  const answers = { [CaseFieldKeys.CaseTypeID]: caseTypeID }
 
-  const auths = createCaseEventAuthorisations(caseTypeID, caseEventID, newMapping)
+  await addonDuplicateQuestion(answers, (answers: Answers) => {
 
-  addToInMemoryConfig({
-    AuthorisationCaseEvent: auths
+    const duplicateRegion = getRegionFromCaseTypeId(answers[CaseFieldKeys.CaseTypeID])
+    for (const key in newMapping) {
+      newMapping[key][duplicateRegion] = newMapping[key][region]
+    }
+
+    const auths = createCaseEventAuthorisations(answers[CaseFieldKeys.CaseTypeID], caseEventID, newMapping)
+
+    addToInMemoryConfig({
+      AuthorisationCaseEvent: auths
+    })
   })
 
   saveSession(session)
 }
 
 async function changeAuthorisationsForCaseField(caseTypeID: string, region: Region, fieldIDs: string[]) {
-  const message = QUESTION_AUTHORISATIONS.replace('{1}', fieldIDs.length === 1? fieldIDs[0] : 'these fields')
+  const message = QUESTION_AUTHORISATIONS.replace('{1}', fieldIDs.length === 1 ? fieldIDs[0] : 'these fields')
   const newMapping = await askAuthorisations(message, region)
 
-  const auths = fieldIDs.reduce((acc, fieldID) =>
-    acc.concat(createCaseFieldAuthorisations(caseTypeID, fieldID, newMapping)), [])
+  const answers = { [CaseFieldKeys.CaseTypeID]: caseTypeID }
+  await addonDuplicateQuestion(answers, (answers: Answers) => {
 
-  addToInMemoryConfig({
-    AuthorisationCaseField: auths
+    const duplicateRegion = getRegionFromCaseTypeId(answers[CaseFieldKeys.CaseTypeID])
+    for (const key in newMapping) {
+      newMapping[key][duplicateRegion] = newMapping[key][region]
+    }
+
+    const auths = fieldIDs.reduce((acc, fieldID) =>
+      acc.concat(createCaseFieldAuthorisations(answers[CaseFieldKeys.CaseTypeID], fieldID, newMapping)), [])
+
+    addToInMemoryConfig({
+      AuthorisationCaseField: auths
+    })
   })
 
   saveSession(session)
