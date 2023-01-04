@@ -12,23 +12,31 @@ import { getWslHostIP, setIPToHostDockerInternal, setIPToWslHostAddress } from '
 import { generateSpreadsheets, importConfigs } from './configsCommon'
 import { fixExitedContainers } from 'app/et/docker'
 
+type CookieJar = Record<string, string>
+
 https.globalAgent.options.rejectUnauthorized = false
 
 // These login credentials are public and will only work when running the stack locally #secops
 const USER = 'et.dev@hmcts.net'
+const USER_ORG = 'superuser@etorganisation1.com'
 const PASS = 'Pa55word11'
+const PASS_ORG = 'Pa55word11'
 const BASE_URL = 'http://localhost:3455'
+const BASE_URL_ORG = 'http://localhost:3456'
 const IDAM_LOGIN_START_URL = `${BASE_URL}/auth/login`
+const IDAM_LOGIN_START_URL_ORG = `${BASE_URL_ORG}/auth/login`
 
 const QUESTION_STEPS = 'What events are we interested in running?'
 const QUESTION_CALLBACKS = 'Do we need to spin up callbacks before creating the case?'
+const QUESTION_SHARE = 'Would you like to share this case with solicitor1@etorganisation1.com?'
 
 const EVENT_OPTS = [
   'et1Vetting',
   'preAcceptanceCase',
   'et3Response',
   'addAmendHearing',
-  'respondentTSE'
+  'respondentTSE',
+  'amendRespondentRepresentative'
 ]
 
 const REGION_OPTS = [
@@ -44,6 +52,7 @@ export async function askCreateCaseQuestions() {
   return await prompt([
     { name: 'region', message: 'What region are we creating for?', type: 'checkbox', choices: REGION_OPTS, default: REGION_OPTS },
     { name: 'events', message: QUESTION_STEPS, type: 'checkbox', choices: EVENT_OPTS, default: EVENT_OPTS },
+    { name: 'share', message: QUESTION_SHARE, type: 'list', choices: YES_OR_NO },
     { name: 'callbacks', message: QUESTION_CALLBACKS, type: 'list', choices: YES_OR_NO, default: NO },
     { name: 'kill', message: 'Do you want to kill callbacks after?', type: 'list', choices: YES_OR_NO, default: YES, when: (ans) => ans.callbacks === YES }
   ])
@@ -66,8 +75,16 @@ export async function doCreateCaseTasks(answers: Record<string, any>) {
     temporaryLog('Callbacks has started up')
   }
 
+  if (answers.share === YES && !answers.events.includes('amendRespondentRepresentative')) {
+    answers.events.push('amendRespondentRepresentative')
+  }
+
   for (const region of answers.region) {
-    await createNewCase(region, answers.events)
+    const caseId = await createNewCase(region, answers.events)
+
+    if (answers.share === YES) {
+      await shareACase(caseId, region)
+    }
   }
 
   if (answers.kill === YES) {
@@ -137,7 +154,7 @@ export async function getInitialLoginUrl(url: string = IDAM_LOGIN_START_URL) {
   }
 }
 
-export async function getCsrfTokenFromLoginPage(authUrl: string, cookieJar: Record<string, string>) {
+export async function getCsrfTokenFromLoginPage(authUrl: string, cookieJar: CookieJar) {
   const res = await fetch(authUrl)
   const html = await res.text()
   addToCookieJarFromRawSetCookieHeader(res.headers.raw()['set-cookie'], cookieJar)
@@ -193,7 +210,7 @@ export function cookieJarToString(jar: Record<string, string>) {
   return Object.keys(jar).map(o => `${o}=${jar[o]}`).join('; ')
 }
 
-function addToCookieJarFromRawSetCookieHeader(rawHeader: string[], jar: Record<string, string> = {}) {
+function addToCookieJarFromRawSetCookieHeader(rawHeader: string[], jar: CookieJar = {}) {
   return rawHeader?.reduce((acc, obj) => {
     const [, key, value] = /(.+?)=((.+?);|(.+))/g.exec(obj) || []
     if (!key || !value) return acc
@@ -202,7 +219,7 @@ function addToCookieJarFromRawSetCookieHeader(rawHeader: string[], jar: Record<s
   }, jar) || jar
 }
 
-async function makeAuthorisedRequest(url: string, cookieJar: Record<string, string>, opts: RequestInit = {}) {
+async function makeAuthorisedRequest(url: string, cookieJar: CookieJar, opts: RequestInit = {}) {
   if (!opts.headers) {
     opts.headers = {}
   }
@@ -250,9 +267,11 @@ export async function createNewCase(region: string, events: string[]) {
     eventToken = await pingEventTrigger(caseId, event, cookieJar)
     await postGeneric(event, caseId, cookieJar, eventToken, region)
   }
+
+  return caseId
 }
 
-async function createCaseInit(cookieJar: Record<string, string>, region = 'ET_EnglandWales') {
+async function createCaseInit(cookieJar: CookieJar, region = 'ET_EnglandWales') {
   const url = `${BASE_URL}/data/internal/case-types/${region}/event-triggers/initiateCase?ignore-warning=false`
 
   const res = await makeAuthorisedRequest(url, cookieJar)
@@ -279,7 +298,7 @@ function tryGetResource(jsonResourcePath: string, region: string) {
   throw new Error(`Could not find requested file ${genericJson} or ${regionJson}`)
 }
 
-async function postGeneric(jsonResourcePath: string, caseId: string, cookieJar: Record<string, string>, eventToken: string, region: string) {
+async function postGeneric(jsonResourcePath: string, caseId: string, cookieJar: CookieJar, eventToken: string, region: string) {
   const caseData = { ...require(tryGetResource(jsonResourcePath, region)), event_token: eventToken }
   const url = `${BASE_URL}/data/cases/${caseId}/events`
   const body = JSON.stringify(caseData)
@@ -296,7 +315,7 @@ async function postGeneric(jsonResourcePath: string, caseId: string, cookieJar: 
   return json.id
 }
 
-async function postCase(cookieJar: Record<string, string>, eventToken: string, region: string) {
+async function postCase(cookieJar: CookieJar, eventToken: string, region: string) {
   const caseData = { ...require(resolve(process.env.APP_ROOT, '../et/resources/initiateCase.json')), event_token: eventToken }
   const url = `${BASE_URL}/data/case-types/${region}/cases?ignore-warning=false`
   const body = JSON.stringify(caseData)
@@ -313,13 +332,55 @@ async function postCase(cookieJar: Record<string, string>, eventToken: string, r
   return json.id
 }
 
-async function pingEventTrigger(caseId: string, eventName: string, cookieJar: Record<string, string>) {
+async function pingEventTrigger(caseId: string, eventName: string, cookieJar: CookieJar) {
   const url = `${BASE_URL}/data/internal/cases/${caseId}/event-triggers/${eventName}?ignore-warning=false`
 
   const res = await makeAuthorisedRequest(url, cookieJar)
   const json = await res.json()
 
   return json.event_token
+}
+
+async function getOrgUsers(cookieJar: CookieJar) {
+  const url = `${BASE_URL_ORG}/api/userList?pageNumber=0`
+  const res = await makeAuthorisedRequest(url, cookieJar)
+  const json = await res.json()
+
+  return json.users
+}
+
+async function shareACase(caseId: string, region: string, userEmail: string = 'solicitor1@etorganisation1.com') {
+  const cookieJar = await loginToIdam(USER_ORG, PASS_ORG, IDAM_LOGIN_START_URL_ORG)
+  const users = await getOrgUsers(cookieJar)
+  const solicitor1 = users.find(o => o.email === userEmail)
+  const url = `${BASE_URL_ORG}/api/caseshare/case-assignments`
+
+  const body = {
+    "sharedCases": [
+      {
+        "caseId": caseId,
+        "caseTitle": caseId,
+        "caseTypeId": region,
+        "pendingShares": [
+          {
+            "email": userEmail,
+            "firstName": solicitor1.firstName,
+            "idamId": solicitor1.userIdentifier,
+            "lastName": solicitor1.lastName
+          }
+        ],
+        "pendingUnshares": []
+      }
+    ]
+  }
+
+  const res = await makeAuthorisedRequest(url, cookieJar, {
+    body: JSON.stringify(body),
+    headers: { 'Content-Type': 'application/json' },
+    method: 'POST'
+  })
+
+  temporaryLog(`Share a Case result: ${res.status}`)
 }
 
 function jankConvertScotlandToEngland(data: string) {
