@@ -95,7 +95,8 @@ export async function initEcm() {
   temporaryLog('Running init-ecm.sh')
   const promise = async () => {
     return await new Promise(resolve => {
-      exec('./bin/ecm/init-ecm.sh', { cwd: process.env.ECM_DOCKER_DIR }, (error?: ExecException) => {
+      const env = getEnvVarsFromFile()
+      exec('./bin/ecm/init-ecm.sh', { cwd: process.env.ECM_DOCKER_DIR, env: { ...process.env, ...env } }, (error?: ExecException) => {
         if (error?.message?.includes('Empty reply from server')) {
           temporaryLog('init-ecm.sh failed with empty reply, waiting for 10s and trying again\r')
           return setTimeout(() => { promise().then(() => resolve('')).catch(() => undefined) }, 1000 * 10)
