@@ -1,0 +1,45 @@
+{
+  "data": {
+    "tseRespondSelectApplication": {
+      "value": {
+        "code": "1",
+        "label": "1 Change personal details"
+      },
+      "selectedLabel": "1 Change personal details",
+      "selectedCode": "1",
+      "list_items": [
+        {
+          "code": "1",
+          "label": "1 Change personal details"
+        }
+      ]
+    },
+    "tseResponseIntro": "The respondent has applied to <b>Change personal details</b>.</br></br> If you have any objections or responses to their application you must send them to the tribunal as soon as possible and by 11 January 2023 at the latest.</br></br>If you need more time to respond, you may request more time from the tribunal. If you do not respond or request more time to respond, the tribunal will consider the application without your response.",
+    "tseResponseTable": "| | |\r\n|--|--|\r\n|Application date | 4 January 2023\r\n|Details of the application | look ma, flexUI populated\r\nApplication file upload | N/A",
+    "tseResponseText": "This is my response to the claimant's application",
+    "tseResponseHasSupportingMaterial": "Yes",
+    "tseResponseSupportingMaterial": [
+      {
+        "value": {
+          "typeOfDocument": null,
+          "shortDescription": null,
+          "uploadedDocument": {
+            "document_url": "http://dm-store:8080/documents/<FLEX_DOC_UUID>",
+            "document_binary_url": "http://dm-store:8080/documents/<FLEX_DOC_UUID>/binary",
+            "document_filename": "evidence.txt"
+          }
+        },
+        "id": null
+      }
+    ],
+    "tseResponseCopyToOtherParty": "I confirm I want to copy",
+    "tseResponseCopyNoGiveDetails": null
+  },
+  "event": {
+    "id": "tseRespond",
+    "summary": "",
+    "description": ""
+  },
+  "event_token": "",
+  "ignore_warning": false
+}

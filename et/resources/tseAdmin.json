@@ -1,0 +1,42 @@
+{
+  "data": {
+    "tseAdminSelectApplication": {
+      "value": {
+        "code": "1",
+        "label": "1 Change personal details"
+      },
+      "selectedLabel": "1 Change personal details",
+      "selectedCode": "1",
+      "list_items": [
+        {
+          "code": "1",
+          "label": "1 Change personal details"
+        }
+      ]
+    },
+    "tseAdminTableMarkUp": "| | |\r\n|--|--|\r\n|Respondent application | Change personal details|\r\n|Application date | 4 January 2023|\r\n|Give details | look ma, flexUI populated|\r\n|Supporting material | |\r\n\r\n|Response 1 | |\r\n|--|--|\r\n|Response from | Respondent|\r\n|Response date | 4 January 2023|\r\n|Details | This is my response to the claimant's application|\r\n|Supporting material | <a href=\"/documents/06f73a75-c0de-4b6a-ad6c-ecd75aa42d9b/binary\" target=\"_blank\">HMCTS (PNG, 4 KB)</a><br>|",
+    "tseAdminEnterNotificationTitle": "Notification title",
+    "tseAdminDecision": "Granted",
+    "tseAdminDecisionDetails": null,
+    "tseAdminTypeOfDecision": "Judgment",
+    "tseAdminIsResponseRequired": null,
+    "tseAdminSelectPartyRespond": null,
+    "tseAdminAdditionalInformation": "Extra information",
+    "tseAdminResponseRequiredYesDoc": null,
+    "tseAdminResponseRequiredNoDoc": {
+      "document_url": "http://dm-store:8080/documents/<FLEX_DOC_UUID>",
+      "document_binary_url": "http://dm-store:8080/documents/<FLEX_DOC_UUID>/binary",
+      "document_filename": "evidence.txt"
+    },
+    "tseAdminDecisionMadeBy": "Legal officer",
+    "tseAdminDecisionMadeByFullName": "Legal officer Jeremy",
+    "tseAdminSelectPartyNotify": "Both parties"
+  },
+  "event": {
+    "id": "tseAdmin",
+    "summary": "",
+    "description": ""
+  },
+  "event_token": "",
+  "ignore_warning": false
+}

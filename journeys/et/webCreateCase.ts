@@ -4,13 +4,14 @@ import { resolve } from 'path'
 import { prompt } from 'inquirer'
 import https from 'node:https'
 // eslint-disable-next-line n/no-deprecated-api
-import { existsSync } from 'fs'
+import { createReadStream, existsSync, statSync } from 'fs'
 import { NO, YES, YES_OR_NO } from 'app/constants'
 import { execCommand, getEnvVarsFromFile, temporaryLog } from 'app/helpers'
 import { ChildProcess, exec } from 'child_process'
 import { getWslHostIP, setIPToHostDockerInternal, setIPToWslHostAddress } from './dockerUpdateIP'
 import { generateSpreadsheets, importConfigs } from './configsCommon'
 import { fixExitedContainers } from 'app/et/docker'
+import FormData from 'form-data'
 
 type CookieJar = Record<string, string>
 
@@ -36,6 +37,8 @@ const EVENT_OPTS = [
   'et3Response',
   'addAmendHearing',
   'respondentTSE',
+  'tseRespond',
+  'tseAdmin',
   'amendRespondentRepresentative'
 ]
 
@@ -263,9 +266,11 @@ export async function createNewCase(region: string, events: string[]) {
 
   const caseId = await postCase(cookieJar, eventToken, region)
 
+  const uuidDoc = await uploadTestFile(cookieJar)
+
   for (const event of events) {
     eventToken = await pingEventTrigger(caseId, event, cookieJar)
-    await postGeneric(event, caseId, cookieJar, eventToken, region)
+    await postGeneric(event, caseId, cookieJar, eventToken, region, uuidDoc)
   }
 
   return caseId
@@ -298,10 +303,10 @@ function tryGetResource(jsonResourcePath: string, region: string) {
   throw new Error(`Could not find requested file ${genericJson} or ${regionJson}`)
 }
 
-async function postGeneric(jsonResourcePath: string, caseId: string, cookieJar: CookieJar, eventToken: string, region: string) {
+async function postGeneric(jsonResourcePath: string, caseId: string, cookieJar: CookieJar, eventToken: string, region: string, testFileId: string) {
   const caseData = { ...require(tryGetResource(jsonResourcePath, region)), event_token: eventToken }
   const url = `${BASE_URL}/data/cases/${caseId}/events`
-  const body = JSON.stringify(caseData)
+  const body = JSON.stringify(caseData).replace(/<FLEX_DOC_UUID>/g, testFileId)
 
   const res = await makeAuthorisedRequest(url, cookieJar, {
     method: 'POST',
@@ -385,6 +390,29 @@ async function shareACase(caseId: string, region: string, userEmail: string = 's
 
 function jankConvertScotlandToEngland(data: string) {
   return data.replace(/Scotland/g, 'England').replace(/Aberdeen/g, 'Bristol')
+}
+
+async function uploadTestFile(cookieJar: CookieJar) {
+  const file = resolve(process.env.APP_ROOT, `../et/resources/file.txt`)
+  const form = new FormData()
+  const stats = statSync(file)
+  const fileSizeInBytes = stats.size
+  const fileStream = createReadStream(file)
+  form.append('files', fileStream, { knownLength: fileSizeInBytes })
+  form.append('classification', 'PUBLIC')
+
+  const res = await fetch('http://localhost:3455/documents', {
+    method: 'POST',
+    headers: {
+      Cookie: cookieJarToString(cookieJar),
+      referrer: 'http://localhost:3455/cases/case-details/1672844316015433/trigger/tseRespond/tseRespond3',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36'
+    },
+    body: form
+  })
+
+  const json = await res.json()
+  return json._embedded?.documents[0]?._links.self.href.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/g)?.[0]
 }
 
 export default {
