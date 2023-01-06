@@ -39,6 +39,7 @@ const EVENT_OPTS = [
   'respondentTSE',
   'tseRespond',
   'tseAdmin',
+  'tseAdmReply',
   'amendRespondentRepresentative'
 ]
 

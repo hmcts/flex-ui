@@ -16,7 +16,7 @@
     },
     "tseResponseIntro": "The respondent has applied to <b>Change personal details</b>.</br></br> If you have any objections or responses to their application you must send them to the tribunal as soon as possible and by 11 January 2023 at the latest.</br></br>If you need more time to respond, you may request more time from the tribunal. If you do not respond or request more time to respond, the tribunal will consider the application without your response.",
     "tseResponseTable": "| | |\r\n|--|--|\r\n|Application date | 4 January 2023\r\n|Details of the application | look ma, flexUI populated\r\nApplication file upload | N/A",
-    "tseResponseText": "This is my response to the claimant's application",
+    "tseResponseText": "This is my response to the claimant's application - as populated by flexui",
     "tseResponseHasSupportingMaterial": "Yes",
     "tseResponseSupportingMaterial": [
       {
