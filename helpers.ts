@@ -54,7 +54,7 @@ export function findMissing<T>(list: T[], sublist: T[], keys: Array<keyof (T)>) 
  * Adds or updates objects in the "to" array if they are new or changed in "from" array
  * @param to array to update
  * @param from array to take from
- * @param keys list of keys whose values must be equal on both objects to qualify as unique
+ * @param keys list of keys whose values must be equal on both objects to qualify as the same
  * @param spliceIndexFn function to get the correct index to splice new items in at
  */
 export function upsertFields<T>(to: T[], from: T[], keys: Array<keyof (T)>, spliceIndexFn?: (obj: T, arr: T[]) => number) {
@@ -70,6 +70,20 @@ export function upsertFields<T>(to: T[], from: T[], keys: Array<keyof (T)>, spli
       continue
     }
     to.splice(existingIndex, 1, obj)
+  }
+}
+
+/**
+ * Removes objects from "main" that are specified in "toDelete" if they match by "keys"
+ * @param main array to update
+ * @param toDelete instructions on what to delete
+ * @param keys list of keys whose values must be equal on both objects to qualify as the same
+ */
+export function removeFields<T>(main: T[], toDelete: T[], keys: Array<keyof (T)>) {
+  for (const obj of toDelete) {
+    const existingIndex = main.findIndex(o => matcher(o, obj, keys))
+    if (existingIndex === -1) continue
+    main.splice(existingIndex, 1)
   }
 }
 

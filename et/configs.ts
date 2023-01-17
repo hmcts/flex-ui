@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync } from 'fs'
 import { sep } from 'path'
-import { findLastIndex, format, getUniqueByKey, getUniqueByKeyAsArray, groupBy, upsertFields } from 'app/helpers'
+import { findLastIndex, format, getUniqueByKey, getUniqueByKeyAsArray, groupBy, removeFields, upsertFields } from 'app/helpers'
 import { addToSession, session } from 'app/session'
 import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventKeys, CaseEventToField, CaseEventToFieldKeys, CaseField, CaseTypeTab, CaseTypeTabKeys, CCDSheets, CCDTypes, ConfigSheets, EventToComplexType, EventToComplexTypeKeys, FlexExtensions, Scrubbed, ScrubbedKeys, sheets } from 'types/ccd'
 import { COMPOUND_KEYS, NONE } from 'app/constants'
@@ -425,6 +425,35 @@ function spliceIndexCaseEvent(x: CaseEvent, arr: CaseEvent[]) {
   return index
 }
 
+export function deleteFromInMemoryConfig(fields: Partial<ConfigSheets>) {
+  for (const key of sheets) {
+    if (!fields[key]) {
+      fields[key] = []
+    }
+  }
+
+  const deleteOnlyFilter = (o: { CRUD: string }) => o.CRUD.toUpperCase() === "D"
+  const ewCaseTypeIDFilter = (o: { CaseTypeID?: string, CaseTypeId?: string }) => (o.CaseTypeID || o.CaseTypeId).startsWith(Region.EnglandWales)
+
+  const scCaseTypeIDFilter = (o: { CaseTypeID?: string, CaseTypeId?: string }) => (o.CaseTypeID || o.CaseTypeId).startsWith(Region.Scotland)
+
+  const ewAuthorisationCaseFields = fields.AuthorisationCaseField.filter(ewCaseTypeIDFilter).filter(deleteOnlyFilter)
+  const ewAuthorisationCaseEvents = fields.AuthorisationCaseEvent.filter(ewCaseTypeIDFilter).filter(deleteOnlyFilter)
+
+  const scAuthorisationCaseFields = fields.AuthorisationCaseField.filter(scCaseTypeIDFilter).filter(deleteOnlyFilter)
+  const scAuthorisationCaseEvents = fields.AuthorisationCaseEvent.filter(scCaseTypeIDFilter).filter(deleteOnlyFilter)
+
+  deleteFromConfig(englandwales, {
+    AuthorisationCaseEvent: ewAuthorisationCaseEvents,
+    AuthorisationCaseField: ewAuthorisationCaseFields
+  })
+
+  deleteFromConfig(scotland, {
+    AuthorisationCaseEvent: scAuthorisationCaseEvents,
+    AuthorisationCaseField: scAuthorisationCaseFields
+  })
+}
+
 /**
  * Upserts new fields into the in-memory configs and current session. Does NOT touch the original JSON files.
  * See TODOs in body. This is functional but ordering is not necessarily ideal
@@ -511,6 +540,16 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
     Scrubbed: scScrubbed,
     CaseEvent: scCaseEvents
   })
+
+  deleteFromInMemoryConfig(fields)
+}
+
+export function deleteFromConfig(main: Partial<ConfigSheets>, toDelete: Partial<ConfigSheets>) {
+  removeFields(main.AuthorisationCaseEvent, toDelete.AuthorisationCaseEvent, COMPOUND_KEYS.AuthorisationCaseEvent)
+
+  removeFields(main.AuthorisationCaseField, toDelete.AuthorisationCaseField, COMPOUND_KEYS.AuthorisationCaseField)
+
+  // TODO: Handle other types
 }
 
 export function addToConfig(to: Partial<ConfigSheets>, from: Partial<ConfigSheets>) {
@@ -586,11 +625,18 @@ export async function saveBackToProject() {
 
   for (const sheet of sheets) {
     const eng = format(templatePath, process.env.ENGWALES_DEF_DIR, getConfigSheetName(Region.EnglandWales, sheet))
-    writeFileSync(eng, JSON.stringify(englandwales[sheet].map(o => { return { ...o, flex: undefined } }), null, 2))
+    const jsonEng = JSON.stringify(englandwales[sheet].map(o => { return { ...o, flex: undefined } }), null, 2)
+    writeFileSync(eng, `${jsonEng}${getFileTerminatingCharacter(eng)}`)
 
     const scot = format(templatePath, process.env.SCOTLAND_DEF_DIR, getConfigSheetName(Region.Scotland, sheet))
-    writeFileSync(scot, JSON.stringify(scotland[sheet].map(o => { return { ...o, flex: undefined } }), null, 2))
+    const jsonScot = JSON.stringify(scotland[sheet].map(o => { return { ...o, flex: undefined } }), null, 2)
+    writeFileSync(scot, `${jsonScot}${getFileTerminatingCharacter(scot)}`)
   }
+}
+
+function getFileTerminatingCharacter(file: string) {
+  const contents = readFileSync(file).toString()
+  return contents.endsWith('\n') ? '\n' : ''
 }
 
 /**

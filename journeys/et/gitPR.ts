@@ -29,7 +29,7 @@ https://tools.hmcts.net/jira/browse/RET-%NUMBER%
 async function getCurrentBranchName(dir: string) {
   const { stdout } = await execCommand('git rev-parse --symbolic-full-name --abbrev-ref HEAD', dir)
   console.log(stdout)
-  return stdout.replace('RET-', '').replace('\n', '')
+  return stdout.replace('\n', '')
 }
 
 export async function openPRJourney(answers: any = {}) {
@@ -39,8 +39,10 @@ export async function openPRJourney(answers: any = {}) {
     { name: 'repos', message: QUESTION_REPOS, type: 'checkbox', choices: Object.keys(REPOS), default: Object.keys(REPOS) }
   ], answers)
 
+  const currentBranchName = await getCurrentBranchName(answers.repos.includes('et-ccd-definitions-englandwales') ? process.env.ENGWALES_DEF_DIR : process.env.SCOTLAND_DEF_DIR)
+
   answers = await prompt([
-    { name: 'ticket', message: QUESTION_TICKET_NUMBER, default: await getCurrentBranchName(answers.repos.includes('et-ccd-definitions-englandwales') ? process.env.ENGWALES_DEF_DIR : process.env.SCOTLAND_DEF_DIR) },
+    { name: 'ticket', message: QUESTION_TICKET_NUMBER, default: currentBranchName.replace('RET-', '') },
     { name: 'title', message: QUESTION_TITLE },
     { name: 'base', message: QUESTION_BASE_BRANCH, default: 'master' }
   ], answers)
@@ -55,7 +57,7 @@ export async function openPRJourney(answers: any = {}) {
     .replace('%YES%', answers.breaking === 'No' ? '' : 'x')
     .replace('%NO%', answers.breaking === 'No' ? 'x' : '')
 
-  const command = `gh pr create --title "RET-${answers.ticket}: ${answers.title}" --base ${answers.base} --body '${content}'`
+  const command = `gh pr create --title "RET-${answers.ticket}: ${answers.title}" --head ${currentBranchName} --base ${answers.base} --body '${content}'`
 
   await Promise.allSettled(answers.repos.map(async o => await openPRFor(command, REPOS[o])))
 }

@@ -1,6 +1,6 @@
 import { readFileSync, rmSync, writeFileSync } from 'fs'
 import { readdir } from 'fs/promises'
-import { sep } from 'path'
+import { resolve, sep } from 'path'
 import { COMPOUND_KEYS } from 'app/constants'
 import { getUniqueByKey, upsertFields } from 'app/helpers'
 import { ConfigSheets, createNewConfigSheets, sheets } from 'types/ccd'
@@ -12,6 +12,7 @@ export interface Session {
   date: Date | string
   added: ConfigSheets
   lastAnswers: Answers
+  file?: string
 }
 
 export const SESSION_DIR = 'sessions'
@@ -24,7 +25,20 @@ saveSession(session)
  * Save session to the sessions folder
  */
 export function saveSession(session: Session) {
-  writeFileSync(`${SESSION_DIR}${sep}${session.name}${SESSION_EXT}`, JSON.stringify(session, null, 2))
+  const file = resolve(`.${sep}${SESSION_DIR}${sep}${session.name}${SESSION_EXT}`)
+  session.file = file
+  writeFileSync(file, JSON.stringify(session, null, 2))
+}
+
+/**
+ * Delete a session if the file still exists in the session folder
+ */
+export async function deleteSession(file: string) {
+  try {
+    rmSync(file)
+  } catch (e) {
+    // Do Nothing
+  }
 }
 
 /**
@@ -48,7 +62,8 @@ export function createAndLoadNewSession(name: string) {
  * @param sessionFileName Name of the session on disk (must include the extension)
  */
 export function restorePreviousSession(sessionFileName: string) {
-  const read = readFileSync(`${SESSION_DIR}${sep}${sessionFileName}`)
+  const file = resolve(`.${sep}${SESSION_DIR}${sep}${sessionFileName}`)
+  const read = readFileSync(file)
   const json: Session = JSON.parse(read.toString())
 
   for (const sheet of sheets) {
@@ -65,6 +80,8 @@ export function restorePreviousSession(sessionFileName: string) {
   for (const key in json.lastAnswers) {
     session.lastAnswers[key] = json.lastAnswers[key]
   }
+
+  session.file = file
 }
 
 /**

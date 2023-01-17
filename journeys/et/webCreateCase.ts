@@ -6,7 +6,7 @@ import https from 'node:https'
 // eslint-disable-next-line n/no-deprecated-api
 import { createReadStream, existsSync, statSync } from 'fs'
 import { NO, YES, YES_OR_NO } from 'app/constants'
-import { execCommand, getEnvVarsFromFile, temporaryLog } from 'app/helpers'
+import { execCommand, getEnvVarsFromFile, temporaryLog, wait } from 'app/helpers'
 import { ChildProcess, exec } from 'child_process'
 import { getWslHostIP, setIPToHostDockerInternal, setIPToWslHostAddress } from './dockerUpdateIP'
 import { generateSpreadsheets, importConfigs } from './configsCommon'
@@ -48,13 +48,33 @@ const REGION_OPTS = [
   'ET_Scotland'
 ]
 
+const CREATE_OPTS = [
+  'Create a new case',
+  'Choose an existing case'
+]
+
 async function journey() {
   await doCreateCaseTasks(await askCreateCaseQuestions())
 }
 
+async function askCreateOrExistingCase(cookieJar: CookieJar) {
+  let answers = await prompt([
+    { name: 'create', message: 'Do you want to create a new case or run an event on an existing case?', type: 'list', choices: CREATE_OPTS }
+  ])
+
+  if (answers.create === CREATE_OPTS[0]) {
+    return await askCreateCaseQuestions()
+  }
+
+  const ewCases = (await findExistingCases('ET_EnglandWales', cookieJar)).map(o => `ET_EnglandWales - ${o}`)
+  const scCases = (await findExistingCases('ET_Scotland', cookieJar)).map(o => `ET_scotland - ${o}`)
+
+  answers = await prompt([{ name: 'cases', message: 'Select a case', type: 'list', choices: [...ewCases, ...scCases] }])
+}
+
 export async function askCreateCaseQuestions() {
   return await prompt([
-    { name: 'region', message: 'What region are we creating for?', type: 'checkbox', choices: REGION_OPTS, default: REGION_OPTS },
+    { name: 'region', message: 'What regions are we creating for?', type: 'checkbox', choices: REGION_OPTS, default: REGION_OPTS },
     { name: 'events', message: QUESTION_STEPS, type: 'checkbox', choices: EVENT_OPTS, default: EVENT_OPTS },
     { name: 'share', message: QUESTION_SHARE, type: 'list', choices: YES_OR_NO },
     { name: 'callbacks', message: QUESTION_CALLBACKS, type: 'list', choices: YES_OR_NO, default: NO },
@@ -263,6 +283,7 @@ async function makeAuthorisedRequest(url: string, cookieJar: CookieJar, opts: Re
 
 export async function createNewCase(region: string, events: string[]) {
   const cookieJar = await loginToIdam(USER, PASS)
+  await wait(5000)
   let eventToken = await createCaseInit(cookieJar, region)
 
   const caseId = await postCase(cookieJar, eventToken, region)
@@ -284,7 +305,7 @@ async function createCaseInit(cookieJar: CookieJar, region = 'ET_EnglandWales') 
   const json = await res.json()
 
   if (res.status !== 200) {
-    throw new Error(`Failed event trigger to initiate new case. Are callbacks running? (${json?.message || ''} - ${res.status})`)
+    throw new Error(`Failed event trigger to initiate new case for ${region}. (${json?.message || ''} - ${res.status})`)
   }
 
   return json.event_token
@@ -402,11 +423,10 @@ async function uploadTestFile(cookieJar: CookieJar) {
   form.append('files', fileStream, { knownLength: fileSizeInBytes })
   form.append('classification', 'PUBLIC')
 
-  const res = await fetch('http://localhost:3455/documents', {
+  const res = await makeAuthorisedRequest(`${BASE_URL}/documents`, cookieJar, {
     method: 'POST',
     headers: {
-      Cookie: cookieJarToString(cookieJar),
-      referrer: 'http://localhost:3455/cases/case-details/1672844316015433/trigger/tseRespond/tseRespond3',
+      referrer: `${BASE_URL}/cases/case-details/1672844316015433/trigger/tseRespond/tseRespond3`,
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36'
     },
     body: form
@@ -416,8 +436,19 @@ async function uploadTestFile(cookieJar: CookieJar) {
   return json._embedded?.documents[0]?._links.self.href.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/g)?.[0]
 }
 
+async function findExistingCases(region: string, cookieJar: CookieJar) {
+  const url = `${BASE_URL}/data/internal/searchCases?ctid=${region}&use_case=WORKBASKET&view=WORKBASKET&page=1`
+  const res = await makeAuthorisedRequest(url, cookieJar, {
+    method: 'post',
+    body: '{"size": 25}',
+  })
+
+  const json = await res.json()
+  return json.results.map(o => o.case_id)
+}
+
 export default {
   group: 'et-web',
-  text: 'Create default case in CCD',
+  text: 'Create Case / Run Case Events',
   fn: journey
 } as Journey
