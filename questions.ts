@@ -41,7 +41,7 @@ export async function listOrFreeType(answers: Answers = {}, name: string, messag
  * @returns extended answers object as passed in
  */
 export async function askBasicFreeEntry(answers: Answers = {}, name: string, message?: string, defaultValue?: unknown) {
-  return await prompt([{ name, message: message || `What's the ${name}?`, default: defaultValue || session.lastAnswers[name] }], answers || {})
+  return await prompt([{ name, message: message || `What's the ${name}?`, default: defaultValue || session.lastAnswers[name], askAnswered: true }], answers || {})
 }
 
 /**

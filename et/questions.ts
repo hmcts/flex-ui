@@ -19,6 +19,8 @@ const QUESTION_FIELD_TYPE_CUSTOM = 'What\'s the name of the FieldType?'
 const QUESTION_CASE_TYPE_ID = 'What\'s the CaseTypeID?'
 const QUESTION_CASE_TYPE_ID_CUSTOM = 'Enter a custom value for CaseTypeID'
 const QUESTION_DUPLICATE_ADDON = 'Do we need this field duplicated under another caseTypeID?'
+const QUESTION_FIELD_TYPE_PARAMETER_CUSTOM = 'Do you want to create a new scrubbed list or free text enter a FieldTypeParameter?'
+const QUESTION_FIELD_TYPE_PARAMETER_FREE = 'Enter a value for FieldTypeParameter'
 
 export const FLEX_REGION_ANSWERS_KEY = 'flexRegion'
 
@@ -26,6 +28,11 @@ export const REGION_OPTS = [
   Region.EnglandWales,
   Region.Scotland
 ]
+
+const FIELD_TYPE_PARAMETERS_CUSTOM_OPTS = {
+  ScrubbedList: 'Create a new Scrubbed List and use that',
+  FreeText: 'Enter a custom value for FieldTypeParameter'
+}
 
 /**
  * Asks questions based on the keys contained in the target object type
@@ -234,11 +241,20 @@ export async function askFieldTypeParameter(answers: Answers = {}, key?: string,
 
   if (answers[key] === NONE) {
     answers[key] = ''
-  } else if (answers[key] === CUSTOM) {
-    answers[key] = await createScrubbed({})
+    return answers
   }
 
-  return answers
+  if (answers[key] !== CUSTOM) {
+    return answers
+  }
+
+  const followup = await prompt([{ name: 'journey', message: QUESTION_FIELD_TYPE_PARAMETER_CUSTOM, choices: Object.values(FIELD_TYPE_PARAMETERS_CUSTOM_OPTS), type: 'list' }])
+  if (followup.journey === FIELD_TYPE_PARAMETERS_CUSTOM_OPTS.ScrubbedList) {
+    answers[key] = await createScrubbed({})
+    return answers
+  }
+
+  return await askBasicFreeEntry(answers, key, QUESTION_FIELD_TYPE_PARAMETER_FREE)
 }
 
 export async function askFieldType(answers: Answers = {}, key?: string, message?: string, defaultValue?: string) {

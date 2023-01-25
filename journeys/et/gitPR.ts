@@ -32,6 +32,18 @@ async function getCurrentBranchName(dir: string) {
   return stdout.replace('\n', '')
 }
 
+function getRepoDir(repo: string) {
+  if (repo === 'et-ccd-definitions-englandwales') {
+    return process.env.ENGWALES_DEF_DIR
+  }
+
+  if (repo === 'et-ccd-definitions-scotland') {
+    return process.env.SCOTLAND_DEF_DIR
+  }
+
+  return process.env.ET_CCD_CALLBACKS_DIR
+}
+
 export async function openPRJourney(answers: any = {}) {
   const REPOS = await getRepoOpts()
 
@@ -39,7 +51,7 @@ export async function openPRJourney(answers: any = {}) {
     { name: 'repos', message: QUESTION_REPOS, type: 'checkbox', choices: Object.keys(REPOS), default: Object.keys(REPOS) }
   ], answers)
 
-  const currentBranchName = await getCurrentBranchName(answers.repos.includes('et-ccd-definitions-englandwales') ? process.env.ENGWALES_DEF_DIR : process.env.SCOTLAND_DEF_DIR)
+  const currentBranchName = await getCurrentBranchName(getRepoDir(answers.repos[0]))
 
   answers = await prompt([
     { name: 'ticket', message: QUESTION_TICKET_NUMBER, default: currentBranchName.replace('RET-', '') },
@@ -57,9 +69,11 @@ export async function openPRJourney(answers: any = {}) {
     .replace('%YES%', answers.breaking === 'No' ? '' : 'x')
     .replace('%NO%', answers.breaking === 'No' ? 'x' : '')
 
-  const command = `gh pr create --title "RET-${answers.ticket}: ${answers.title}" --head ${currentBranchName} --base ${answers.base} --body '${content}'`
-
-  await Promise.allSettled(answers.repos.map(async o => await openPRFor(command, REPOS[o])))
+  await Promise.allSettled(answers.repos.map(async o => {
+    const currentBranchName = await getCurrentBranchName(getRepoDir(o))
+    const command = `gh pr create --title "RET-${answers.ticket}: ${answers.title}" --head ${currentBranchName} --base ${answers.base} --body '${content}'`
+    await openPRFor(command, REPOS[o])
+  }))
 }
 
 async function openPRFor(command: string, dir: string) {
