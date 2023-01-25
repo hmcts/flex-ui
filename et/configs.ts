@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync } from 'fs'
 import { sep } from 'path'
 import { findLastIndex, format, getUniqueByKey, getUniqueByKeyAsArray, groupBy, removeFields, upsertFields } from 'app/helpers'
 import { addToSession, session } from 'app/session'
-import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventKeys, CaseEventToField, CaseEventToFieldKeys, CaseField, CaseTypeTab, CaseTypeTabKeys, CCDSheets, CCDTypes, ConfigSheets, EventToComplexType, EventToComplexTypeKeys, FlexExtensions, Scrubbed, ScrubbedKeys, sheets } from 'types/ccd'
+import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventKeys, CaseEventToField, CaseEventToFieldKeys, CaseField, CaseTypeTab, CaseTypeTabKeys, CCDSheets, CCDTypes, ComplexType, ConfigSheets, EventToComplexType, EventToComplexTypeKeys, FlexExtensions, Scrubbed, ScrubbedKeys, sheets } from 'types/ccd'
 import { COMPOUND_KEYS, NONE } from 'app/constants'
 
 let readTime = 0
@@ -425,6 +425,23 @@ function spliceIndexCaseEvent(x: CaseEvent, arr: CaseEvent[]) {
   return index
 }
 
+function spliceIndexComplexType(x: ComplexType, arr: ComplexType[]) {
+  // If this ID is referenced by any other ComplexTypes, put it above them
+  const firstRefIndex = arr.findIndex(o => o.FieldType === x.ID || o.FieldTypeParameter === x.ID)
+
+  if (firstRefIndex === -1) {
+    // Fallback - just place it with the others with the same ID
+    return findLastIndex(arr, o => o.ID === x.ID) + 1
+  }
+
+  // Grab the first index of the first instance of the refering ComplexType
+  const complexTypeID = arr[firstRefIndex].ID
+  const firstInComplexTypeIndex = arr.findIndex(o => o.ID === complexTypeID)
+
+
+  return firstInComplexTypeIndex
+}
+
 export function deleteFromInMemoryConfig(fields: Partial<ConfigSheets>) {
   for (const key of sheets) {
     if (!fields[key]) {
@@ -565,12 +582,8 @@ export function addToConfig(to: Partial<ConfigSheets>, from: Partial<ConfigSheet
 
   upsertFields(to.EventToComplexTypes, from.EventToComplexTypes, COMPOUND_KEYS.EventToComplexTypes, spliceIndexEventToComplexType)
 
-  // Insert after (next to) other objects of the same ID, or insert at the end if the ID doesn't exist yet
-  upsertFields(to.ComplexTypes, from.ComplexTypes, COMPOUND_KEYS.ComplexTypes,
-    (x, arr) => findLastIndex(arr, o => o.ID === x.ID) + 1
-  )
+  upsertFields(to.ComplexTypes, from.ComplexTypes, COMPOUND_KEYS.ComplexTypes, spliceIndexComplexType)
 
-  // Dirty hack to avoid pushing DisplayOrder up twice
   upsertFields(to.Scrubbed, from.Scrubbed, COMPOUND_KEYS.Scrubbed, spliceIndexScrubbed)
 
   upsertFields(to.CaseEvent, from.CaseEvent, COMPOUND_KEYS.CaseEvent, spliceIndexCaseEvent)
