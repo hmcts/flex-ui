@@ -8,7 +8,7 @@ import { CUSTOM, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, isF
 import { session } from 'app/session'
 import { Journey } from 'types/journey'
 import { getIdealSizeForInquirer, matcher } from 'app/helpers'
-import { addFlexRegionToCcdObject, askComplexTypeListElementCode, askFieldType, askFieldTypeParameter, askFlexRegion, FLEX_REGION_ANSWERS_KEY } from 'app/et/questions'
+import { addFlexRegionToCcdObject, askComplexTypeListElementCode, askFieldType, askFieldTypeParameter, askFlexRegion, FLEX_REGION_ANSWERS_KEY, REGION_OPTS } from 'app/et/questions'
 
 const QUESTION_ID = "What's the ID of this ComplexType?"
 const QUESTION_ELEMENT_LABEL = 'What\'s the custom label for this control?'
@@ -36,42 +36,9 @@ export async function createComplexType(answers: Answers = {}) {
   answers = await askFlexRegion(undefined, undefined, undefined, answers)
   answers = await askForID(answers)
 
-  // Modify to work like single field where it brings back information if the field exists
   answers = await askComplexTypeListElementCode(answers)
 
-  let existing: ComplexType | null = null
-  let ewExisting: ComplexType | null = null
-  let scExisting: ComplexType | null = null
-
-  if ((answers[FLEX_REGION_ANSWERS_KEY] as string[]).includes(Region.EnglandWales)) {
-    ewExisting = findObject(answers, 'ComplexTypes', Region.EnglandWales)
-  }
-
-  if ((answers[FLEX_REGION_ANSWERS_KEY] as string[]).includes(Region.Scotland)) {
-    scExisting = findObject(answers, 'ComplexTypes', Region.Scotland)
-  }
-
-  if (ewExisting && scExisting) {
-    // We have both objects - we need to check that they are the same, else it'll be hard to know which to bring back
-    const same = matcher(ewExisting, scExisting, Object.keys(ewExisting) as Array<keyof (ComplexType)>)
-    if (same) {
-      // Yay
-      existing = ewExisting
-    } else {
-      // The complex types in ew and sc are different - we need to know what defaults to load back, we could ask the user
-      const obj = await prompt([
-        { name: 'region', message: QUESTION_EXISTING_REGION_DIFFERENT, type: 'list', choices: [Region.EnglandWales, Region.Scotland], default: Region.EnglandWales }
-      ])
-
-      if (obj.region === Region.EnglandWales) {
-        existing = ewExisting
-      } else {
-        existing = scExisting
-      }
-    }
-  } else {
-    existing = ewExisting || scExisting
-  }
+  let existing = await prepopulateAnswersWithExistingValues(answers)
 
   answers = await prompt([
     { name: ComplexTypeKeys.ElementLabel, message: QUESTION_ELEMENT_LABEL, type: 'input', default: existing?.ElementLabel },
@@ -107,6 +74,35 @@ export async function createComplexType(answers: Answers = {}) {
   })
 
   return answers[ComplexTypeKeys.ID]
+}
+
+async function prepopulateAnswersWithExistingValues(answers: Answers) {
+  let ewExisting: ComplexType | null = null
+  let scExisting: ComplexType | null = null
+
+  if ((answers[FLEX_REGION_ANSWERS_KEY] as string[]).includes(Region.EnglandWales)) {
+    ewExisting = findObject(answers, 'ComplexTypes', Region.EnglandWales)
+  }
+
+  if ((answers[FLEX_REGION_ANSWERS_KEY] as string[]).includes(Region.Scotland)) {
+    scExisting = findObject(answers, 'ComplexTypes', Region.Scotland)
+  }
+
+  if (!ewExisting || !scExisting) {
+    return ewExisting || scExisting
+  }
+
+  // We have both objects - we need to check that they are the same, else it'll be hard to know which to bring back
+  if (matcher(ewExisting, scExisting, Object.keys(ewExisting) as Array<keyof (ComplexType)>)) {
+    return ewExisting
+  }
+
+  // The complex types in ew and sc are different - we need to know what defaults to load back
+  const obj = await prompt([
+    { name: 'region', message: QUESTION_EXISTING_REGION_DIFFERENT, type: 'list', choices: REGION_OPTS }
+  ])
+
+  return obj.region === Region.EnglandWales ? ewExisting : scExisting
 }
 
 async function askForID(answers: Answers = {}, key?: string, message?: string, defaultValue?: string) {
