@@ -94,8 +94,11 @@ export function getCombinedSheets() {
   }, {} as CCDSheets<CCDTypes>)
 }
 
-export function findObject<T>(keys: Record<string, any>, sheetName: keyof CCDTypes): T | undefined {
-  const ccd = getCombinedSheets()
+export function findObject<T>(keys: Record<string, any>, sheetName: keyof CCDTypes, region?: Region): T | undefined {
+  const ccd = region === Region.EnglandWales ?
+    getEnglandWales() : region === Region.Scotland ?
+      getScotland() : getCombinedSheets()
+
   const arr = ccd[sheetName] as Array<Record<string, any>>
   const keysThatMatter = COMPOUND_KEYS[sheetName] as string[]
   const found = arr.find(o => {
@@ -104,7 +107,7 @@ export function findObject<T>(keys: Record<string, any>, sheetName: keyof CCDTyp
         continue
       }
 
-      if (keys[key] && keys[key] !== NaN && o[key] !== keys[key]) {
+      if (keys[key] && !Number.isNaN(keys[key]) && o[key] !== keys[key]) {
         return false
       }
     }

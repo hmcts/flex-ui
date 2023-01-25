@@ -3,7 +3,7 @@ import { format, getIdealSizeForInquirer } from 'app/helpers'
 import { createEvent } from 'app/journeys/et/createEvent'
 import { Answers, askBasicFreeEntry, fuzzySearch, listOrFreeType } from 'app/questions'
 import { session } from 'app/session'
-import { CaseEventKeys, CaseEventToFieldKeys, CaseFieldKeys, CCDSheets, CCDTypes, EventToComplexTypeKeys, FlexExtensions } from 'app/types/ccd'
+import { CaseEventKeys, CaseEventToFieldKeys, CaseFieldKeys, CCDSheets, CCDTypes, ComplexTypeKeys, EventToComplexTypeKeys, FlexExtensions } from 'app/types/ccd'
 import { prompt } from 'inquirer'
 import { findObject, getCaseEventIDOpts, getEnglandWales, getKnownCaseFieldIDs, getKnownCaseFieldTypeParameters, getKnownCaseFieldTypes, getKnownCaseTypeIDs, getKnownComplexTypeListElementCodes, getScotland, Region } from 'app/et/configs'
 import { createSingleField } from 'app/journeys/et/createSingleField'
@@ -19,13 +19,20 @@ const QUESTION_FIELD_TYPE_CUSTOM = 'What\'s the name of the FieldType?'
 const QUESTION_CASE_TYPE_ID = 'What\'s the CaseTypeID?'
 const QUESTION_CASE_TYPE_ID_CUSTOM = 'Enter a custom value for CaseTypeID'
 const QUESTION_DUPLICATE_ADDON = 'Do we need this field duplicated under another caseTypeID?'
+const QUESTION_FIELD_TYPE_PARAMETER_CUSTOM = 'Do you want to create a new scrubbed list or free text enter a FieldTypeParameter?'
+const QUESTION_FIELD_TYPE_PARAMETER_FREE = 'Enter a value for FieldTypeParameter'
 
-const FLEX_REGION_ANSWERS_KEY = 'flexRegion'
+export const FLEX_REGION_ANSWERS_KEY = 'flexRegion'
 
-const REGION_OPTS = [
+export const REGION_OPTS = [
   Region.EnglandWales,
   Region.Scotland
 ]
+
+const FIELD_TYPE_PARAMETERS_CUSTOM_OPTS = {
+  ScrubbedList: 'Create a new Scrubbed List and use that',
+  FreeText: 'Enter a custom value for FieldTypeParameter'
+}
 
 /**
  * Asks questions based on the keys contained in the target object type
@@ -71,10 +78,10 @@ export async function createTemplate<T, P>(answers: Answers = {}, keys: T, obj: 
   return answers
 }
 
-export async function askCaseEvent(answers: Answers = {}, key?: string, message?: string, allowNone = false) {
+export async function askCaseEvent(answers: Answers = {}, key?: string, message?: string, allowNone = false, addOpts: string[] = []) {
   const opts = getCaseEventIDOpts()
   key = key || CaseEventToFieldKeys.CaseEventID
-  const choices = [CUSTOM, ...opts]
+  const choices = [...addOpts, CUSTOM, ...opts]
   if (allowNone) {
     choices.splice(0, 0, NONE)
   }
@@ -234,11 +241,20 @@ export async function askFieldTypeParameter(answers: Answers = {}, key?: string,
 
   if (answers[key] === NONE) {
     answers[key] = ''
-  } else if (answers[key] === CUSTOM) {
-    answers[key] = await createScrubbed({})
+    return answers
   }
 
-  return answers
+  if (answers[key] !== CUSTOM) {
+    return answers
+  }
+
+  const followup = await prompt([{ name: 'journey', message: QUESTION_FIELD_TYPE_PARAMETER_CUSTOM, choices: Object.values(FIELD_TYPE_PARAMETERS_CUSTOM_OPTS), type: 'list' }])
+  if (followup.journey === FIELD_TYPE_PARAMETERS_CUSTOM_OPTS.ScrubbedList) {
+    answers[key] = await createScrubbed({})
+    return answers
+  }
+
+  return await askBasicFreeEntry(answers, key, QUESTION_FIELD_TYPE_PARAMETER_FREE)
 }
 
 export async function askFieldType(answers: Answers = {}, key?: string, message?: string, defaultValue?: string) {
@@ -260,6 +276,29 @@ export async function askFieldType(answers: Answers = {}, key?: string, message?
     const customFieldType = await askBasicFreeEntry({}, key, QUESTION_FIELD_TYPE_CUSTOM)
     answers[key] = customFieldType[key]
     // TODO: Add ComplexType creation route here when ComplexType support is added
+  }
+
+  return answers
+}
+
+export async function askComplexTypeListElementCode(answers: Answers = {}, key?: string, message?: string, defaultValue?: string) {
+  const opts = getKnownComplexTypeListElementCodes(answers[ComplexTypeKeys.ID])
+  key = key || ComplexTypeKeys.ListElementCode
+
+  answers = await prompt([
+    {
+      name: key,
+      message: message || QUESTION_LIST_ELEMENT_CODE,
+      type: 'autocomplete',
+      source: (_answers: unknown, input: string) => fuzzySearch([CUSTOM, ...opts], input),
+      default: defaultValue || answers[ComplexTypeKeys.ListElementCode] || CUSTOM,
+      pageSize: getIdealSizeForInquirer()
+    }
+  ], answers)
+
+  if (answers[key] === CUSTOM) {
+    const customFieldType = await askBasicFreeEntry({}, key, QUESTION_LIST_ELEMENT_CODE)
+    answers[key] = customFieldType[key]
   }
 
   return answers
