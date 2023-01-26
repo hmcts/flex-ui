@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync } from 'fs'
 import { sep } from 'path'
 import { findLastIndex, format, getUniqueByKey, getUniqueByKeyAsArray, groupBy, upsertFields } from 'app/helpers'
 import { addToSession, session } from 'app/session'
-import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventKeys, CaseEventToField, CaseEventToFieldKeys, CaseField, CaseTypeTab, CaseTypeTabKeys, CCDSheets, CCDTypes, ConfigSheets, EventToComplexType, EventToComplexTypeKeys, FlexExtensions, Scrubbed, ScrubbedKeys, sheets } from 'types/ccd'
+import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventKeys, CaseEventToField, CaseEventToFieldKeys, CaseField, CaseTypeTab, CaseTypeTabKeys, CCDSheets, CCDTypes, ComplexType, ConfigSheets, EventToComplexType, EventToComplexTypeKeys, FlexExtensions, Scrubbed, ScrubbedKeys, sheets } from 'types/ccd'
 import { COMPOUND_KEYS } from 'app/constants'
 
 let readTime = 0
@@ -94,8 +94,11 @@ export function getCombinedSheets() {
   }, {} as CCDSheets<CCDTypes>)
 }
 
-export function findObject<T>(keys: Record<string, any>, sheetName: keyof CCDTypes): T | undefined {
-  const ccd = getCombinedSheets()
+export function findObject<T>(keys: Record<string, any>, sheetName: keyof CCDTypes, region?: Region): T | undefined {
+  const ccd = region === Region.EnglandWales ?
+    getEnglandWales() : region === Region.Scotland ?
+      getScotland() : getCombinedSheets()
+
   const arr = ccd[sheetName] as Array<Record<string, any>>
   const keysThatMatter = COMPOUND_KEYS[sheetName] as string[]
   const found = arr.find(o => {
@@ -104,7 +107,7 @@ export function findObject<T>(keys: Record<string, any>, sheetName: keyof CCDTyp
         continue
       }
 
-      if (keys[key] && keys[key] !== NaN && o[key] !== keys[key]) {
+      if (keys[key] && !Number.isNaN(keys[key]) && o[key] !== keys[key]) {
         return false
       }
     }
@@ -411,6 +414,23 @@ function spliceIndexCaseEvent(x: CaseEvent, arr: CaseEvent[]) {
   return index
 }
 
+function spliceIndexComplexType(x: ComplexType, arr: ComplexType[]) {
+  // If this ID is referenced by any other ComplexTypes, put it above them
+  const firstRefIndex = arr.findIndex(o => o.FieldType === x.ID || o.FieldTypeParameter === x.ID)
+
+  if (firstRefIndex === -1) {
+    // Fallback - just place it with the others with the same ID
+    return findLastIndex(arr, o => o.ID === x.ID) + 1
+  }
+
+  // Grab the first index of the first instance of the refering ComplexType
+  const complexTypeID = arr[firstRefIndex].ID
+  const firstInComplexTypeIndex = arr.findIndex(o => o.ID === complexTypeID)
+
+
+  return firstInComplexTypeIndex
+}
+
 /**
  * Upserts new fields into the in-memory configs and current session. Does NOT touch the original JSON files.
  * See TODOs in body. This is functional but ordering is not necessarily ideal
@@ -462,10 +482,7 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
 
   upsertFields(englandwales.EventToComplexTypes, ewEventToComplexTypes, COMPOUND_KEYS.EventToComplexTypes, spliceIndexEventToComplexType)
 
-  // Insert after (next to) other objects of the same ID, or insert at the end if the ID doesn't exist yet
-  upsertFields(englandwales.ComplexTypes, ewComplexTypes, COMPOUND_KEYS.ComplexTypes,
-    (x, arr) => findLastIndex(arr, o => o.ID === x.ID) + 1
-  )
+  upsertFields(englandwales.ComplexTypes, ewComplexTypes, COMPOUND_KEYS.ComplexTypes, spliceIndexComplexType)
 
   upsertFields(englandwales.Scrubbed, ewScrubbed, COMPOUND_KEYS.Scrubbed, spliceIndexScrubbed)
 
@@ -483,12 +500,8 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
 
   upsertFields(scotland.EventToComplexTypes, scEventToComplexTypes, COMPOUND_KEYS.EventToComplexTypes, spliceIndexEventToComplexType)
 
-  // Insert after (next to) other objects of the same ID, or insert at the end if the ID doesn't exist yet
-  upsertFields(scotland.ComplexTypes, scComplexTypes, COMPOUND_KEYS.ComplexTypes,
-    (x, arr) => findLastIndex(arr, o => o.ID === x.ID) + 1
-  )
+  upsertFields(scotland.ComplexTypes, scComplexTypes, COMPOUND_KEYS.ComplexTypes, spliceIndexComplexType)
 
-  // Dirty hack to avoid pushing DisplayOrder up twice
   upsertFields(scotland.Scrubbed, scScrubbed, COMPOUND_KEYS.Scrubbed, spliceIndexScrubbed)
 
   upsertFields(scotland.CaseEvent, scCaseEvents, COMPOUND_KEYS.CaseEvent, spliceIndexCaseEvent)
