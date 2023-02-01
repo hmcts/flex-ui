@@ -124,7 +124,7 @@ export async function changeAuthorisations() {
 
   const idOpts = getFieldOptions(selectedCaseTypeID, selectedCaseEventID)
 
-  answers = await askAutoComplete(CaseFieldKeys.ID, QUESTION_ID_SELECT, undefined, [THIS, MULTI, ...idOpts], answers)
+  answers = await askAutoComplete(CaseFieldKeys.ID, QUESTION_ID_SELECT, undefined, [THIS, MULTI, ...idOpts], true, answers)
 
   if (answers[CaseFieldKeys.ID] === THIS) {
     return changeAuthorisationsForCaseEvent(selectedCaseTypeID, selectedCaseEventID, region)

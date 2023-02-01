@@ -3,7 +3,7 @@ import { format, getIdealSizeForInquirer } from 'app/helpers'
 import { createEvent } from 'app/journeys/et/createEvent'
 import { Answers, askBasicFreeEntry, fuzzySearch, listOrFreeType } from 'app/questions'
 import { session } from 'app/session'
-import { CaseEventKeys, CaseEventToFieldKeys, CaseFieldKeys, CCDSheets, CCDTypes, ComplexTypeKeys, EventToComplexTypeKeys, FlexExtensions } from 'app/types/ccd'
+import { CaseEventKeys, CaseEventToFieldKeys, CaseFieldKeys, CCDSheets, CCDTypes, ComplexTypeKeys, EventToComplexTypeKeys, FlexExtensions, ScrubbedKeys } from 'app/types/ccd'
 import { prompt } from 'inquirer'
 import { findObject, getCaseEventIDOpts, getEnglandWales, getKnownCaseFieldIDs, getKnownCaseFieldTypeParameters, getKnownCaseFieldTypes, getKnownCaseTypeIDs, getKnownComplexTypeListElementCodes, getScotland, Region } from 'app/et/configs'
 import { createSingleField } from 'app/journeys/et/createSingleField'
@@ -250,7 +250,7 @@ export async function askFieldTypeParameter(answers: Answers = {}, key?: string,
 
   const followup = await prompt([{ name: 'journey', message: QUESTION_FIELD_TYPE_PARAMETER_CUSTOM, choices: Object.values(FIELD_TYPE_PARAMETERS_CUSTOM_OPTS), type: 'list' }])
   if (followup.journey === FIELD_TYPE_PARAMETERS_CUSTOM_OPTS.ScrubbedList) {
-    answers[key] = await createScrubbed({})
+    answers[key] = await createScrubbed({ [ScrubbedKeys.ID]: CUSTOM })
     return answers
   }
 
@@ -328,4 +328,8 @@ export function addFlexRegionToCcdObject(obj: FlexExtensions, answers: Answers, 
     obj.flex = {}
   }
   obj.flex.regions = answers[key || FLEX_REGION_ANSWERS_KEY]
+}
+
+export function getFlexRegionFromAnswers(answers: Answers) {
+  return answers[FLEX_REGION_ANSWERS_KEY] as Region[]
 }

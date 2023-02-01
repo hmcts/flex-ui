@@ -1,25 +1,34 @@
-import { YES_OR_NO } from 'app/constants'
-import { addToInMemoryConfig } from 'app/et/configs'
-import { addFlexRegionToCcdObject, askFlexRegion } from 'app/et/questions'
-import { Answers } from 'app/questions'
+import { CUSTOM, YES_OR_NO } from 'app/constants'
+import { addToInMemoryConfig, getConfigSheetsFromFlexRegion, getKnownScrubbedLists, Region } from 'app/et/configs'
+import { addFlexRegionToCcdObject, askFlexRegion, FLEX_REGION_ANSWERS_KEY, getFlexRegionFromAnswers } from 'app/et/questions'
+import { Answers, askAutoComplete } from 'app/questions'
 import { prompt } from 'inquirer'
-import { Scrubbed } from 'types/ccd'
+import { Scrubbed, ScrubbedKeys } from 'types/ccd'
 import { Journey } from 'types/journey'
 
-const QUESTION_ID = "What's the name of the new Scrubbed list?"
+const QUESTION_ID = "What's the name of the Scrubbed list?"
 const QUESTION_LIST_ELEMENT = 'What should be displayed to the user when selecting this option?'
 const QUESTION_LIST_ELEMENT_CODE = 'Give a ListElementCode for this item'
 const QUESTION_DISPLAY_ORDER = 'Whats the DisplayOrder for this item?'
 const QUESTION_ADD_ANOTHER = 'Add another?'
 
 export async function createScrubbed(answers: Answers = {}) {
-  answers = await prompt([{ name: 'ID', message: QUESTION_ID }], answers)
+  const opts = getKnownScrubbedLists()
+
+  answers = await askAutoComplete(ScrubbedKeys.ID, QUESTION_ID, CUSTOM, [CUSTOM, ...opts], false, answers)
+
+  if (answers[ScrubbedKeys.ID] === CUSTOM) {
+    answers = await prompt([{ name: ScrubbedKeys.ID, message: QUESTION_ID, askAnswered: true }], answers)
+  }
 
   const createdItems: Scrubbed[] = []
 
   let x = 0
   while (answers.More !== 'No') {
     answers = await askFlexRegion(undefined, undefined, undefined, answers)
+    if (!x) {
+      x = getLastDisplayOrderInScrubbed(answers)
+    }
     answers = await prompt([
       { name: 'ListElement', message: QUESTION_LIST_ELEMENT, askAnswered: true },
       { name: 'ListElementCode', message: QUESTION_LIST_ELEMENT_CODE, default: (answers: Answers) => answers.ListElement, askAnswered: true },
@@ -53,6 +62,14 @@ export async function createScrubbed(answers: Answers = {}) {
 
   return answers.ID
 }
+
+function getLastDisplayOrderInScrubbed(answers: Answers) {
+  const selectedRegions = getFlexRegionFromAnswers(answers)
+  const existingObjs = getConfigSheetsFromFlexRegion(selectedRegions).Scrubbed.filter(o => o.ID === answers.ID)
+  const descendingSorted = existingObjs.sort((a, b) => a.DisplayOrder > b.DisplayOrder ? -1 : 1)
+  return descendingSorted[0]?.DisplayOrder || 0
+}
+
 
 export default {
   disabled: true,
