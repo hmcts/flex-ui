@@ -580,11 +580,18 @@ export async function saveBackToProject() {
 
   for (const sheet of sheets) {
     const eng = format(templatePath, process.env.ENGWALES_DEF_DIR, getConfigSheetName(Region.EnglandWales, sheet))
-    writeFileSync(eng, JSON.stringify(englandwales[sheet].map(o => { return { ...o, flex: undefined } }), null, 2))
+    const jsonEng = JSON.stringify(englandwales[sheet].map(o => { return { ...o, flex: undefined } }), null, 2)
+    writeFileSync(eng, `${jsonEng}${getFileTerminatingCharacter(eng)}`)
 
     const scot = format(templatePath, process.env.SCOTLAND_DEF_DIR, getConfigSheetName(Region.Scotland, sheet))
-    writeFileSync(scot, JSON.stringify(scotland[sheet].map(o => { return { ...o, flex: undefined } }), null, 2))
+    const jsonScot = JSON.stringify(scotland[sheet].map(o => { return { ...o, flex: undefined } }), null, 2)
+    writeFileSync(scot, `${jsonScot}${getFileTerminatingCharacter(scot)}`)
   }
+}
+
+function getFileTerminatingCharacter(file: string) {
+  const contents = readFileSync(file).toString()
+  return contents.endsWith('\n') ? '\n' : ''
 }
 
 /**
