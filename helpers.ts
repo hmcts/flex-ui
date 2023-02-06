@@ -207,3 +207,5 @@ export function clearCurrentLine() {
 export function getIdealSizeForInquirer() {
   return process.stdout.rows - 2
 }
+
+export function wait(ms: number) { return new Promise(resolve => setTimeout(resolve, ms)) }
