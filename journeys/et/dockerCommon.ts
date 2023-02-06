@@ -81,18 +81,14 @@ export async function configsJourney() {
 }
 
 async function waitForDmStore() {
-  let timeout = 30
+  let timeout = 45
   let left = timeout
-  while (true) {
-    const ready = await isDmStoreReady()
-    if (ready) {
-      return
-    }
 
-    temporaryLog(`Waiting for dm-store to be ready (or will restart in ${left} seconds)`)
+  while (!(await isDmStoreReady())) {
+    temporaryLog(`Waiting for dm-store to be ready (or will restart in ${Math.round(left)} seconds)`)
 
     if (left <= 0) {
-      // Makeshift backoff (30, 45, 68, 102, 152 etc...)
+      // Makeshift backoff (45, 68, 102, 152 etc...)
       timeout *= 1.5
       left = timeout
       temporaryLog(`Restarting dm-store container`)

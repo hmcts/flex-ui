@@ -90,7 +90,6 @@ export async function doCreateCaseTasks(answers: Record<string, any>) {
   const needToRevert = getWslHostIP() === 'host.docker.internal'
 
   if (answers.callbacks === YES) {
-    await fixExitedContainers()
     await killProcessesOnPort8081()
     await setIPToWslHostAddress()
     await generateSpreadsheets('local')
@@ -102,6 +101,8 @@ export async function doCreateCaseTasks(answers: Record<string, any>) {
   if (answers.share === YES && !answers.events.includes('amendRespondentRepresentative')) {
     answers.events.push('amendRespondentRepresentative')
   }
+
+  await fixExitedContainers()
 
   for (const region of answers.region) {
     const caseId = await createNewCase(region, answers.events)
