@@ -56,7 +56,6 @@ export async function doCreateCaseTasks(answers: Record<string, any>) {
   const needToRevert = getWslHostIP() === 'host.docker.internal'
 
   if (answers.callbacks === YES) {
-    await fixExitedContainers()
     await killProcessesOnPort8081()
     await setIPToWslHostAddress()
     await generateSpreadsheets('local')
@@ -65,6 +64,8 @@ export async function doCreateCaseTasks(answers: Record<string, any>) {
     temporaryLog('Callbacks has started up')
   }
 
+  await fixExitedContainers()
+  
   for (const region of answers.region) {
     await createNewCase(region, answers.events)
   }
