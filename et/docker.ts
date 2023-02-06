@@ -270,7 +270,7 @@ export async function isDmStoreReady() {
   const { stdout } = await execCommand('docker logs compose-dm-store-1')
   const logs = stdout.split('\n')
   const currentSessionLogs = logs.slice(logs.findIndex(o => o.startsWith(' :: Spring Boot ::')))
-  return !!currentSessionLogs.find(o => o.match(/Started DmApp in [\d.]+ seconds/))
+  return currentSessionLogs.some(o => o.match(/Started DmApp in [\d.]+ seconds/))
 }
 
 export async function rebootDmStore() {
