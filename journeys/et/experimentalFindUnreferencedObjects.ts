@@ -1,11 +1,9 @@
 import { COMPOUND_KEYS, NO, YES_OR_NO } from 'app/constants'
-import { getEnglandWales, getScotland, Region } from 'app/et/configs'
+import { getEnglandWales, Region } from 'app/et/configs'
 import { groupBy, removeFields } from 'app/helpers'
-import { createAndLoadNewSession } from 'app/session'
-import { CaseField, CCDSheets, ComplexType, ConfigSheets } from 'app/types/ccd'
+import { CaseField, ComplexType, ConfigSheets } from 'app/types/ccd'
 import { prompt } from 'inquirer'
 import { Journey } from 'types/journey'
-import { setSessionName } from './sessionSetName'
 
 async function journey() {
   await journeyComplexTypes(getEnglandWales(), Region.EnglandWales)
@@ -33,7 +31,6 @@ async function journeyComplexTypes(ccd: ConfigSheets, region: string) {
     }
     break
   }
-
 }
 
 function findUnreferencedComplexTypesInRegion(ccd: ConfigSheets) {

@@ -43,59 +43,59 @@ async function gitJourney() {
   ])
 
   while (true) {
-    let followup: any = { repos: answers.repos }
+    let followup: Record<string, any> = { repos: answers.repos }
     const branchOpts = await getBranchOpts(REPOS[followup.repos[0]])
 
-    followup = await askAutoComplete('task', QUESTION_TASK, TASK_CHOICES.PULL, Object.values(TASK_CHOICES), followup)
+    followup = await askAutoComplete('task', QUESTION_TASK, TASK_CHOICES.PULL, Object.values(TASK_CHOICES), true, followup)
 
     switch (followup.task) {
       case TASK_CHOICES.ADD:
         followup = await prompt([{ name: 'command', message: QUESTION_ADD, askAnswered: true, default: '.' }], followup)
-        await Promise.allSettled(followup.repos.map((o: string) => add(REPOS[o], followup.command)))
+        await Promise.allSettled(followup.repos.map(async (o: string) => await add(REPOS[o], followup.command)))
         break
       case TASK_CHOICES.BACK:
         return
       case TASK_CHOICES.BRANCH:
-        followup = await askAutoComplete('branch', QUESTION_BRANCH, 'master', [CUSTOM, ...branchOpts], followup)
+        followup = await askAutoComplete('branch', QUESTION_BRANCH, 'master', [CUSTOM, ...branchOpts], true, followup)
         if (followup.branch === CUSTOM) {
           followup = await prompt([{ name: 'branch', message: QUESTION_BRANCH, askAnswered: true }], followup)
         }
 
-        await Promise.allSettled(followup.repos.map((o: string) => switchBranch(REPOS[o], followup.branch)))
+        await Promise.allSettled(followup.repos.map(async (o: string) => await switchBranch(REPOS[o], followup.branch)))
         break
       case TASK_CHOICES.COMMIT:
         followup = await askBasicFreeEntry(followup, 'message', QUESTION_MESSAGE_COMMIT)
-        await Promise.allSettled(followup.repos.map((o: string) => commit(REPOS[o], followup.message)))
+        await Promise.allSettled(followup.repos.map(async (o: string) => await commit(REPOS[o], followup.message)))
         break
       case TASK_CHOICES.DELETE:
-        followup = await askAutoComplete('branch', QUESTION_BRANCH, 'master', [CUSTOM, ...branchOpts], followup)
+        followup = await askAutoComplete('branch', QUESTION_BRANCH, 'master', [CUSTOM, ...branchOpts], true, followup)
         if (followup.branch === CUSTOM) {
           followup = await prompt([{ name: 'branch', message: QUESTION_BRANCH, askAnswered: true }], followup)
         }
 
-        await Promise.allSettled(followup.repos.map((o: string) => deleteBranch(REPOS[o], followup.branch)))
+        await Promise.allSettled(followup.repos.map(async (o: string) => await deleteBranch(REPOS[o], followup.branch)))
         break
       case TASK_CHOICES.FETCH:
-        await Promise.allSettled(followup.repos.map((o: string) => fetch(REPOS[o])))
+        await Promise.allSettled(followup.repos.map(async (o: string) => await fetch(REPOS[o])))
         break
       case TASK_CHOICES.FORCE_PUSH:
-        await Promise.allSettled(followup.repos.map((o: string) => push(REPOS[o], true)))
+        await Promise.allSettled(followup.repos.map(async (o: string) => await push(REPOS[o], true)))
         break
       case TASK_CHOICES.PR:
         await openPRJourney(followup)
         break
       case TASK_CHOICES.PULL:
-        await Promise.allSettled(followup.repos.map((o: string) => pull(REPOS[o])))
+        await Promise.allSettled(followup.repos.map(async (o: string) => await pull(REPOS[o])))
         break
       case TASK_CHOICES.PUSH:
-        await Promise.allSettled(followup.repos.map((o: string) => push(REPOS[o])))
+        await Promise.allSettled(followup.repos.map(async (o: string) => await push(REPOS[o])))
         break
       case TASK_CHOICES.STATUS:
-        await Promise.allSettled(followup.repos.map((o: string) => status(REPOS[o])))
+        await Promise.allSettled(followup.repos.map(async (o: string) => await status(REPOS[o])))
         break
       case TASK_CHOICES.STASH:
         followup = await askBasicFreeEntry(followup, 'message', QUESTION_MESSAGE_STASH)
-        await Promise.allSettled(followup.repos.map((o: string) => stash(REPOS[o], followup.message)))
+        await Promise.allSettled(followup.repos.map(async (o: string) => await stash(REPOS[o], followup.message)))
         break
     }
   }

@@ -6,12 +6,13 @@ import https from 'node:https'
 // eslint-disable-next-line n/no-deprecated-api
 import { createReadStream, existsSync, statSync } from 'fs'
 import { NO, YES, YES_OR_NO } from 'app/constants'
-import { execCommand, getEnvVarsFromFile, temporaryLog, wait } from 'app/helpers'
+import { execCommand, getEnvVarsFromFile, getIdealSizeForInquirer, temporaryLog, wait } from 'app/helpers'
 import { ChildProcess, exec } from 'child_process'
 import { getWslHostIP, setIPToHostDockerInternal, setIPToWslHostAddress } from './dockerUpdateIP'
 import { generateSpreadsheets, importConfigs } from './configsCommon'
 import { fixExitedContainers } from 'app/et/docker'
 import FormData from 'form-data'
+import { Answers } from 'app/questions'
 
 type CookieJar = Record<string, string>
 
@@ -28,7 +29,7 @@ const IDAM_LOGIN_START_URL = `${BASE_URL}/auth/login`
 const IDAM_LOGIN_START_URL_ORG = `${BASE_URL_ORG}/auth/login`
 
 const QUESTION_STEPS = 'What events are we interested in running?'
-const QUESTION_CALLBACKS = 'Do we need to spin up callbacks before creating the case?'
+const QUESTION_CALLBACKS = 'Do we need to spin up callbacks first?'
 const QUESTION_SHARE = 'Would you like to share this case with solicitor1@etorganisation1.com?'
 
 const EVENT_OPTS = [
@@ -40,7 +41,8 @@ const EVENT_OPTS = [
   'tseRespond',
   'tseAdmin',
   'tseAdmReply',
-  'amendRespondentRepresentative'
+  'amendRespondentRepresentative',
+  'sendNotification'
 ]
 
 const REGION_OPTS = [
@@ -54,32 +56,42 @@ const CREATE_OPTS = [
 ]
 
 async function journey() {
-  await doCreateCaseTasks(await askCreateCaseQuestions())
+  await askCreateOrExistingCase()
 }
 
-async function askCreateOrExistingCase(cookieJar: CookieJar) {
+async function askCreateOrExistingCase() {
   let answers = await prompt([
     { name: 'create', message: 'Do you want to create a new case or run an event on an existing case?', type: 'list', choices: CREATE_OPTS }
   ])
 
   if (answers.create === CREATE_OPTS[0]) {
-    return await askCreateCaseQuestions()
+    return await doCreateCaseTasks(await askCreateCaseQuestions())
   }
+  temporaryLog(`Fetching existing cases...`)
 
-  const ewCases = (await findExistingCases('ET_EnglandWales', cookieJar)).map(o => `ET_EnglandWales - ${o}`)
-  const scCases = (await findExistingCases('ET_Scotland', cookieJar)).map(o => `ET_scotland - ${o}`)
+  const cookieJar = await loginToIdam(USER, PASS)
 
-  answers = await prompt([{ name: 'cases', message: 'Select a case', type: 'list', choices: [...ewCases, ...scCases] }])
+  const cases = [
+    ...await findExistingCases('ET_EnglandWales', cookieJar),
+    ...await findExistingCases('ET_Scotland', cookieJar)
+  ]
+
+  answers = await prompt([{ name: 'cases', message: 'Select a case', type: 'list', choices: cases.map(o => o.alias), pageSize: getIdealSizeForInquirer() }])
+  const selectedCase = cases.find(o => o.alias === answers.cases)
+  const region = selectedCase.case_fields['[CASE_TYPE]']
+
+  const followup = await askCreateCaseQuestions({ region: [region], caseId: selectedCase.caseId })
+  return await doCreateCaseTasks(followup)
 }
 
-export async function askCreateCaseQuestions() {
+export async function askCreateCaseQuestions(answers: Answers = {}) {
   return await prompt([
     { name: 'region', message: 'What regions are we creating for?', type: 'checkbox', choices: REGION_OPTS, default: REGION_OPTS },
     { name: 'events', message: QUESTION_STEPS, type: 'checkbox', choices: EVENT_OPTS, default: EVENT_OPTS },
-    { name: 'share', message: QUESTION_SHARE, type: 'list', choices: YES_OR_NO },
+    { name: 'share', message: QUESTION_SHARE, type: 'list', choices: YES_OR_NO, default: NO },
     { name: 'callbacks', message: QUESTION_CALLBACKS, type: 'list', choices: YES_OR_NO, default: NO },
     { name: 'kill', message: 'Do you want to kill callbacks after?', type: 'list', choices: YES_OR_NO, default: YES, when: (ans) => ans.callbacks === YES }
-  ])
+  ], answers)
 }
 
 async function killProcessesOnPort8081() {
@@ -104,11 +116,21 @@ export async function doCreateCaseTasks(answers: Record<string, any>) {
 
   await fixExitedContainers()
 
+  const cookieJar = await loginToIdam(USER, PASS)
+
   for (const region of answers.region) {
-    const caseId = await createNewCase(region, answers.events)
+    const caseId = answers.caseId ?? await createNewCase(region, cookieJar)
+    await executeEventsOnCase(cookieJar, caseId, region, answers.events)
 
     if (answers.share === YES) {
-      await shareACase(caseId, region)
+      temporaryLog(`Finializing sharing case...`)
+
+      const result = await shareACase(caseId, region)
+      if (result === 201) {
+        console.log(`✓`)
+      } else {
+        console.log(`✕ (returned ${result})`)
+      }
     }
   }
 
@@ -224,6 +246,8 @@ export async function loginToIdam(username = USER, password = PASS, unauthorised
 
   addToCookieJarFromRawSetCookieHeader(callbackRes.headers.raw()['set-cookie'], cookieJar)
 
+  // Artifical wait here because authenticated requests tend to fail if made too soon
+  await wait(5000)
   return cookieJar
 }
 
@@ -282,21 +306,27 @@ async function makeAuthorisedRequest(url: string, cookieJar: CookieJar, opts: Re
   return res
 }
 
-export async function createNewCase(region: string, events: string[]) {
-  const cookieJar = await loginToIdam(USER, PASS)
-  await wait(5000)
-  let eventToken = await createCaseInit(cookieJar, region)
+export async function createNewCase(region: string, cookieJar?: CookieJar) {
+  const jar = cookieJar ?? await loginToIdam(USER, PASS)
+  const eventToken = await createCaseInit(jar, region)
 
-  const caseId = await postCase(cookieJar, eventToken, region)
+  return await postCase(jar, eventToken, region)
+}
 
+async function executeEventsOnCase(cookieJar: CookieJar, caseId: string, region: string, events: string[]) {
   const uuidDoc = await uploadTestFile(cookieJar)
 
   for (const event of events) {
-    eventToken = await pingEventTrigger(caseId, event, cookieJar)
-    await postGeneric(event, caseId, cookieJar, eventToken, region, uuidDoc)
-  }
+    temporaryLog(`${event}... `)
+    const eventToken = await pingEventTrigger(caseId, event, cookieJar)
+    const result = await postGeneric(event, caseId, cookieJar, eventToken, region, uuidDoc)
 
-  return caseId
+    if (result === 201) {
+      console.log(`✓`)
+    } else {
+      console.log(`✕ (returned ${result})`)
+    }
+  }
 }
 
 async function createCaseInit(cookieJar: CookieJar, region = 'ET_EnglandWales') {
@@ -337,16 +367,15 @@ async function postGeneric(jsonResourcePath: string, caseId: string, cookieJar: 
     headers: { 'Content-Type': 'application/json' }
   })
 
-  const json = await res.json()
-
-  temporaryLog(`POST for ${jsonResourcePath} case status: ${res.status}`)
-  return json.id
+  return res.status
 }
 
 async function postCase(cookieJar: CookieJar, eventToken: string, region: string) {
   const caseData = { ...require(resolve(process.env.APP_ROOT, '../et/resources/initiateCase.json')), event_token: eventToken }
   const url = `${BASE_URL}/data/case-types/${region}/cases?ignore-warning=false`
   const body = JSON.stringify(caseData)
+
+  temporaryLog(`Creating new ${region} case... `)
 
   const res = await makeAuthorisedRequest(url, cookieJar, {
     method: 'POST',
@@ -356,8 +385,13 @@ async function postCase(cookieJar: CookieJar, eventToken: string, region: string
 
   const json = await res.json()
 
-  temporaryLog(`POST case status: ${res.status}`)
-  return json.id
+  if (res.status === 201) {
+    console.log(`✓`)
+  } else {
+    console.log(`✕ (returned ${res.status})`)
+  }
+
+  return json.id as string
 }
 
 async function pingEventTrigger(caseId: string, eventName: string, cookieJar: CookieJar) {
@@ -377,27 +411,27 @@ async function getOrgUsers(cookieJar: CookieJar) {
   return json.users
 }
 
-async function shareACase(caseId: string, region: string, userEmail: string = 'solicitor1@etorganisation1.com') {
+async function shareACase(caseId: string, region: string, userEmail = 'solicitor1@etorganisation1.com') {
   const cookieJar = await loginToIdam(USER_ORG, PASS_ORG, IDAM_LOGIN_START_URL_ORG)
   const users = await getOrgUsers(cookieJar)
   const solicitor1 = users.find(o => o.email === userEmail)
   const url = `${BASE_URL_ORG}/api/caseshare/case-assignments`
 
   const body = {
-    "sharedCases": [
+    sharedCases: [
       {
-        "caseId": caseId,
-        "caseTitle": caseId,
-        "caseTypeId": region,
-        "pendingShares": [
+        caseId,
+        caseTitle: caseId,
+        caseTypeId: region,
+        pendingShares: [
           {
-            "email": userEmail,
-            "firstName": solicitor1.firstName,
-            "idamId": solicitor1.userIdentifier,
-            "lastName": solicitor1.lastName
+            email: userEmail,
+            firstName: solicitor1.firstName,
+            idamId: solicitor1.userIdentifier,
+            lastName: solicitor1.lastName
           }
         ],
-        "pendingUnshares": []
+        pendingUnshares: []
       }
     ]
   }
@@ -408,7 +442,7 @@ async function shareACase(caseId: string, region: string, userEmail: string = 's
     method: 'POST'
   })
 
-  temporaryLog(`Share a Case result: ${res.status}`)
+  return res.status
 }
 
 function jankConvertScotlandToEngland(data: string) {
@@ -440,12 +474,17 @@ async function uploadTestFile(cookieJar: CookieJar) {
 async function findExistingCases(region: string, cookieJar: CookieJar) {
   const url = `${BASE_URL}/data/internal/searchCases?ctid=${region}&use_case=WORKBASKET&view=WORKBASKET&page=1`
   const res = await makeAuthorisedRequest(url, cookieJar, {
-    method: 'post',
-    body: '{"size": 25}',
+    method: 'post'
   })
 
   const json = await res.json()
-  return json.results.map(o => o.case_id)
+  return json.results.map(o => {
+    return {
+      ...o,
+      caseId: o.case_id,
+      alias: `${o.case_fields['[CASE_TYPE]']} - ${o.case_fields.ethosCaseReference} - ${o.case_id} (${o.case_fields.claimant} vs ${o.case_fields.respondent})`
+    }
+  }) as Array<Record<string, any> & { caseId: string, alias: string }>
 }
 
 export default {

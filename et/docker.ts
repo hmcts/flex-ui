@@ -252,11 +252,11 @@ export async function fixExitedContainers() {
     return undefined
   }).filter(o => o)
 
-  await Promise.allSettled([down.map(name => {
+  await Promise.allSettled([down.map(async name => {
     if (DOCKER_CONTAINERS.includes(name)) {
-      return execCommand(`docker start ${name}`)
+      return await execCommand(`docker start ${name}`)
     }
-    return Promise.resolve()
+    return await Promise.resolve()
   })])
 }
 

@@ -73,7 +73,6 @@ async function changeAuthorisationsForCaseEvent(caseTypeID: string, caseEventID:
   const answers = { [CaseFieldKeys.CaseTypeID]: caseTypeID }
 
   await addonDuplicateQuestion(answers, (answers: Answers) => {
-
     const duplicateRegion = getRegionFromCaseTypeId(answers[CaseFieldKeys.CaseTypeID])
     for (const key in newMapping) {
       newMapping[key][duplicateRegion] = newMapping[key][region]
@@ -95,7 +94,6 @@ async function changeAuthorisationsForCaseField(caseTypeID: string, region: Regi
 
   const answers = { [CaseFieldKeys.CaseTypeID]: caseTypeID }
   await addonDuplicateQuestion(answers, (answers: Answers) => {
-
     const duplicateRegion = getRegionFromCaseTypeId(answers[CaseFieldKeys.CaseTypeID])
     for (const key in newMapping) {
       newMapping[key][duplicateRegion] = newMapping[key][region]
@@ -127,7 +125,7 @@ export async function changeAuthorisations() {
   answers = await askAutoComplete(CaseFieldKeys.ID, QUESTION_ID_SELECT, undefined, [THIS, MULTI, ...idOpts], true, answers)
 
   if (answers[CaseFieldKeys.ID] === THIS) {
-    return changeAuthorisationsForCaseEvent(selectedCaseTypeID, selectedCaseEventID, region)
+    return await changeAuthorisationsForCaseEvent(selectedCaseTypeID, selectedCaseEventID, region)
   }
 
   if (answers[CaseFieldKeys.ID] === MULTI) {
@@ -148,7 +146,7 @@ export async function changeAuthorisations() {
     return
   }
 
-  return changeAuthorisationsForCaseField(selectedCaseTypeID, region, selectedIDs)
+  return await changeAuthorisationsForCaseField(selectedCaseTypeID, region, selectedIDs)
 }
 
 function mapCrudToWords(crud: string) {
@@ -157,6 +155,7 @@ function mapCrudToWords(crud: string) {
     if (o === 'R') return 'Read'
     if (o === 'U') return 'Update'
     if (o === 'D') return 'Delete'
+    return ''
   })
 }
 

@@ -1,0 +1,124 @@
+{
+  "data": {
+    "sendNotificationTitle": "idklol",
+    "sendNotificationLetter": "Yes",
+    "sendNotificationUploadDocument": [
+      {
+        "value": {
+          "shortDescription": "Short Description of document",
+          "typeOfDocument": null,
+          "uploadedDocument": {
+            "document_url": "http://dm-store:8080/documents/8219190e-dc36-4015-ba01-c04913830962",
+            "document_binary_url": "http://dm-store:8080/documents/8219190e-dc36-4015-ba01-c04913830962/binary",
+            "document_filename": "HMCTS.png"
+          }
+        },
+        "id": null
+      }
+    ],
+    "sendNotificationSubject": [
+      "Claim (ET1)",
+      "1",
+      "Response (ET3)",
+      "Hearing",
+      "Case management orders / requests",
+      "Judgment",
+      "Employer Contract Claim",
+      "Other (General correspondence)"
+    ],
+    "sendNotificationSelectHearing": {
+      "value": {
+        "code": "4d7724a0-643d-4137-9e41-7966c0f1f9a4",
+        "label": "2: Hearing - Barnstaple - 16 May 2069 01:00"
+      },
+      "list_items": [
+        {
+          "code": "bfd521ce-355f-4f89-9e45-c80be48710d8",
+          "label": "1: Hearing - Barnstaple - 16 May 2022 01:00"
+        },
+        {
+          "code": "4d7724a0-643d-4137-9e41-7966c0f1f9a4",
+          "label": "2: Hearing - Barnstaple - 16 May 2069 01:00"
+        }
+      ]
+    },
+    "sendNotificationCaseManagement": "Case management order",
+    "sendNotificationResponseTribunal": "Yes - view document for details",
+    "sendNotificationSelectParties": "Claimant only",
+    "sendNotificationWhoCaseOrder": "Legal officer",
+    "sendNotificationFullName": "Full name for case management order",
+    "sendNotificationWhoMadeJudgement": "Judge",
+    "sendNotificationFullName2": "Full name for judgment",
+    "sendNotificationDecision": "Other",
+    "sendNotificationDetails": "decision details",
+    "sendNotificationEccQuestion": "Provide parties with access to ECC case view",
+    "sendNotificationAdditionalInfo": "additional info",
+    "sendNotificationNotify": "Both parties",
+    "sendNotificationAnotherLetter": "No"
+  },
+  "event": {
+    "id": "sendNotification",
+    "summary": "",
+    "description": ""
+  },
+  "event_data": {
+    "sendNotificationTitle": "idklol",
+    "sendNotificationLetter": "Yes",
+    "sendNotificationUploadDocument": [
+      {
+        "value": {
+          "shortDescription": "Short Description of document",
+          "typeOfDocument": null,
+          "uploadedDocument": {
+            "document_url": "http://dm-store:8080/documents/8219190e-dc36-4015-ba01-c04913830962",
+            "document_binary_url": "http://dm-store:8080/documents/8219190e-dc36-4015-ba01-c04913830962/binary",
+            "document_filename": "HMCTS.png"
+          }
+        },
+        "id": null
+      }
+    ],
+    "sendNotificationSubject": [
+      "Claim (ET1)",
+      "1",
+      "Response (ET3)",
+      "Hearing",
+      "Case management orders / requests",
+      "Judgment",
+      "Employer Contract Claim",
+      "Other (General correspondence)"
+    ],
+    "sendNotificationSelectHearing": {
+      "value": {
+        "code": "4d7724a0-643d-4137-9e41-7966c0f1f9a4",
+        "label": "2: Hearing - Barnstaple - 16 May 2069 01:00"
+      },
+      "list_items": [
+        {
+          "code": "bfd521ce-355f-4f89-9e45-c80be48710d8",
+          "label": "1: Hearing - Barnstaple - 16 May 2022 01:00"
+        },
+        {
+          "code": "4d7724a0-643d-4137-9e41-7966c0f1f9a4",
+          "label": "2: Hearing - Barnstaple - 16 May 2069 01:00"
+        }
+      ]
+    },
+    "sendNotificationCaseManagement": "Case management order",
+    "sendNotificationResponseTribunal": "Yes - view document for details",
+    "sendNotificationSelectParties": "Claimant only",
+    "sendNotificationWhoCaseOrder": "Legal officer",
+    "sendNotificationFullName": "Full name for case management order",
+    "sendNotificationWhoMadeJudgement": "Judge",
+    "sendNotificationFullName2": "Full name for judgment",
+    "sendNotificationDecision": "Other",
+    "sendNotificationDetails": "decision details",
+    "sendNotificationEccQuestion": "Provide parties with access to ECC case view",
+    "sendNotificationAdditionalInfo": "additional info",
+    "sendNotificationNotify": "Both parties",
+    "sendNotificationAnotherLetter": "No"
+  },
+  "event_token": "",
+  "ignore_warning": false,
+  "case_reference": "1675768029436346"
+}

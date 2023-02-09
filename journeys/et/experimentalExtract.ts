@@ -25,7 +25,6 @@ function getFieldOptions(caseTypeID: string, caseEventID: string) {
 }
 
 async function extractFieldsAndDependants(region: Region, fieldIDs: string[]) {
-
   const relatedConfig = createNewConfigSheets()
 
   fieldIDs.forEach(o => {
@@ -62,14 +61,13 @@ async function askFields() {
     askAnswered: true
   }], answers)
 
-
   const selectedIDs = (answers[CaseFieldKeys.ID] as any as string[])
 
   if (!selectedIDs.length) {
     return
   }
 
-  return extractFieldsAndDependants(region, selectedIDs)
+  return await extractFieldsAndDependants(region, selectedIDs)
 }
 
 export default {

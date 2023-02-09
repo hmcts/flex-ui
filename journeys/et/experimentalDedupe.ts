@@ -14,14 +14,14 @@ export async function fn() {
       results = results.concat(await deduplicateTypeForRegion(sheet, configs, region))
     }
   }
-  console.log(results.sort().join('\r\n'))
+  console.log(results.sort((a, b) => a < b ? -1 : 1).join('\r\n'))
 }
 
 export async function deduplicateTypeForRegion(type: keyof CCDTypes, sheets: CCDSheets<CCDTypes>, region: string) {
   const obj = groupByKeys(sheets[type] as any, COMPOUND_KEYS[type])
   const problematic = Object.keys(obj).filter(o => obj[o].length > 1).map(o => obj[o])
   const results = []
-  // Delete ALL from the configs and then re-add 
+  // Delete ALL from the configs and then re-add
   for (const dupeList of problematic) {
     const originalLength = dupeList.length
     const composite = `${region}-${type}-${COMPOUND_KEYS[type].map(o => dupeList[0][o]).join('-')}`
@@ -75,8 +75,8 @@ async function askUserWhatValueToUse<T>(dupeList: T[], compositeKey: string) {
     if (vals.length === 1) continue
 
     resolved = await prompt([{ name: key, message: `Select a value for ${compositeKey}'s ${key}`, type: 'list', choices: ['<abort>', ...vals], default: vals[vals.length - 1], askAnswered: true }], resolved)
-    // @ts-ignore - weird oddity where sometimes the compiler complains about this always being false - its obviously not!
-    if (resolved[key] === '<abort>') {
+
+    if ((resolved as unknown as Record<string, string>)[key] === '<abort>') {
       return
     }
   }

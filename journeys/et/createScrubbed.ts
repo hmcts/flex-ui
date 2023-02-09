@@ -1,6 +1,6 @@
 import { CUSTOM, YES_OR_NO } from 'app/constants'
-import { addToInMemoryConfig, getConfigSheetsFromFlexRegion, getKnownScrubbedLists, Region } from 'app/et/configs'
-import { addFlexRegionToCcdObject, askFlexRegion, FLEX_REGION_ANSWERS_KEY, getFlexRegionFromAnswers } from 'app/et/questions'
+import { addToInMemoryConfig, getConfigSheetsFromFlexRegion, getKnownScrubbedLists } from 'app/et/configs'
+import { addFlexRegionToCcdObject, askFlexRegion, getFlexRegionFromAnswers } from 'app/et/questions'
 import { Answers, askAutoComplete } from 'app/questions'
 import { prompt } from 'inquirer'
 import { Scrubbed, ScrubbedKeys } from 'types/ccd'
@@ -69,7 +69,6 @@ function getLastDisplayOrderInScrubbed(answers: Answers) {
   const descendingSorted = existingObjs.sort((a, b) => a.DisplayOrder > b.DisplayOrder ? -1 : 1)
   return descendingSorted[0]?.DisplayOrder || 0
 }
-
 
 export default {
   disabled: true,

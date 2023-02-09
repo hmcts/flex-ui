@@ -219,10 +219,13 @@ export function groupByKeys<T>(arr: T[], keys: Array<keyof T>) {
 }
 
 /** Clears the current terminal line and writes a new message with no ending newline */
-export function temporaryLog(message: string) {
+export function temporaryLog(message: string, showDate = true) {
   clearCurrentLine()
   const msgNoNewLine = message.replace(/\n/g, '').substring(0, process.stdout.columns - 15)
-  process.stdout.write(`${new Date().toLocaleTimeString()} || ${msgNoNewLine}`)
+  if (showDate) {
+    return process.stdout.write(`${new Date().toLocaleTimeString()} || ${msgNoNewLine}`)
+  }
+  return process.stdout.write(msgNoNewLine)
 }
 
 /** Clears the current line by sending a special character command */
@@ -235,4 +238,4 @@ export function getIdealSizeForInquirer() {
   return process.stdout.rows - 2
 }
 
-export function wait(ms: number) { return new Promise(resolve => setTimeout(resolve, ms)) }
+export async function wait(ms: number) { return await new Promise(resolve => setTimeout(resolve, ms)) }

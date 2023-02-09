@@ -15,7 +15,7 @@ export async function setSessionName() {
 
   const oldFile = session.file
   saveSession(session)
-  deleteSession(oldFile)
+  await deleteSession(oldFile)
 }
 
 function getText() {

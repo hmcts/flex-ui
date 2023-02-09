@@ -36,6 +36,8 @@ module.exports = {
     // Personal preference "?" looks better on the same line as the statement
     "operator-linebreak": 0,
     // Same as above
-    "multiline-ternary": 0
+    "multiline-ternary": 0,
+    // Labels are useful
+    "no-labels": 0
   }
 }

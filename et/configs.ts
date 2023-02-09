@@ -183,7 +183,7 @@ export function getKnownCaseFieldTypeParameters() {
 /**
  * Get all defined Scrubbed IDs in englandwales and scotland configs
  */
-export function getKnownScrubbedLists(){
+export function getKnownScrubbedLists() {
   return getUniqueByKeyAsArray([...englandwales.Scrubbed, ...scotland.Scrubbed], 'ID')
 }
 
@@ -463,7 +463,6 @@ function spliceIndexComplexType(x: ComplexType, arr: ComplexType[]) {
   // Grab the first index of the first instance of the refering ComplexType
   const complexTypeID = arr[firstRefIndex].ID
   const firstInComplexTypeIndex = arr.findIndex(o => o.ID === complexTypeID)
-
 
   return firstInComplexTypeIndex
 }

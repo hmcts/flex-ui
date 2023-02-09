@@ -79,7 +79,7 @@ async function askFields() {
     return
   }
 
-  return extractFieldsAndDependants(region, toCaseTypeID, selectedIDs)
+  return await extractFieldsAndDependants(region, toCaseTypeID, selectedIDs)
 }
 
 export default {
