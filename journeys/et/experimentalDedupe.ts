@@ -5,6 +5,7 @@ import { groupBy, groupByKeys, matcher } from 'app/helpers'
 import { addToInMemoryConfig, getEnglandWales, getScotland, Region } from 'app/et/configs'
 import { COMPOUND_KEYS, NO, YES_OR_NO } from 'app/constants'
 import { addFlexRegionToCcdObject, FLEX_REGION_ANSWERS_KEY, REGION_OPTS } from 'app/et/questions'
+import { sayWarning } from 'app/questions'
 
 export async function fn() {
   let results = []
@@ -100,7 +101,7 @@ function dedupeArray(arr: any[]) {
 }
 
 export default {
-  group: 'et-experimental',
-  text: 'De-duplicate fields',
-  fn
+  group: 'et-wip',
+  text: '[WIP] De-duplicate fields',
+  fn: () => sayWarning(fn)
 } as Journey

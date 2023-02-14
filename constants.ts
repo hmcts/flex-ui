@@ -8,6 +8,7 @@ export const NO = 'No'
 export const YES_OR_NO = [YES, NO]
 export const Y_OR_N = ['Y', 'N']
 export const NO_DUPLICATE = 'Don\'t duplicate'
+export const MULTI = '<multi-select>'
 
 export const JOURNEY_DIR = 'journeys'
 export const DIST_JOURNEY_DIR = `dist${sep}${JOURNEY_DIR}`

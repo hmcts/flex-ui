@@ -2,11 +2,11 @@ import { prompt } from 'inquirer'
 import { session, saveSession } from 'app/session'
 import { Journey } from 'types/journey'
 import { getKnownCaseFieldIDsByEvent, getRegionFromCaseTypeId, Region, RoleMappings, defaultRoleMappings, Roles, createCaseFieldAuthorisations, addToInMemoryConfig, getEnglandWales, getScotland, createCaseEventAuthorisations } from 'app/et/configs'
-import { Answers, askAutoComplete } from 'app/questions'
+import { Answers, askAutoComplete, sayWarning } from 'app/questions'
 import { format } from 'app/helpers'
 import { askCaseEvent, askCaseTypeID } from 'app/et/questions'
 import { CaseEventToFieldKeys, CaseFieldKeys } from 'app/types/ccd'
-import { NONE } from 'app/constants'
+import { MULTI, NO, NONE, YES, YES_OR_NO } from 'app/constants'
 import { addonDuplicateQuestion } from './createSingleField'
 
 const QUESTION_ID_SELECT = 'What fields do you want to change authorisations for?'
@@ -15,7 +15,6 @@ const QUESTION_AUTHORISATIONS = 'What permissions are we giving {0} for {1}?'
 const OPTS = ['Create', 'Read', 'Update', 'Delete']
 const ALL = '<view all fields in one list>'
 const THIS = '<this event>'
-const MULTI = '<multi-select>'
 
 async function askAuthorisations(message: string, region: Region) {
   let answers: Answers = {}
@@ -160,7 +159,7 @@ function mapCrudToWords(crud: string) {
 }
 
 export default {
-  group: 'et-experimental',
-  text: 'Change authorisations',
-  fn: changeAuthorisations
+  group: 'et-wip',
+  text: '[WIP] Change authorisations',
+  fn: () => sayWarning(changeAuthorisations)
 } as Journey

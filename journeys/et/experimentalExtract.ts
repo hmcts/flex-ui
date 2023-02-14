@@ -2,10 +2,10 @@ import { prompt } from 'inquirer'
 import { session, saveSession, addToSession } from 'app/session'
 import { Journey } from 'types/journey'
 import { getKnownCaseFieldIDsByEvent, getRegionFromCaseTypeId, Region, getEnglandWales, getScotland, addToConfig } from 'app/et/configs'
-import { Answers } from 'app/questions'
+import { Answers, askAutoComplete, sayWarning } from 'app/questions'
 import { addFlexRegionToCcdObject, askCaseEvent, askCaseTypeID, FLEX_REGION_ANSWERS_KEY } from 'app/et/questions'
 import { CaseEventToFieldKeys, CaseFieldKeys, createNewConfigSheets } from 'app/types/ccd'
-import { NONE } from 'app/constants'
+import { MULTI, NONE } from 'app/constants'
 import { getObjectsReferencedByCaseFields } from 'app/et/duplicateCaseField'
 
 const QUESTION_ID_SELECT = 'What fields do you want to change authorisations for?'
@@ -53,13 +53,19 @@ async function askFields() {
 
   const idOpts = getFieldOptions(selectedCaseTypeID, selectedCaseEventID)
 
-  answers = await prompt([{
-    name: CaseFieldKeys.ID,
-    message: QUESTION_ID_SELECT,
-    type: 'checkbox',
-    choices: idOpts.sort(),
-    askAnswered: true
-  }], answers)
+  answers = await askAutoComplete(CaseFieldKeys.ID, QUESTION_ID_SELECT, undefined, [MULTI, ...idOpts], true, answers)
+
+  if (answers[CaseFieldKeys.ID] === MULTI) {
+    answers = await prompt([{
+      name: CaseFieldKeys.ID,
+      message: QUESTION_ID_SELECT,
+      type: 'checkbox',
+      choices: idOpts.sort(),
+      askAnswered: true
+    }], answers)
+  } else {
+    answers[CaseFieldKeys.ID] = [answers[CaseFieldKeys.ID]] as any
+  }
 
   const selectedIDs = (answers[CaseFieldKeys.ID] as any as string[])
 
@@ -71,7 +77,7 @@ async function askFields() {
 }
 
 export default {
-  group: 'et-experimental',
-  text: 'Extract fields',
-  fn: askFields
+  group: 'et-wip',
+  text: '[WIP] Extract fields',
+  fn: () => sayWarning(askFields)
 } as Journey

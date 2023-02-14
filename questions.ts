@@ -1,5 +1,5 @@
 import { prompt } from 'inquirer'
-import { CUSTOM, YES_OR_NO } from 'app/constants'
+import { CUSTOM, NO, YES_OR_NO } from 'app/constants'
 import { session } from 'app/session'
 import fuzzy from 'fuzzy'
 import { AllCCDKeys, CaseEventToFieldKeys, CaseField, CaseFieldKeys, ComplexType } from 'types/ccd'
@@ -112,4 +112,14 @@ export async function askAutoComplete(name: string, message: string, defaultOpt:
       pageSize: getIdealSizeForInquirer()
     }
   ], answers)
+}
+
+export async function sayWarning(journeyFn: () => Promise<void>) {
+  const answers = await prompt([{ name: 'warning', message: 'This is a WORK IN PROGRESS journey - please be careful with these. Continue?', type: 'list', choices: YES_OR_NO, default: NO }])
+
+  if (answers.warning === NO) {
+    return
+  }
+
+  return await journeyFn()
 }

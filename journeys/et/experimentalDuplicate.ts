@@ -1,14 +1,15 @@
 import { prompt } from 'inquirer'
 import { Journey } from 'types/journey'
 import { getKnownCaseFieldIDsByEvent, getRegionFromCaseTypeId, Region, getEnglandWales, getScotland, addToConfig, addToInMemoryConfig } from 'app/et/configs'
-import { Answers } from 'app/questions'
+import { Answers, askAutoComplete, sayWarning } from 'app/questions'
 import { addFlexRegionToCcdObject, askCaseEvent, askCaseTypeID, FLEX_REGION_ANSWERS_KEY } from 'app/et/questions'
 import { CaseEventToFieldKeys, CaseFieldKeys, createNewConfigSheets } from 'app/types/ccd'
-import { NONE } from 'app/constants'
+import { MULTI, NONE } from 'app/constants'
 import { duplicateAuthorisationInCaseType, duplicateInCaseType, getObjectsReferencedByCaseFields } from 'app/et/duplicateCaseField'
 import { saveSession, session } from 'app/session'
 
-const QUESTION_ID_SELECT = 'What fields do you want to change authorisations for?'
+const QUESTION_ID_SELECT = 'What fields do you want to duplicate?'
+const QUESTION_DUPLICATE_TO = 'What CaseTypeID are we duplicating these to?'
 
 const ALL = '<view all fields in one list>'
 
@@ -30,7 +31,7 @@ async function extractFieldsAndDependants(fromRegion: Region, toCaseTypeID: stri
 
   fieldIDs.forEach(o => {
     const configs = fromRegion === Region.EnglandWales ? getEnglandWales() : getScotland()
-    const fakeRegions = { [FLEX_REGION_ANSWERS_KEY]: [fromRegion, toRegion] }
+    const fakeRegions = { [FLEX_REGION_ANSWERS_KEY]: fromRegion === toRegion ? [toRegion] : [fromRegion, toRegion] }
     const related = getObjectsReferencedByCaseFields(configs, [configs.CaseField.find(x => x.ID === o)])
     related.ComplexTypes.forEach(o => addFlexRegionToCcdObject(o, fakeRegions))
     related.Scrubbed.forEach(o => addFlexRegionToCcdObject(o, fakeRegions))
@@ -63,15 +64,19 @@ async function askFields() {
 
   const idOpts = getFieldOptions(selectedCaseTypeID, selectedCaseEventID)
 
-  answers = await prompt([{
-    name: CaseFieldKeys.ID,
-    message: QUESTION_ID_SELECT,
-    type: 'checkbox',
-    choices: idOpts.sort(),
-    askAnswered: true
-  }], answers)
+  answers = await askAutoComplete(CaseFieldKeys.ID, QUESTION_ID_SELECT, undefined, [MULTI, ...idOpts], true, answers)
 
-  const toCaseTypeID = (await askCaseTypeID({}, undefined, 'Where should these fields be duplicated to?')).CaseTypeID
+  if (answers[CaseFieldKeys.ID] === MULTI) {
+    answers = await prompt([{
+      name: CaseFieldKeys.ID,
+      message: QUESTION_ID_SELECT,
+      type: 'checkbox',
+      choices: idOpts.sort(),
+      askAnswered: true
+    }], answers)
+  } else {
+    answers[CaseFieldKeys.ID] = [answers[CaseFieldKeys.ID]] as any
+  }
 
   const selectedIDs = (answers[CaseFieldKeys.ID] as any as string[])
 
@@ -79,11 +84,13 @@ async function askFields() {
     return
   }
 
+  const toCaseTypeID = (await askCaseTypeID({}, undefined, QUESTION_DUPLICATE_TO)).CaseTypeID
+
   return await extractFieldsAndDependants(region, toCaseTypeID, selectedIDs)
 }
 
 export default {
-  group: 'et-experimental',
-  text: 'Duplicate to another CaseTypeId',
-  fn: askFields
+  group: 'et-wip',
+  text: '[WIP] Duplicate to another CaseTypeId',
+  fn: () => sayWarning(askFields)
 } as Journey

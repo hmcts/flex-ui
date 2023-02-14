@@ -1,6 +1,7 @@
 import { COMPOUND_KEYS, NO, YES_OR_NO } from 'app/constants'
 import { getEnglandWales, Region } from 'app/et/configs'
 import { groupBy, removeFields } from 'app/helpers'
+import { sayWarning } from 'app/questions'
 import { CaseField, ComplexType, ConfigSheets } from 'app/types/ccd'
 import { prompt } from 'inquirer'
 import { Journey } from 'types/journey'
@@ -61,7 +62,7 @@ function isComplexTypeReferencedInRegion(ccd: ConfigSheets, complexType: Complex
 }
 
 export default {
-  group: 'et-experimental',
+  group: 'et-wip',
   text: '[WIP] Find Unreferenced Objects',
-  fn: journey
+  fn: () => sayWarning(journey)
 } as Journey

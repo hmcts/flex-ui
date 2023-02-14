@@ -33,11 +33,11 @@ async function getCurrentBranchName(dir: string) {
 }
 
 function getRepoDir(repo: string) {
-  if (repo === 'et-ccd-definitions-englandwales') {
+  if (repo.includes('et-ccd-definitions-englandwales')) {
     return process.env.ENGWALES_DEF_DIR
   }
 
-  if (repo === 'et-ccd-definitions-scotland') {
+  if (repo.includes('et-ccd-definitions-scotland')) {
     return process.env.SCOTLAND_DEF_DIR
   }
 
@@ -72,6 +72,7 @@ export async function openPRJourney(answers: any = {}) {
   await Promise.allSettled(answers.repos.map(async o => {
     const currentBranchName = await getCurrentBranchName(getRepoDir(o))
     const command = `gh pr create --title "RET-${answers.ticket}: ${answers.title}" --head ${currentBranchName} --base ${answers.base} --body '${content}'`
+    console.log(command)
     await openPRFor(command, REPOS[o])
   }))
 }

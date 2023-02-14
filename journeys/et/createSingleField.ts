@@ -85,7 +85,7 @@ export async function createSingleField(answers: Answers = {}) {
   }
 
   if (askEvent && answers[CaseEventToFieldKeys.FieldShowCondition]) {
-    answers = await askRetainHiddenValue(answers, existingCaseEventToField?.RetainHiddenValue)
+    answers = await askRetainHiddenValue(answers, undefined, undefined, existingCaseEventToField?.RetainHiddenValue)
   }
 
   if (existingField) {

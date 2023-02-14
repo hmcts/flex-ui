@@ -80,6 +80,7 @@ export function upsertFields<T>(to: T[], from: T[], keys: Array<keyof (T)>, spli
  * @param keys list of keys whose values must be equal on both objects to qualify as the same
  */
 export function removeFields<T>(main: T[], toDelete: T[], keys: Array<keyof (T)>) {
+  if (!toDelete) return
   for (const obj of toDelete) {
     const existingIndex = main.findIndex(o => matcher(o, obj, keys))
     if (existingIndex === -1) continue
