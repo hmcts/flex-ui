@@ -1,14 +1,17 @@
 import { Journey } from 'types/journey'
 import { prompt } from 'inquirer'
-import { ccdComposePull, ccdComposeUp, ccdInit, ccdLogin, dockerDeleteVolumes, dockerSystemPrune, initDb, initEcm, isDmStoreReady, killAndRemoveContainers, rebootDmStore, recreateWslUptimeContainer } from 'app/et/docker'
+import { ccdComposePull, ccdComposeUp, ccdInit, ccdLogin, doAllContainersExist, dockerDeleteVolumes, dockerSystemPrune, initDb, initEcm, isDmStoreReady, killAndRemoveContainers, rebootDmStore, recreateWslUptimeContainer } from 'app/et/docker'
 import { askConfigTasks, execConfigTasks } from './configsCommon'
-import { getIdealSizeForInquirer, temporaryLog, wait } from 'app/helpers'
+import { execCommand, getIdealSizeForInquirer, temporaryLog, wait } from 'app/helpers'
 import { askCreateCaseQuestions, doCreateCaseTasks } from './webCreateCase'
+import { NO, YES } from 'app/constants'
+import { getWslHostIP } from './dockerUpdateIP'
 
 const QUESTION_TASK = 'What stages of setup are you interested in?'
 
 export async function configsJourney() {
   const TASK_CHOICES = {
+    RESTART_WSL_UPTIME: `Restart the wsl-uptime container (${(await hasWslIPChanged()) ? 'RECOMMENDED - IP MISMATCH' : 'not needed'})`,
     DOWN_CONTAINERS: `Kill and remove docker containers associated with ExUI`,
     REMOVE_VOLUMES: 'Delete volumes associated with old containers (useful for clearing elastic search errors)',
     PRUNE: 'Docker prune to get rid of everything not currently in use (docker system prune --volumes -f)',
@@ -21,19 +24,35 @@ export async function configsJourney() {
     CREATE_CASE: 'Create a case...'
   }
 
+  const defaults = [
+    TASK_CHOICES.UP
+  ]
+
+  if (await hasWslIPChanged()) {
+    defaults.push(TASK_CHOICES.RESTART_WSL_UPTIME)
+  }
+
+  if (!await doAllContainersExist()) {
+    Object.values(TASK_CHOICES).slice(1).forEach(o => defaults.push(o))
+  }
+
   const answers = await prompt([
-    { name: 'tasks', message: QUESTION_TASK, type: 'checkbox', choices: Object.values(TASK_CHOICES), default: Object.values(TASK_CHOICES).slice(5), pageSize: getIdealSizeForInquirer() }
+    { name: 'tasks', message: QUESTION_TASK, type: 'checkbox', choices: Object.values(TASK_CHOICES), default: defaults, pageSize: getIdealSizeForInquirer() }
   ])
 
   let configAnswers: any = {}
-  let createAnswers: any = {}
+  let createAnswers: any = { callbacks: answers.tasks.includes(TASK_CHOICES.INIT_CALLBACKS) ? YES : NO }
 
   if (answers.tasks.includes(TASK_CHOICES.CONFIGS)) {
     configAnswers = await askConfigTasks()
   }
 
   if (answers.tasks.includes(TASK_CHOICES.CREATE_CASE)) {
-    createAnswers = await askCreateCaseQuestions()
+    createAnswers = await askCreateCaseQuestions(createAnswers)
+  }
+
+  if (answers.tasks.includes(TASK_CHOICES.RESTART_WSL_UPTIME)) {
+    await recreateWslUptimeContainer()
   }
 
   if (answers.tasks.includes(TASK_CHOICES.DOWN_CONTAINERS)) {
@@ -59,7 +78,6 @@ export async function configsJourney() {
 
   if (answers.tasks.includes(TASK_CHOICES.UP)) {
     await ccdComposeUp()
-    await recreateWslUptimeContainer()
     await waitForDmStore()
   }
 
@@ -78,6 +96,18 @@ export async function configsJourney() {
   if (answers.tasks.includes(TASK_CHOICES.CREATE_CASE)) {
     await doCreateCaseTasks(createAnswers)
   }
+}
+
+export async function getWslUptimeContainerIP() {
+  const { stdout } = await execCommand('docker container inspect wsl_uptime | grep WSL_HOSTNAME=', undefined, false)
+  const ip = /WSL_HOSTNAME=([0-9.]+)/.exec(stdout)[1]
+  return ip
+}
+
+async function hasWslIPChanged() {
+  const containerIP = await getWslUptimeContainerIP()
+  const actualIP = await getWslHostIP()
+  return containerIP !== actualIP
 }
 
 async function waitForDmStore() {
@@ -99,7 +129,6 @@ async function waitForDmStore() {
     left -= 10
   }
 }
-
 
 export default {
   group: 'et-docker',

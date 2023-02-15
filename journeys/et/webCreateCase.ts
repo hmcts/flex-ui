@@ -11,6 +11,7 @@ import { ChildProcess, exec } from 'child_process'
 import { getWslHostIP, setIPToHostDockerInternal, setIPToWslHostAddress } from './dockerUpdateIP'
 import { generateSpreadsheets, importConfigs } from './configsCommon'
 import { fixExitedContainers } from 'app/et/docker'
+import { Answers } from 'app/questions'
 
 https.globalAgent.options.rejectUnauthorized = false
 
@@ -39,11 +40,11 @@ async function journey() {
   await doCreateCaseTasks(await askCreateCaseQuestions())
 }
 
-export async function askCreateCaseQuestions() {
+export async function askCreateCaseQuestions(answers: Answers = {}) {
   return await prompt([
     { name: 'region', message: 'What region are we creating for?', type: 'checkbox', choices: REGION_OPTS, default: REGION_OPTS },
     { name: 'events', message: QUESTION_STEPS, type: 'checkbox', choices: EVENT_OPTS, default: EVENT_OPTS },
-    { name: 'callbacks', message: QUESTION_CALLBACKS, type: 'list', choices: YES_OR_NO, default: NO },
+    { name: 'callbacks', message: QUESTION_CALLBACKS, type: 'list', choices: YES_OR_NO, default: answers.callbacks || NO, askAnswered: true },
     { name: 'kill', message: 'Do you want to kill callbacks after?', type: 'list', choices: YES_OR_NO, default: YES, when: (ans) => ans.callbacks === YES }
   ])
 }
@@ -65,7 +66,7 @@ export async function doCreateCaseTasks(answers: Record<string, any>) {
   }
 
   await fixExitedContainers()
-  
+
   for (const region of answers.region) {
     await createNewCase(region, answers.events)
   }
