@@ -1,5 +1,6 @@
 import { clearCurrentLine, execCommand, getEnvVarsFromFile, temporaryLog } from 'app/helpers'
 import { exec, ExecException } from 'child_process'
+import { EOL } from 'os'
 
 const DOCKER_VOLUMES = [
   'compose_ccd-docker-azure-blob-data',
@@ -20,10 +21,8 @@ const DOCKER_CONTAINERS = [
   'compose-ccd-user-profile-api-1',
   'compose-service-auth-provider-api-1',
   'compose-ccd-shared-database-v11-1',
-  'compose-wsl-uptime-1',
   'compose-azure-storage-emulator-azurite-1',
-  'rse-idam-simulator',
-  'wsl_uptime'
+  'rse-idam-simulator'
 ]
 
 /**
@@ -251,11 +250,11 @@ export async function fixExitedContainers() {
     return undefined
   }).filter(o => o)
 
-  await Promise.allSettled([down.map(name => {
+  await Promise.allSettled([down.map(async name => {
     if (DOCKER_CONTAINERS.includes(name)) {
-      return execCommand(`docker start ${name}`)
+      return await execCommand(`docker start ${name}`)
     }
-    return Promise.resolve()
+    return await Promise.resolve()
   })])
 }
 
@@ -274,4 +273,10 @@ export async function isDmStoreReady() {
 
 export async function rebootDmStore() {
   return await execCommand('docker restart compose-dm-store-1')
+}
+
+export async function doAllContainersExist() {
+  const { stdout } = await execCommand('docker ps -a', undefined, false)
+  const states = stdout.split(EOL)
+  return !DOCKER_CONTAINERS.some(o => !states.find(x => x.includes(o)))
 }

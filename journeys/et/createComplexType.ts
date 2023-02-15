@@ -38,7 +38,7 @@ export async function createComplexType(answers: Answers = {}) {
 
   answers = await askComplexTypeListElementCode(answers)
 
-  let existing = await prepopulateAnswersWithExistingValues(answers)
+  const existing = await prepopulateAnswersWithExistingValues(answers)
 
   answers = await prompt([
     { name: ComplexTypeKeys.ElementLabel, message: QUESTION_ELEMENT_LABEL, type: 'input', default: existing?.ElementLabel },
