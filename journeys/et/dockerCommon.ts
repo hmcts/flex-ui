@@ -1,11 +1,11 @@
 import { Journey } from 'types/journey'
 import { prompt } from 'inquirer'
-import { ccdComposePull, ccdComposeUp, ccdInit, ccdLogin, dockerDeleteVolumes, dockerSystemPrune, doAllContainersExist, initDb, initEcm, isDmStoreReady, killAndRemoveContainers, rebootDmStore } from 'app/et/docker'
+import { ccdComposePull, ccdComposeUp, ccdInit, ccdLogin, doAllContainersExist, dockerDeleteVolumes, dockerSystemPrune, initDb, initEcm, isDmStoreReady, killAndRemoveContainers, rebootDmStore, recreateWslUptimeContainer } from 'app/et/docker'
 import { askConfigTasks, execConfigTasks } from './configsCommon'
 import { execCommand, getIdealSizeForInquirer, temporaryLog, wait } from 'app/helpers'
 import { askCreateCaseQuestions, doCreateCaseTasks } from './webCreateCase'
-import { getWslHostIP } from './dockerUpdateIP'
 import { NO, YES } from 'app/constants'
+import { getWslHostIP } from './dockerUpdateIP'
 
 const QUESTION_TASK = 'What stages of setup are you interested in?'
 
@@ -49,6 +49,10 @@ export async function configsJourney() {
 
   if (answers.tasks.includes(TASK_CHOICES.CREATE_CASE)) {
     createAnswers = await askCreateCaseQuestions(createAnswers)
+  }
+
+  if (answers.tasks.includes(TASK_CHOICES.RESTART_WSL_UPTIME)) {
+    await recreateWslUptimeContainer()
   }
 
   if (answers.tasks.includes(TASK_CHOICES.DOWN_CONTAINERS)) {

@@ -114,9 +114,11 @@ export function getConfigSheetsFromFlexRegion(flexRegion: Region[]) {
 }
 
 export function findObject<T>(keys: Record<string, any>, sheetName: keyof CCDTypes, region?: Region): T | undefined {
-  const ccd = region === Region.EnglandWales ?
-    getEnglandWales() : region === Region.Scotland ?
-      getScotland() : getCombinedSheets()
+  const ccd = region === Region.EnglandWales
+    ? getEnglandWales()
+    : region === Region.Scotland
+      ? getScotland()
+      : getCombinedSheets()
 
   const arr = ccd[sheetName] as Array<Record<string, any>>
   const keysThatMatter = COMPOUND_KEYS[sheetName] as string[]
