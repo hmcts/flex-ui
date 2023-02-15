@@ -28,7 +28,7 @@ function shouldAskEventQuestions(answers: Answers) {
 
 export async function createSingleField(answers: Answers = {}) {
   answers = await askCaseTypeID(answers)
-  answers = await askCaseEvent(answers, undefined, QUESTION_CASE_EVENT_ID, true)
+  answers = await askCaseEvent(answers, undefined, QUESTION_CASE_EVENT_ID, [NONE])
 
   const idOpts = getKnownCaseFieldIDsByEvent(answers[CaseEventToFieldKeys.CaseEventID])
 

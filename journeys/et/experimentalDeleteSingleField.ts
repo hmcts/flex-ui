@@ -24,7 +24,7 @@ async function journey() {
   let answers: Answers = {}
 
   answers = await askCaseTypeID(answers)
-  answers = await askCaseEvent(answers, undefined, undefined, false, [NONE])
+  answers = await askCaseEvent(answers, undefined, undefined, [NONE])
 
   const selectedCaseTypeID = answers[CaseFieldKeys.CaseTypeID]
   const region = getRegionFromCaseTypeId(selectedCaseTypeID)

@@ -1,4 +1,4 @@
-import { COMPOUND_KEYS, CUSTOM, NONE, NO_DUPLICATE } from 'app/constants'
+import { COMPOUND_KEYS, CUSTOM, NEW, NONE, NO_DUPLICATE } from 'app/constants'
 import { format, getIdealSizeForInquirer } from 'app/helpers'
 import { createEvent } from 'app/journeys/et/createEvent'
 import { Answers, askBasicFreeEntry, fuzzySearch, listOrFreeType } from 'app/questions'
@@ -61,7 +61,7 @@ export async function createTemplate<T, P>(answers: Answers = {}, keys: T, obj: 
     }
 
     if (field === 'CaseEventID') {
-      answers = await askCaseEvent(answers, undefined, undefined, true)
+      answers = await askCaseEvent(answers, undefined, undefined, [NONE])
     } else if (field === 'CaseTypeID') {
       answers = await askCaseTypeID(answers)
     } else if (field === 'CaseFieldID') {
@@ -78,13 +78,10 @@ export async function createTemplate<T, P>(answers: Answers = {}, keys: T, obj: 
   return answers
 }
 
-export async function askCaseEvent(answers: Answers = {}, key?: string, message?: string, allowNone = false, addOpts: string[] = []) {
+export async function askCaseEvent(answers: Answers = {}, key?: string, message?: string, addOpts: string[] = [], allowCustom = true) {
   const opts = getCaseEventIDOpts()
   key = key || CaseEventToFieldKeys.CaseEventID
-  const choices = [...addOpts, CUSTOM, ...opts]
-  if (allowNone) {
-    choices.splice(0, 0, NONE)
-  }
+  const choices = allowCustom ? [...addOpts, CUSTOM, ...opts] : [...addOpts, ...opts]
   answers = await prompt([
     {
       name: key,
@@ -96,8 +93,8 @@ export async function askCaseEvent(answers: Answers = {}, key?: string, message?
     }
   ], answers)
 
-  if (answers[key] === CUSTOM) {
-    answers[key] = await createEvent({ CaseTypeID: answers[CaseEventKeys.CaseTypeID] })
+  if (allowCustom && answers[key] === CUSTOM) {
+    answers[key] = await createEvent({ ID: NEW, CaseTypeID: answers[CaseEventKeys.CaseTypeID] })
   }
 
   return answers

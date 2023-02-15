@@ -3,8 +3,8 @@ import { Journey } from 'types/journey'
 import { Answers } from 'app/questions'
 import { createNewCaseEvent } from 'app/ccd'
 import { addToInMemoryConfig, createCaseEventAuthorisations, findObject } from 'app/et/configs'
-import { NO, YES, YES_OR_NO, Y_OR_N } from 'app/constants'
-import { askCaseTypeID } from 'app/et/questions'
+import { NEW, NO, YES, YES_OR_NO, Y_OR_N } from 'app/constants'
+import { askCaseEvent, askCaseTypeID } from 'app/et/questions'
 import { CaseEvent, CaseEventKeys } from 'app/types/ccd'
 import { addonDuplicateQuestion } from './createSingleField'
 
@@ -21,8 +21,12 @@ const QUESTION_CALLBACK_URL_ABOUT_TO_SUBMIT_EVENT = 'Do we need a callback befor
 const QUESTION_CALLBACK_URL_SUBMITTED_EVENT = 'Do we need a callback after we submit? (optional)'
 
 export async function createEvent(answers: Answers = {}) {
-  answers = await prompt([{ name: 'ID', message: "What's the ID of the new Event?" }], answers)
   answers = await askCaseTypeID(answers)
+  answers = await askCaseEvent(answers, CaseEventKeys.ID, "What's the ID of the new/existing Event?", [NEW], false)
+
+  if (answers.ID === NEW) {
+    answers = await prompt([{ name: CaseEventKeys.ID, message: 'What\'s the ID of the new Event?', askAnswered: true, validate: (input: string) => input.length > 0 }], answers)
+  }
 
   const existing: CaseEvent | undefined = findObject(answers, 'CaseEvent')
 

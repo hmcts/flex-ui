@@ -57,7 +57,7 @@ async function askFields() {
   let answers: Answers = {}
 
   answers = await askCaseTypeID(answers)
-  answers = await askCaseEvent(answers, undefined, undefined, false, [ALL, NONE])
+  answers = await askCaseEvent(answers, undefined, undefined, [ALL, NONE])
 
   const selectedCaseTypeID = answers[CaseFieldKeys.CaseTypeID]
   const region = getRegionFromCaseTypeId(selectedCaseTypeID)
