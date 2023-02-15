@@ -240,3 +240,8 @@ export function getIdealSizeForInquirer() {
 }
 
 export async function wait(ms: number) { return await new Promise(resolve => setTimeout(resolve, ms)) }
+
+export async function isRunningInWsl() {
+  const { stdout } = await execCommand('echo $WSL_DISTRO_NAME', undefined, false)
+  return stdout.length > 1
+}

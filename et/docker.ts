@@ -1,5 +1,6 @@
 import { clearCurrentLine, execCommand, getEnvVarsFromFile, temporaryLog } from 'app/helpers'
 import { exec, ExecException } from 'child_process'
+import { EOL } from 'os'
 
 const DOCKER_VOLUMES = [
   'compose_ccd-docker-azure-blob-data',
@@ -275,4 +276,10 @@ export async function isDmStoreReady() {
 
 export async function rebootDmStore() {
   return await execCommand('docker restart compose-dm-store-1')
+}
+
+export async function doAllContainersExist() {
+  const { stdout } = await execCommand('docker ps -a', undefined, false)
+  const states = stdout.split(EOL)
+  return !DOCKER_CONTAINERS.some(o => !states.find(x => x.includes(o)))
 }

@@ -3,7 +3,7 @@ import { Journey } from 'types/journey'
 import { prompt } from 'inquirer'
 import { Region, saveBackToProject } from 'app/et/configs'
 import { setIPToHostDockerInternal, setIPToWslHostAddress } from './dockerUpdateIP'
-import { execCommand, getFiles, temporaryLog } from 'app/helpers'
+import { execCommand, getFiles, isRunningInWsl, temporaryLog } from 'app/helpers'
 import { createReadStream, statSync } from 'fs'
 import FormData from 'form-data'
 import fetch from 'node-fetch'
@@ -49,8 +49,10 @@ export async function askConfigTasks() {
     answers.env = 'local'
   }
 
+  const isInWsl = await isRunningInWsl() ? IP_OPTS[1] : IP_OPTS[0]
+
   if (answers.tasks.includes(TASK_CHOICES.GENERATE) && answers.env === 'local') {
-    answers = await prompt([{ name: 'ip', message: QUESTION_IP, type: 'list', choices: IP_OPTS, default: IP_OPTS[0] }], answers)
+    answers = await prompt([{ name: 'ip', message: QUESTION_IP, type: 'list', choices: IP_OPTS, default: isInWsl }], answers)
   }
 
   if (answers.env === 'demo') {

@@ -594,7 +594,6 @@ export function deleteFromConfig(main: Partial<ConfigSheets>, toDelete: Partial<
   removeFields(main.CaseField, toDelete.CaseField, COMPOUND_KEYS.CaseField)
 
   removeFields(main.CaseEventToFields, toDelete.CaseEventToFields, COMPOUND_KEYS.CaseEventToFields)
-  
   // TODO: Handle other types
 }
 

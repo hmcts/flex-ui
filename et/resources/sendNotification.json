@@ -1,35 +1,22 @@
 {
   "data": {
     "sendNotificationTitle": "Notification Title",
-    "sendNotificationLetter": "Yes",
-    "sendNotificationUploadDocument": [
-      {
-        "value": {
-          "shortDescription": "Short Description of document",
-          "typeOfDocument": null,
-          "uploadedDocument": {
-            "document_url": "http://dm-store:8080/documents/<FLEX_DOC_UUID>",
-            "document_binary_url": "http://dm-store:8080/documents/<FLEX_DOC_UUID>/binary",
-            "document_filename": "evidence.txt"
-          }
-        },
-        "id": null
-      }
-    ],
+    "sendNotificationLetter": "No",
+    "sendNotificationUploadDocument": [],
     "sendNotificationSubject": [
       "1",
       "Claim (ET1)",
       "Response (ET3)",
       "Hearing",
-      "Case management orders / requests",
       "Judgment",
+      "Case management orders / requests",
       "Employer Contract Claim",
       "Other (General correspondence)"
     ],
     "sendNotificationSelectHearing": {
       "value": {
-        "code": "4d7724a0-643d-4137-9e41-7966c0f1f9a4",
-        "label": "2: Hearing - Barnstaple - 16 May 2069 01:00"
+        "code": "bfd521ce-355f-4f89-9e45-c80be48710d8",
+        "label": "1: Hearing - Barnstaple - 16 May 2022 01:00"
       },
       "list_items": [
         {
@@ -44,16 +31,16 @@
     },
     "sendNotificationCaseManagement": "Case management order",
     "sendNotificationResponseTribunal": "Yes - view document for details",
-    "sendNotificationSelectParties": "Both parties",
+    "sendNotificationSelectParties": "Claimant only",
     "sendNotificationWhoCaseOrder": "Legal officer",
-    "sendNotificationFullName": "Name of person 1",
-    "sendNotificationWhoMadeJudgement": "Judge",
     "sendNotificationRequestBy": null,
+    "sendNotificationWhoMadeJudgement": "Judge",
+    "sendNotificationFullName": "Name of person 1",
     "sendNotificationFullName2": "Full name for judgment",
     "sendNotificationDecision": "Other",
     "sendNotificationDetails": "decision details",
     "sendNotificationEccQuestion": "Notice of Employer Contract Claim",
-    "sendNotificationAdditionalInfo": "additional data",
+    "sendNotificationAdditionalInfo": "more data",
     "sendNotificationNotify": "Both parties"
   },
   "event": {

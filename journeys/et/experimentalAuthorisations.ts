@@ -6,7 +6,7 @@ import { Answers, askAutoComplete, sayWarning } from 'app/questions'
 import { format } from 'app/helpers'
 import { askCaseEvent, askCaseTypeID } from 'app/et/questions'
 import { CaseEventToFieldKeys, CaseFieldKeys } from 'app/types/ccd'
-import { MULTI, NO, NONE, YES, YES_OR_NO } from 'app/constants'
+import { MULTI, NONE } from 'app/constants'
 import { addonDuplicateQuestion } from './createSingleField'
 
 const QUESTION_ID_SELECT = 'What fields do you want to change authorisations for?'
