@@ -12,7 +12,8 @@ import { addonDuplicateQuestion } from './createSingleField'
 const QUESTION_ID_SELECT = 'What fields do you want to change authorisations for?'
 const QUESTION_AUTHORISATIONS = 'What permissions are we giving {0} for {1}?'
 
-const OPTS = ['Create', 'Read', 'Update', 'Delete']
+const NO_CHANGE = 'Don\'t Change'
+const OPTS = ['Create', 'Read', 'Update', 'Delete', NO_CHANGE]
 const ALL = '<view all fields in one list>'
 const THIS = '<this event>'
 
@@ -31,6 +32,10 @@ async function askAuthorisations(message: string, region: Region) {
       default: mapCrudToWords(defaultRoleMappings[role]?.[region]),
       askAnswered: true
     }], answers)
+
+    if ((answers.role as string[]).includes("Don't Change")) {
+      continue
+    }
 
     const regionMappings = (answers.role as string[]).map(o => o[0]).join('') || 'D'
 
