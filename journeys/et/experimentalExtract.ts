@@ -7,6 +7,7 @@ import { addFlexRegionToCcdObject, askCaseEvent, askCaseTypeID, FLEX_REGION_ANSW
 import { CaseEventToFieldKeys, CaseFieldKeys, createNewConfigSheets } from 'app/types/ccd'
 import { MULTI, NONE } from 'app/constants'
 import { getObjectsReferencedByCaseFields } from 'app/et/duplicateCaseField'
+import { getIdealSizeForInquirer } from 'app/helpers'
 
 const QUESTION_ID_SELECT = 'What fields do you want to change authorisations for?'
 
@@ -61,7 +62,8 @@ async function askFields() {
       message: QUESTION_ID_SELECT,
       type: 'checkbox',
       choices: idOpts.sort(),
-      askAnswered: true
+      askAnswered: true,
+      pageSize: getIdealSizeForInquirer()
     }], answers)
   } else {
     answers[CaseFieldKeys.ID] = [answers[CaseFieldKeys.ID]] as any

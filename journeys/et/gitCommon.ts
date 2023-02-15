@@ -1,5 +1,5 @@
 import { CUSTOM } from 'app/constants'
-import { execCommand, groupBy } from 'app/helpers'
+import { execCommand, getIdealSizeForInquirer, groupBy } from 'app/helpers'
 import { askAutoComplete, askBasicFreeEntry } from 'app/questions'
 import { prompt } from 'inquirer'
 import { Journey } from 'types/journey'
@@ -39,7 +39,7 @@ async function gitJourney() {
   const REPOS = await getRepos()
 
   const answers = await prompt([
-    { name: 'repos', message: QUESTION_REPOS, type: 'checkbox', choices: Object.keys(REPOS), default: Object.keys(REPOS) }
+    { name: 'repos', message: QUESTION_REPOS, type: 'checkbox', choices: Object.keys(REPOS), default: Object.keys(REPOS), pageSize: getIdealSizeForInquirer() }
   ])
 
   while (true) {

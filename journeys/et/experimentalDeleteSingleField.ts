@@ -2,6 +2,7 @@ import { MULTI, NONE } from 'app/constants'
 import { getRegionFromCaseTypeId, Region, getKnownCaseFieldIDsByEvent, getEnglandWales, getScotland, deleteFromConfig } from 'app/et/configs'
 import { getObjectsReferencedByCaseFields } from 'app/et/duplicateCaseField'
 import { askCaseEvent, askCaseTypeID } from 'app/et/questions'
+import { getIdealSizeForInquirer } from 'app/helpers'
 import { Answers, askAutoComplete, sayWarning } from 'app/questions'
 import { CaseEventToFieldKeys, CaseFieldKeys } from 'app/types/ccd'
 import { prompt } from 'inquirer'
@@ -39,7 +40,8 @@ async function journey() {
       message: QUESTION_ID_SELECT,
       type: 'checkbox',
       choices: idOpts.sort(),
-      askAnswered: true
+      askAnswered: true,
+      pageSize: getIdealSizeForInquirer()
     }], answers)
   } else {
     answers[CaseFieldKeys.ID] = [answers[CaseFieldKeys.ID]] as any

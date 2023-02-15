@@ -7,6 +7,7 @@ import { CaseEventToFieldKeys, CaseFieldKeys, createNewConfigSheets } from 'app/
 import { MULTI, NONE } from 'app/constants'
 import { duplicateAuthorisationInCaseType, duplicateInCaseType, getObjectsReferencedByCaseFields } from 'app/et/duplicateCaseField'
 import { saveSession, session } from 'app/session'
+import { getIdealSizeForInquirer } from 'app/helpers'
 
 const QUESTION_ID_SELECT = 'What fields do you want to duplicate?'
 const QUESTION_DUPLICATE_TO = 'What CaseTypeID are we duplicating these to?'
@@ -72,7 +73,8 @@ async function askFields() {
       message: QUESTION_ID_SELECT,
       type: 'checkbox',
       choices: idOpts.sort(),
-      askAnswered: true
+      askAnswered: true,
+      pageSize: getIdealSizeForInquirer()
     }], answers)
   } else {
     answers[CaseFieldKeys.ID] = [answers[CaseFieldKeys.ID]] as any

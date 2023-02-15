@@ -3,7 +3,7 @@ import { Journey } from 'types/journey'
 import { prompt } from 'inquirer'
 import { Region, saveBackToProject } from 'app/et/configs'
 import { setIPToHostDockerInternal, setIPToWslHostAddress } from './dockerUpdateIP'
-import { execCommand, getFiles, isRunningInWsl, temporaryLog, wait } from 'app/helpers'
+import { execCommand, getFiles, getIdealSizeForInquirer, isRunningInWsl, temporaryLog, wait } from 'app/helpers'
 import { createReadStream, statSync } from 'fs'
 import FormData from 'form-data'
 import fetch from 'node-fetch'
@@ -40,7 +40,7 @@ export async function askConfigTasks() {
   const TASK_CHOICES = getConfigChoices()
 
   let answers = await prompt([
-    { name: 'tasks', message: QUESTION_TASK, type: 'checkbox', choices: Object.values(TASK_CHOICES), default: Object.values(TASK_CHOICES).slice(0, 3) }
+    { name: 'tasks', message: QUESTION_TASK, type: 'checkbox', choices: Object.values(TASK_CHOICES), default: Object.values(TASK_CHOICES).slice(0, 3), pageSize: getIdealSizeForInquirer() }
   ])
 
   if (answers.tasks.includes(TASK_CHOICES.GENERATE) && !answers.tasks.includes(TASK_CHOICES.IMPORT)) {

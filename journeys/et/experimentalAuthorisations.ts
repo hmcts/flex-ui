@@ -3,7 +3,7 @@ import { session, saveSession } from 'app/session'
 import { Journey } from 'types/journey'
 import { getKnownCaseFieldIDsByEvent, getRegionFromCaseTypeId, Region, RoleMappings, defaultRoleMappings, Roles, createCaseFieldAuthorisations, addToInMemoryConfig, getEnglandWales, getScotland, createCaseEventAuthorisations } from 'app/et/configs'
 import { Answers, askAutoComplete, sayWarning } from 'app/questions'
-import { format } from 'app/helpers'
+import { format, getIdealSizeForInquirer } from 'app/helpers'
 import { askCaseEvent, askCaseTypeID } from 'app/et/questions'
 import { CaseEventToFieldKeys, CaseFieldKeys } from 'app/types/ccd'
 import { MULTI, NONE } from 'app/constants'
@@ -30,7 +30,8 @@ async function askAuthorisations(message: string, region: Region) {
       type: 'checkbox',
       choices: OPTS,
       default: mapCrudToWords(defaultRoleMappings[role]?.[region]),
-      askAnswered: true
+      askAnswered: true,
+      pageSize: getIdealSizeForInquirer()
     }], answers)
 
     if ((answers.role as string[]).includes("Don't Change")) {
@@ -138,7 +139,8 @@ export async function changeAuthorisations() {
       message: QUESTION_ID_SELECT,
       type: 'checkbox',
       choices: idOpts.sort(),
-      askAnswered: true
+      askAnswered: true,
+      pageSize: getIdealSizeForInquirer()
     }], answers)
   } else {
     answers[CaseFieldKeys.ID] = [answers[CaseFieldKeys.ID]] as any
