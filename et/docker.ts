@@ -2,6 +2,8 @@ import { clearCurrentLine, execCommand, getEnvVarsFromFile, temporaryLog } from 
 import { exec, ExecException } from 'child_process'
 import { EOL } from 'os'
 
+export const WSL_UPTIME_CONTAINER_NAME = 'wsl_uptime'
+
 const DOCKER_VOLUMES = [
   'compose_ccd-docker-azure-blob-data',
   'compose_ccd-docker-ccd-shared-database-data-v11',
@@ -258,6 +260,11 @@ export async function fixExitedContainers() {
   })])
 }
 
+export async function getExitedContainers() {
+  const { stdout } = await execCommand('docker ps -a --format "table {{.Names}}\t{{.Status}}" | grep -v " Up "', undefined, false)
+  return stdout.split(EOL).map(o => DOCKER_CONTAINERS.find(x => o.includes(x))).filter(o => !!o)
+}
+
 export async function recreateWslUptimeContainer() {
   await execCommand('docker kill wsl_uptime', null, false)
   await execCommand('docker rm wsl_uptime', null, false)
@@ -279,4 +286,9 @@ export async function doAllContainersExist() {
   const { stdout } = await execCommand('docker ps -a', undefined, false)
   const states = stdout.split(EOL)
   return !DOCKER_CONTAINERS.some(o => !states.find(x => x.includes(o)))
+}
+
+export async function isContainerRunning(name: string) {
+  const { stdout } = await execCommand(`docker container inspect --format='{{.State.Status}}' ${name}`, undefined, false)
+  return stdout.replace(EOL, '') === 'running'
 }

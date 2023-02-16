@@ -1,6 +1,6 @@
 import { Journey } from 'types/journey'
 import { prompt } from 'inquirer'
-import { ccdComposePull, ccdComposeUp, ccdInit, ccdLogin, doAllContainersExist, dockerDeleteVolumes, dockerSystemPrune, initDb, initEcm, isDmStoreReady, killAndRemoveContainers, rebootDmStore, recreateWslUptimeContainer } from 'app/et/docker'
+import { ccdComposePull, ccdComposeUp, ccdInit, ccdLogin, doAllContainersExist, dockerDeleteVolumes, dockerSystemPrune, getExitedContainers, initDb, initEcm, isContainerRunning, isDmStoreReady, killAndRemoveContainers, rebootDmStore, recreateWslUptimeContainer, WSL_UPTIME_CONTAINER_NAME } from 'app/et/docker'
 import { askConfigTasks, execConfigTasks } from './configsCommon'
 import { execCommand, getIdealSizeForInquirer, temporaryLog, wait } from 'app/helpers'
 import { askCreateCaseQuestions, doCreateCaseTasks } from './webCreateCase'
@@ -9,9 +9,48 @@ import { getHostnameIP } from './dockerUpdateIP'
 
 const QUESTION_TASK = 'What stages of setup are you interested in?'
 
+interface TASK_CHOICES {
+  RESTART_WSL_UPTIME: string
+  DOWN_CONTAINERS: string
+  REMOVE_VOLUMES: string
+  PRUNE: string
+  PULL: string
+  INIT_CCD: string
+  UP: string
+  INIT_ECM: string
+  INIT_CALLBACKS: string
+  CONFIGS: string
+  CREATE_CASE: string
+}
+
+async function getDefaultTasks(tasks: TASK_CHOICES) {
+  const defaults = [
+    tasks.UP
+  ]
+
+  if (!await doAllContainersExist()) {
+    return Object.values(tasks).slice(1)
+  }
+
+  if (await hasWslIPChanged() || !await isContainerRunning(WSL_UPTIME_CONTAINER_NAME)) {
+    defaults.push(tasks.RESTART_WSL_UPTIME)
+    defaults.push(tasks.CONFIGS)
+  }
+
+  const exitedContainers = await getExitedContainers()
+  if (exitedContainers.length > 0) {
+    const minUpContainers = [tasks.INIT_ECM, tasks.INIT_CALLBACKS, tasks.CONFIGS]
+    minUpContainers.forEach(o => defaults.push(o))
+  }
+
+  return defaults
+}
+
 export async function configsJourney() {
+  const wslAddon = await hasWslIPChanged() ? 'RECOMMENDED - IP MISMATCH' : await isContainerRunning(WSL_UPTIME_CONTAINER_NAME) ? 'Not needed' : 'CONTAINER EXITED'
+
   const TASK_CHOICES = {
-    RESTART_WSL_UPTIME: `Restart the wsl-uptime container (${(await hasWslIPChanged()) ? 'RECOMMENDED - IP MISMATCH' : 'not needed'})`,
+    RESTART_WSL_UPTIME: `Restart the wsl-uptime container (${wslAddon})`,
     DOWN_CONTAINERS: `Kill and remove docker containers associated with ExUI`,
     REMOVE_VOLUMES: 'Delete volumes associated with old containers (useful for clearing elastic search errors)',
     PRUNE: 'Docker prune to get rid of everything not currently in use (docker system prune --volumes -f)',
@@ -22,20 +61,9 @@ export async function configsJourney() {
     INIT_CALLBACKS: 'Initialize database (./bin/init-db.sh)',
     CONFIGS: 'Choose what to do with configs...',
     CREATE_CASE: 'Create a case...'
-  }
+  } as TASK_CHOICES
 
-  const defaults = [
-    TASK_CHOICES.UP
-  ]
-
-  if (await hasWslIPChanged()) {
-    defaults.push(TASK_CHOICES.RESTART_WSL_UPTIME)
-    defaults.push(TASK_CHOICES.CONFIGS)
-  }
-
-  if (!await doAllContainersExist()) {
-    Object.values(TASK_CHOICES).slice(1).forEach(o => defaults.push(o))
-  }
+  const defaults = await getDefaultTasks(TASK_CHOICES)
 
   const answers = await prompt([
     { name: 'tasks', message: QUESTION_TASK, type: 'checkbox', choices: Object.values(TASK_CHOICES), default: defaults, pageSize: getIdealSizeForInquirer() }
