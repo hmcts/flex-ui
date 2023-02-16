@@ -32,15 +32,12 @@ export async function createSingleField(answers: Answers = {}) {
 
   const idOpts = getKnownCaseFieldIDsByEvent(answers[CaseEventToFieldKeys.CaseEventID])
 
-  // We could autofill in properties if this field already exists, but it's a lot of effort
-  answers = await askAutoComplete(CaseFieldKeys.ID, QUESTION_ID, CUSTOM, [CUSTOM, ...idOpts], answers)
+  answers = await askAutoComplete(CaseFieldKeys.ID, QUESTION_ID, CUSTOM, [CUSTOM, ...idOpts], false, answers)
 
   if (answers[CaseFieldKeys.ID] === CUSTOM) {
     answers = await prompt([{ name: CaseFieldKeys.ID, message: QUESTION_ID, type: 'input', default: 'id', askAnswered: true }], answers)
   }
 
-  // At this point we should know whether the user is adding or modifying a field
-  // TODO: Find out why referencing something on existingField without a ? does not result in an error (because it could be undefined)
   const existingField: CaseField | undefined = findObject<CaseField>(answers, 'CaseField')
   const existingCaseEventToField: CaseEventToField | undefined = findObject<CaseEventToField>({ ...answers, CaseFieldID: answers.ID }, 'CaseEventToFields')
 

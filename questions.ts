@@ -100,7 +100,7 @@ export async function askForPageFieldDisplayOrder(answers: Answers = {}, key?: s
   }], answers)
 }
 
-export async function askAutoComplete(name: string, message: string, defaultOpt: string, choices: string[], answers: Answers = {}) {
+export async function askAutoComplete(name: string, message: string, defaultOpt: string, choices: string[], askAnswered = true, answers: Answers = {}) {
   return await prompt([
     {
       name,
@@ -108,7 +108,7 @@ export async function askAutoComplete(name: string, message: string, defaultOpt:
       type: 'autocomplete',
       source: (_answers: unknown, input: string) => fuzzySearch(choices, input),
       default: defaultOpt,
-      askAnswered: true,
+      askAnswered,
       pageSize: getIdealSizeForInquirer()
     }
   ], answers)

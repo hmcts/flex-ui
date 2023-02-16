@@ -1,4 +1,4 @@
-import { execCommand } from 'app/helpers'
+import { execCommand, getIdealSizeForInquirer } from 'app/helpers'
 import { prompt } from 'inquirer'
 import { Journey } from 'types/journey'
 import { getRepos as getRepoOpts } from './gitCommon'
@@ -36,7 +36,7 @@ export async function openPRJourney(answers: any = {}) {
   const REPOS = await getRepoOpts()
 
   answers = await prompt([
-    { name: 'repos', message: QUESTION_REPOS, type: 'checkbox', choices: Object.keys(REPOS), default: Object.keys(REPOS) }
+    { name: 'repos', message: QUESTION_REPOS, type: 'checkbox', choices: Object.keys(REPOS), default: Object.keys(REPOS), pageSize: getIdealSizeForInquirer() }
   ], answers)
 
   answers = await prompt([

@@ -41,7 +41,7 @@ export async function createComplexType(answers: Answers = {}) {
   const existing = await prepopulateAnswersWithExistingValues(answers)
 
   answers = await prompt([
-    { name: ComplexTypeKeys.ElementLabel, message: QUESTION_ELEMENT_LABEL, type: 'input', default: existing?.ElementLabel },
+    { name: ComplexTypeKeys.ElementLabel, message: QUESTION_ELEMENT_LABEL, type: 'input', default: existing?.ElementLabel, validate: (input: string) => input.length > 0 },
     { name: ComplexTypeKeys.FieldShowCondition, message: QUESTION_FIELD_SHOW_CONDITION, type: 'input', default: existing?.FieldShowCondition },
     { name: ComplexTypeKeys.DisplayOrder, message: QUESTION_DISPLAY_ORDER, type: 'number', default: () => getDefaultValueForFieldDisplayOrder(existing) },
     { name: ComplexTypeKeys.DisplayContextParameter, message: QUESTION_DISPLAY_CONTEXT_PARAMETER, default: existing?.DisplayContextParameter },

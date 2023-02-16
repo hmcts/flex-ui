@@ -1,5 +1,5 @@
 import { CUSTOM } from 'app/constants'
-import { execCommand, groupBy } from 'app/helpers'
+import { execCommand, getIdealSizeForInquirer, groupBy } from 'app/helpers'
 import { askAutoComplete, askBasicFreeEntry } from 'app/questions'
 import { prompt } from 'inquirer'
 import { Journey } from 'types/journey'
@@ -39,14 +39,14 @@ async function gitJourney() {
   const REPOS = await getRepos()
 
   const answers = await prompt([
-    { name: 'repos', message: QUESTION_REPOS, type: 'checkbox', choices: Object.keys(REPOS), default: Object.keys(REPOS) }
+    { name: 'repos', message: QUESTION_REPOS, type: 'checkbox', choices: Object.keys(REPOS), default: Object.keys(REPOS), pageSize: getIdealSizeForInquirer() }
   ])
 
   while (true) {
     let followup: any = { repos: answers.repos }
     const branchOpts = await getBranchOpts(REPOS[followup.repos[0]])
 
-    followup = await askAutoComplete('task', QUESTION_TASK, TASK_CHOICES.PULL, Object.values(TASK_CHOICES), followup)
+    followup = await askAutoComplete('task', QUESTION_TASK, TASK_CHOICES.PULL, Object.values(TASK_CHOICES), true, followup)
 
     switch (followup.task) {
       case TASK_CHOICES.ADD:
@@ -56,7 +56,7 @@ async function gitJourney() {
       case TASK_CHOICES.BACK:
         return
       case TASK_CHOICES.BRANCH:
-        followup = await askAutoComplete('branch', QUESTION_BRANCH, 'master', [CUSTOM, ...branchOpts], followup)
+        followup = await askAutoComplete('branch', QUESTION_BRANCH, 'master', [CUSTOM, ...branchOpts], true, followup)
         if (followup.branch === CUSTOM) {
           followup = await prompt([{ name: 'branch', message: QUESTION_BRANCH, askAnswered: true }], followup)
         }
@@ -68,7 +68,7 @@ async function gitJourney() {
         await Promise.allSettled(followup.repos.map(async (o: string) => await commit(REPOS[o], followup.message)))
         break
       case TASK_CHOICES.DELETE:
-        followup = await askAutoComplete('branch', QUESTION_BRANCH, 'master', [CUSTOM, ...branchOpts], followup)
+        followup = await askAutoComplete('branch', QUESTION_BRANCH, 'master', [CUSTOM, ...branchOpts], true, followup)
         if (followup.branch === CUSTOM) {
           followup = await prompt([{ name: 'branch', message: QUESTION_BRANCH, askAnswered: true }], followup)
         }
