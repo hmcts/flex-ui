@@ -6,7 +6,7 @@ import https from 'node:https'
 // eslint-disable-next-line n/no-deprecated-api
 import { existsSync } from 'fs'
 import { NO, YES, YES_OR_NO } from 'app/constants'
-import { execCommand, getEnvVarsFromFile, temporaryLog } from 'app/helpers'
+import { execCommand, getEnvVarsFromFile, getIdealSizeForInquirer, temporaryLog } from 'app/helpers'
 import { ChildProcess, exec } from 'child_process'
 import { getWslHostIP, setIPToHostDockerInternal, setIPToWslHostAddress } from './dockerUpdateIP'
 import { generateSpreadsheets, importConfigs } from './configsCommon'
@@ -42,8 +42,8 @@ async function journey() {
 
 export async function askCreateCaseQuestions(answers: Answers = {}) {
   return await prompt([
-    { name: 'region', message: 'What region are we creating for?', type: 'checkbox', choices: REGION_OPTS, default: REGION_OPTS },
-    { name: 'events', message: QUESTION_STEPS, type: 'checkbox', choices: EVENT_OPTS, default: EVENT_OPTS },
+    { name: 'region', message: 'What region are we creating for?', type: 'checkbox', choices: REGION_OPTS, default: REGION_OPTS, pageSize: getIdealSizeForInquirer() },
+    { name: 'events', message: QUESTION_STEPS, type: 'checkbox', choices: EVENT_OPTS, default: EVENT_OPTS, pageSize: getIdealSizeForInquirer() },
     { name: 'callbacks', message: QUESTION_CALLBACKS, type: 'list', choices: YES_OR_NO, default: answers.callbacks || NO, askAnswered: true },
     { name: 'kill', message: 'Do you want to kill callbacks after?', type: 'list', choices: YES_OR_NO, default: YES, when: (ans) => ans.callbacks === YES }
   ])
