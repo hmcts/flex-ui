@@ -3,7 +3,7 @@ import { Journey } from 'types/journey'
 import { prompt } from 'inquirer'
 import { Region, saveBackToProject } from 'app/et/configs'
 import { setIPToHostDockerInternal, setIPToWslHostAddress } from './dockerUpdateIP'
-import { execCommand, getFiles, getIdealSizeForInquirer, isRunningInWsl, temporaryLog } from 'app/helpers'
+import { execCommand, getFiles, getIdealSizeForInquirer, isRunningInWsl, temporaryLog, wait } from 'app/helpers'
 import { createReadStream, statSync } from 'fs'
 import FormData from 'form-data'
 import fetch from 'node-fetch'
@@ -100,8 +100,9 @@ export async function execConfigTasks(answers: Record<string, any>) {
 
 export async function generateSpreadsheets(env = 'local') {
   await execCommand(`yarn generate-excel-${env}`, process.env.ENGWALES_DEF_DIR)
+  temporaryLog(`Spreadsheets generated successfully for ET_EnglandWales - ${env}`)
   await execCommand(`yarn generate-excel-${env}`, process.env.SCOTLAND_DEF_DIR)
-  temporaryLog(`Spreadsheets generated successfully for ${env}`)
+  temporaryLog(`Spreadsheets generated successfully for ET_Scotland - ${env}`)
 }
 
 function getDefinitionPath(region: Region, env = 'local') {
@@ -113,10 +114,18 @@ function getDefinitionPath(region: Region, env = 'local') {
 
 export async function ccdImport(region: Region, env = 'local') {
   const definitionFile = getDefinitionPath(region, env)
-  const res = await execCommand(`${IMPORT_SCRIPT} ${definitionFile}`)
-  if (!res.stdout?.includes('Case Definition data successfully imported')) {
-    console.error(res.stdout)
+  temporaryLog(`Importing for ${region}`)
+  const { stdout } = await execCommand(`${IMPORT_SCRIPT} ${definitionFile}`)
+  if (stdout.includes('Case Definition data successfully imported')) {
+    return
   }
+
+  if (stdout.includes('transaction timeout')) {
+    temporaryLog(`Got transaction timeout when importing ${region} - Waiting for 5 seconds before trying again...`)
+    await wait(5000)
+    return ccdImport(region, env)
+  }
+  console.error(`ERROR for ${region}: ${stdout}`)
 }
 
 export async function importConfigs() {

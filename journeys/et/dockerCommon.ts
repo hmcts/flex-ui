@@ -5,7 +5,7 @@ import { askConfigTasks, execConfigTasks } from './configsCommon'
 import { execCommand, getIdealSizeForInquirer, temporaryLog, wait } from 'app/helpers'
 import { askCreateCaseQuestions, doCreateCaseTasks } from './webCreateCase'
 import { NO, YES } from 'app/constants'
-import { getWslHostIP } from './dockerUpdateIP'
+import { getHostnameIP } from './dockerUpdateIP'
 
 const QUESTION_TASK = 'What stages of setup are you interested in?'
 
@@ -30,6 +30,7 @@ export async function configsJourney() {
 
   if (await hasWslIPChanged()) {
     defaults.push(TASK_CHOICES.RESTART_WSL_UPTIME)
+    defaults.push(TASK_CHOICES.CONFIGS)
   }
 
   if (!await doAllContainersExist()) {
@@ -106,7 +107,7 @@ export async function getWslUptimeContainerIP() {
 
 async function hasWslIPChanged() {
   const containerIP = await getWslUptimeContainerIP()
-  const actualIP = await getWslHostIP()
+  const actualIP = await getHostnameIP()
   return containerIP !== actualIP
 }
 
