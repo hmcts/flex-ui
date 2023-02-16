@@ -24,7 +24,10 @@ const DOCKER_CONTAINERS = [
   'compose-service-auth-provider-api-1',
   'compose-ccd-shared-database-v11-1',
   'compose-azure-storage-emulator-azurite-1',
-  'rse-idam-simulator'
+  'rse-idam-simulator',
+  'manage-case-assignment',
+  'compose-xui-manage-org-1',
+  'compose-rd-professional-reference-data-1'
 ]
 
 /**
@@ -242,22 +245,8 @@ export async function ccdComposePull() {
  * Checks for containers that have exited and restarts them if the name is included in the list at the top
  */
 export async function fixExitedContainers() {
-  const { stdout } = await execCommand('docker ps -a')
-  const lines = stdout.split(/\n|\r\n/)
-
-  const down = lines.map(line => {
-    if (line.includes(' Exited ')) {
-      return /([^\s]+)$/.exec(line)?.[0]
-    }
-    return undefined
-  }).filter(o => o)
-
-  await Promise.allSettled([down.map(async name => {
-    if (DOCKER_CONTAINERS.includes(name)) {
-      return await execCommand(`docker start ${name}`)
-    }
-    return await Promise.resolve()
-  })])
+  const down = await getExitedContainers()
+  await Promise.allSettled(down.map(o => execCommand(`docker start ${o}`)))
 }
 
 export async function getExitedContainers() {
