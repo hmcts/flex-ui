@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync } from 'fs'
 import { sep } from 'path'
 import { findLastIndex, format, getUniqueByKey, getUniqueByKeyAsArray, groupBy, upsertFields } from 'app/helpers'
 import { addToSession, session } from 'app/session'
-import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventKeys, CaseEventToField, CaseEventToFieldKeys, CaseField, CaseTypeTab, CaseTypeTabKeys, CCDSheets, CCDTypes, ComplexType, ConfigSheets, EventToComplexType, EventToComplexTypeKeys, FlexExtensions, Scrubbed, ScrubbedKeys, sheets } from 'types/ccd'
+import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventKeys, CaseEventToField, CaseEventToFieldKeys, CaseField, CaseTypeTab, CaseTypeTabKeys, CCDSheets, CCDTypes, ComplexType, ConfigSheets, createNewConfigSheets, EventToComplexType, EventToComplexTypeKeys, FlexExtensions, Scrubbed, ScrubbedKeys, sheets } from 'types/ccd'
 import { COMPOUND_KEYS } from 'app/constants'
 
 let readTime = 0
@@ -94,6 +94,25 @@ export function getCombinedSheets() {
   }, {} as CCDSheets<CCDTypes>)
 }
 
+/**
+ * Given an array of regions (as would be found in Answers) returns the relevant ccd sheets or combined sheets
+ */
+export function getConfigSheetsFromFlexRegion(flexRegion: Region[]) {
+  if (flexRegion.includes(Region.EnglandWales) && flexRegion.includes(Region.Scotland)) {
+    return getCombinedSheets()
+  }
+
+  if (flexRegion.includes(Region.EnglandWales)) {
+    return getEnglandWales()
+  }
+
+  if (flexRegion.includes(Region.Scotland)) {
+    return getScotland()
+  }
+
+  return createNewConfigSheets()
+}
+
 export function findObject<T>(keys: Record<string, any>, sheetName: keyof CCDTypes, region?: Region): T | undefined {
   const ccd = region === Region.EnglandWales
     ? getEnglandWales()
@@ -161,6 +180,13 @@ export function getKnownCaseFieldTypeParameters() {
   const inUse = getUniqueByKey([...englandwales.CaseField, ...scotland.CaseField], 'FieldTypeParameter')
   const scrubbed = getUniqueByKey([...englandwales.Scrubbed, ...scotland.Scrubbed], 'ID')
   return Object.keys({ ...inUse, ...scrubbed })
+}
+
+/**
+ * Get all defined Scrubbed IDs in englandwales and scotland configs
+ */
+export function getKnownScrubbedLists() {
+  return getUniqueByKeyAsArray([...englandwales.Scrubbed, ...scotland.Scrubbed], 'ID')
 }
 
 /**
