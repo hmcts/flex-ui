@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync } from 'fs'
 import { sep } from 'path'
 import { findLastIndex, format, getUniqueByKey, getUniqueByKeyAsArray, groupBy, removeFields, upsertFields } from 'app/helpers'
 import { addToSession, session } from 'app/session'
-import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventKeys, CaseEventToField, CaseEventToFieldKeys, CaseField, CaseTypeTab, CaseTypeTabKeys, CCDSheets, CCDTypes, ComplexType, ConfigSheets, EventToComplexType, EventToComplexTypeKeys, FlexExtensions, Scrubbed, ScrubbedKeys, sheets, createNewConfigSheets } from 'types/ccd'
+import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventKeys, CaseEventToField, CaseEventToFieldKeys, CaseField, CaseTypeTab, CaseTypeTabKeys, CCDSheets, CCDTypes, ComplexType, ConfigSheets, createNewConfigSheets, EventToComplexType, EventToComplexTypeKeys, FlexExtensions, Scrubbed, ScrubbedKeys, sheets } from 'types/ccd'
 import { COMPOUND_KEYS, NONE } from 'app/constants'
 
 let readTime = 0
