@@ -261,8 +261,8 @@ export async function recreateWslUptimeContainer() {
 }
 
 export async function isDmStoreReady() {
-  const { stdout } = await execCommand('docker logs compose-dm-store-1')
-  const logs = stdout.split('\n')
+  const { stdout } = await execCommand('docker logs compose-dm-store-1', undefined, false)
+  const logs = (stdout || '').split('\n')
   const currentSessionLogs = logs.slice(logs.findIndex(o => o.startsWith(' :: Spring Boot ::')))
   return currentSessionLogs.some(o => o.match(/Started DmApp in [\d.]+ seconds/))
 }
@@ -271,10 +271,17 @@ export async function rebootDmStore() {
   return await execCommand('docker restart compose-dm-store-1')
 }
 
-export async function doAllContainersExist() {
+export async function doAllContainersExist(exclude: string[] = []) {
   const { stdout } = await execCommand('docker ps -a', undefined, false)
   const states = stdout.split(EOL)
-  return !DOCKER_CONTAINERS.some(o => !states.find(x => x.includes(o)))
+  const requiredContainers = DOCKER_CONTAINERS.reduce((acc, obj) => {
+    if (!exclude.includes(obj)){
+      acc.push(obj)
+    }
+    return acc
+  }, [])
+
+  return !requiredContainers.some(o => !states.find(x => x.includes(o)))
 }
 
 export async function isContainerRunning(name: string) {

@@ -28,7 +28,7 @@ async function getDefaultTasks(tasks: TASK_CHOICES) {
     tasks.UP
   ]
 
-  if (!await doAllContainersExist()) {
+  if (!await doAllContainersExist(['ethos-logstash'])) {
     return Object.values(tasks).slice(1)
   }
 
