@@ -106,7 +106,12 @@ export async function doCreateCaseTasks(answers: Record<string, any>) {
     await setIPToWslHostAddress()
     await generateSpreadsheets('local')
     await importConfigs()
-    await startAndWaitForCallbacksToBeReady()
+    try {
+      await startAndWaitForCallbacksToBeReady()
+    } catch (e) {
+      console.log(`Failed to start callbacks - aborting journey :(`)
+      return
+    }
     temporaryLog('Callbacks has started up')
   }
 
