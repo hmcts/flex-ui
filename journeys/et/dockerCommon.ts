@@ -53,7 +53,7 @@ export async function configsJourney() {
     RESTART_WSL_UPTIME: `Restart the wsl-uptime container (${wslAddon})`,
     DOWN_CONTAINERS: `Kill and remove docker containers associated with ExUI`,
     REMOVE_VOLUMES: 'Delete volumes associated with old containers (useful for clearing elastic search errors)',
-    PRUNE: 'Docker prune to get rid of everything not currently in use (docker system prune --volumes -f)',
+    PRUNE: 'Docker prune to get rid of everything not currently in use (docker system prune --volumes -f && docker image prune -f -a)',
     PULL: 'Pull the latest images (./ccd compose pull)',
     INIT_CCD: 'Create ccd network in docker (only needed if docker was destroyed) (./ccd init)',
     UP: 'Run up/build containers from existing images (./ccd compose up -d)',

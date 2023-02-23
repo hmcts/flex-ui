@@ -147,7 +147,7 @@ async function dockerRmAll() {
  * TODO: Improve this so it doesnt affect unrelated containers
  */
 export async function dockerSystemPrune() {
-  const command = 'docker system prune --volumes -f'
+  const command = 'docker system prune --volumes -f && docker image prune -f -a'
   return await execCommand(command, undefined, false)
 }
 
@@ -189,9 +189,11 @@ export async function ccdComposePull() {
     const progressInterval = 10
 
     const progress: { [image: string]: string } = {}
+    const doneStatuses = ['done', 'pulled', 'pull complete', 'already exists', 'skipped']
 
-    const regex = /Pulling (.+?)\s*\.\.\. (.+)/
     let lastProgress = ''
+
+    const getLayersLeft = () => Object.values(progress).filter(o => !doneStatuses.find(x => o.toLowerCase().includes(x))).length
 
     const checkProgress = setInterval(() => {
       const progressJson = JSON.stringify(progress)
@@ -200,7 +202,7 @@ export async function ccdComposePull() {
         return temporaryLog(`./ccd compose pull - No progress has been made in the last ${noProgressFor} seconds`)
       }
       lastProgress = progressJson
-      temporaryLog(`pulling images... ${Object.values(progress).filter(o => o !== 'done').length} left`)
+      temporaryLog(`pulling image layers... ${getLayersLeft()} in progress`)
     }, progressInterval * 1000)
 
     const cleanupAndExit = (fn: () => void) => {
@@ -215,11 +217,14 @@ export async function ccdComposePull() {
         return cleanupAndExit(() => reject(err))
       }
 
-      if (Object.values(progress).some(o => o !== 'done')) {
+      if (getLayersLeft()) {
         // If one of these are not done then its possible an error occured
         console.warn(stdout)
         console.warn(stderr)
-        return cleanupAndExit(() => reject(new Error('Not all images are at status "done"')))
+        return cleanupAndExit(() => {
+          const status = `${Object.keys(progress).map(o => `${o}: ${progress[o]}`).join(EOL)}`
+          return reject(new Error(`Not all layers are at a known done status:${EOL}${status}`))
+        })
       }
 
       temporaryLog(`${command} successful`)
@@ -231,10 +236,9 @@ export async function ccdComposePull() {
     })
 
     child.stderr?.on('data', data => {
-      const results = regex.exec(data)
+      const results = /(.+?) (.+)/.exec(data)
       if (results) {
         progress[results[1]] = results[2]
-        return
       }
       stderr.push(data)
     })
@@ -275,7 +279,7 @@ export async function doAllContainersExist(exclude: string[] = []) {
   const { stdout } = await execCommand('docker ps -a', undefined, false)
   const states = stdout.split(EOL)
   const requiredContainers = DOCKER_CONTAINERS.reduce((acc, obj) => {
-    if (!exclude.includes(obj)){
+    if (!exclude.includes(obj)) {
       acc.push(obj)
     }
     return acc
