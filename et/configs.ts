@@ -435,7 +435,7 @@ function spliceIndexScrubbed(x: Scrubbed, arr: Scrubbed[]) {
 }
 
 function spliceIndexCaseEvent(x: CaseEvent, arr: CaseEvent[]) {
-  let index = findLastIndex(arr, o => o.ID === x.ID && o.CaseTypeID === x.CaseTypeID) + 1
+  let index = findLastIndex(arr, o => o.CaseTypeID === x.CaseTypeID) + 1
 
   if (x.DisplayOrder === 1) {
     index = arr.findIndex(o => o.CaseTypeID === x.CaseTypeID)
