@@ -129,7 +129,7 @@ export async function configsJourney() {
 
 export async function getWslUptimeContainerIP() {
   const { stdout } = await execCommand('docker container inspect wsl_uptime | grep WSL_HOSTNAME=', undefined, false)
-  const ip = /WSL_HOSTNAME=([0-9.]+)/.exec(stdout)[1]
+  const ip = /WSL_HOSTNAME=([0-9.]+)/.exec(stdout)?.[1]
   return ip
 }
 
