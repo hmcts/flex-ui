@@ -51,10 +51,12 @@ export async function openPRJourney(answers: any = {}) {
     { name: 'repos', message: QUESTION_REPOS, type: 'checkbox', choices: Object.keys(REPOS), default: Object.keys(REPOS), pageSize: getIdealSizeForInquirer() }
   ], answers)
 
-  const currentBranchName = await getCurrentBranchName(getRepoDir(answers.repos[0]))
+  if (!answers.repos.length) {
+    return
+  }
 
   answers = await prompt([
-    { name: 'ticket', message: QUESTION_TICKET_NUMBER, default: currentBranchName.replace('RET-', '') },
+    { name: 'ticket', message: QUESTION_TICKET_NUMBER, default: await getCurrentBranchName(REPOS[answers.repos[0]]) },
     { name: 'title', message: QUESTION_TITLE },
     { name: 'base', message: QUESTION_BASE_BRANCH, default: 'master' }
   ], answers)
