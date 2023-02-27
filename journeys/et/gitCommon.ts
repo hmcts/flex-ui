@@ -32,8 +32,7 @@ export async function getRepos() {
   return {
     [`et-ccd-definitions-englandwales (${await getBranchStatus(process.env.ENGWALES_DEF_DIR)})`]: process.env.ENGWALES_DEF_DIR,
     [`et-ccd-definitions-scotland (${await getBranchStatus(process.env.SCOTLAND_DEF_DIR)})`]: process.env.SCOTLAND_DEF_DIR,
-    [`et-ccd-callbacks (${await getBranchStatus(process.env.ET_CCD_CALLBACKS_DIR)})`]: process.env.ET_CCD_CALLBACKS_DIR,
-    [`et-data-model (${await getBranchStatus(process.env.DATA_MODEL_DIR)})`]: process.env.DATA_MODEL_DIR
+    [`et-ccd-callbacks (${await getBranchStatus(process.env.ET_CCD_CALLBACKS_DIR)})`]: process.env.ET_CCD_CALLBACKS_DIR
   }
 }
 
