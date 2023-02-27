@@ -236,9 +236,15 @@ export async function ccdComposePull() {
     })
 
     child.stderr?.on('data', data => {
-      const results = /(.+?) (.+)/.exec(data)
+      const results = /(.+?) ([A-Za-z0-9 -]+)(\[[=>]+]\s+(([0-9.]+.{2})\/([0-9.]+.{2})))?/.exec(data)
       if (results) {
-        progress[results[1]] = results[2]
+        /* eslint-disable */
+        let [_, name, state, __, ___, bytesDone, bytesTotal] = results
+        /* eslint-enable */
+        if (state === 'Extracting' && bytesDone === bytesTotal && !!bytesDone) {
+          state = 'pull complete'
+        }
+        progress[name] = state
       }
       stderr.push(data)
     })
