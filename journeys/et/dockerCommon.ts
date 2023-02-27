@@ -47,7 +47,8 @@ async function getDefaultTasks(tasks: TASK_CHOICES) {
 }
 
 export async function configsJourney() {
-  if ((await execCommand('docker info', undefined, false)).stdout.includes("The command 'docker' could not be found")) {
+ const { stdout } = await execCommand('docker info', undefined, false)
+ if (stdout.includes("The command 'docker' could not be found")) {
     throw new Error('Connection with docker failed, restart docker')
   }
 
