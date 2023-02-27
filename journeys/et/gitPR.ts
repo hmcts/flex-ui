@@ -39,8 +39,12 @@ export async function openPRJourney(answers: any = {}) {
     { name: 'repos', message: QUESTION_REPOS, type: 'checkbox', choices: Object.keys(REPOS), default: Object.keys(REPOS), pageSize: getIdealSizeForInquirer() }
   ], answers)
 
+  if (!answers.repos.length) {
+    return
+  }
+
   answers = await prompt([
-    { name: 'ticket', message: QUESTION_TICKET_NUMBER, default: await getCurrentBranchName(answers.repos.includes('et-ccd-definitions-englandwales') ? process.env.ENGWALES_DEF_DIR : process.env.SCOTLAND_DEF_DIR) },
+    { name: 'ticket', message: QUESTION_TICKET_NUMBER, default: await getCurrentBranchName(REPOS[answers.repos[0]]) },
     { name: 'title', message: QUESTION_TITLE },
     { name: 'base', message: QUESTION_BASE_BRANCH, default: 'master' }
   ], answers)
