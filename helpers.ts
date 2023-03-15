@@ -118,8 +118,9 @@ export function getEnvVarsFromFile(): Record<string, string> {
   const dotEnv = `${process.env.ECM_DOCKER_DIR}${sep}compose${sep}.env`
   const envAll = `${process.env.ECM_DOCKER_DIR}${sep}bin${sep}env_variables_all.txt`
 
-  const dotEnvContents = readFileSync(dotEnv, 'utf-8')
-  const envAllContents = readFileSync(envAll, 'utf-8')
+  // Some people on the team don't run with this file even though the ecm-ccd-docker README says to create it
+  const dotEnvContents = existsSync(dotEnv) ? readFileSync(dotEnv, 'utf-8') : ''
+  const envAllContents = existsSync(envAll) ? readFileSync(envAll, 'utf-8') : ''
 
   return `${dotEnvContents}${EOL}${envAllContents}`
     .split(EOL)
