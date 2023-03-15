@@ -135,7 +135,7 @@ export function getEnvVarsFromFile(): Record<string, string> {
 
   // Some people on the team don't run with this file even though the ecm-ccd-docker README says to create it
   const dotEnvContents = existsSync(dotEnv) ? readFileSync(dotEnv, 'utf-8') : ''
-  const envAllContents = readFileSync(envAll, 'utf-8')
+  const envAllContents = existsSync(envAll) ? readFileSync(envAll, 'utf-8') : ''
 
   return `${dotEnvContents}${EOL}${envAllContents}`
     .split(EOL)
