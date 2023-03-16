@@ -208,7 +208,8 @@ async function commit(path: string, message?: string) {
 }
 
 async function stash(path: string, message?: string) {
-  const { stdout, stderr } = await execCommand(`git stash${message ? ` push -m '${message}` : ''} --include-untracked`, path, false)
+  message = message ? ` push -m '${message.replace(/'/g, '"')}'` : ''
+  const { stdout, stderr } = await execCommand(`git stash${message} --include-untracked`, path, false)
   console.log(`Stashing in ${path}`)
   console.log(stderr || stdout)
 }
