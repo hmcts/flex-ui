@@ -11,21 +11,23 @@ const QUESTION_BRANCH = 'What branch?'
 const QUESTION_ADD = 'What to add? (specify files or a matcher just like you would in git add)'
 const QUESTION_MESSAGE_COMMIT = 'What message shall we commit with?'
 const QUESTION_MESSAGE_STASH = 'What message shall we stash with?'
+const QUESTION_ABITRARY_COMMAND = 'Enter the command to be run in selected repos below (include "git" at the start)'
 
 const TASK_CHOICES = {
+  BACK: '<< back to main menu',
+  ABITRARY: 'Arbitrary command in selected repos',
   ADD: 'Add file(s)',
+  BRANCH: 'Switch Branch (new/existing)',
   COMMIT: 'Commit',
   DELETE: 'Delete local branch',
   FETCH: 'Fetch',
   PULL: 'Pull',
   FORCE_PULL: 'Pull (force) (reset branch and pull)',
-  STASH: 'Discard / Stash Changes',
   PUSH: 'Push',
   FORCE_PUSH: 'Push (force)',
-  BRANCH: 'Switch Branch (new/existing)',
   PR: 'Open a PR for active branches',
-  STATUS: 'Status',
-  BACK: '<< back to main menu'
+  STASH: 'Stash / Discard Changes',
+  STATUS: 'Status'
 }
 
 export async function getRepos() {
@@ -47,7 +49,7 @@ async function gitJourney() {
     let followup: any = { repos: answers.repos }
     const branchOpts = await getBranchOpts(REPOS[followup.repos[0]])
 
-    followup = await askAutoComplete('task', QUESTION_TASK, TASK_CHOICES.PULL, Object.values(TASK_CHOICES), true, followup)
+    followup = await askAutoComplete('task', QUESTION_TASK, TASK_CHOICES.PULL, Object.values(TASK_CHOICES), true, false, followup)
     const repos = followup.repos as string[]
 
     switch (followup.task) {
@@ -102,8 +104,19 @@ async function gitJourney() {
         followup = await askBasicFreeEntry(followup, 'message', QUESTION_MESSAGE_STASH)
         await Promise.allSettled(repos.map(async o => await stash(REPOS[o], followup.message)))
         break
+      case TASK_CHOICES.ABITRARY:
+        followup = await askBasicFreeEntry(followup, 'message', QUESTION_ABITRARY_COMMAND)
+        await Promise.allSettled(repos.map(async o => await runCommand(REPOS[o], followup.message)))
+        break
     }
   }
+}
+
+async function runCommand(path: string, command: string) {
+  const { stderr, stdout } = await execCommand(command, path, false)
+  console.log(`${command} in ${path}`)
+  console.log(stderr)
+  console.log(stdout)
 }
 
 async function getBranchStatus(path: string) {

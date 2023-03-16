@@ -15,7 +15,7 @@ const QUESTION_ADD_ANOTHER = 'Add another?'
 export async function createScrubbed(answers: Answers = {}) {
   const opts = getKnownScrubbedLists()
 
-  answers = await askAutoComplete(ScrubbedKeys.ID, QUESTION_ID, CUSTOM, [CUSTOM, ...opts], false, answers)
+  answers = await askAutoComplete(ScrubbedKeys.ID, QUESTION_ID, CUSTOM, [CUSTOM, ...opts], false, true, answers)
 
   if (answers[ScrubbedKeys.ID] === CUSTOM) {
     answers = await prompt([{ name: ScrubbedKeys.ID, message: QUESTION_ID, askAnswered: true }], answers)

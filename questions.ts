@@ -50,8 +50,11 @@ export async function askBasicFreeEntry(answers: Answers = {}, name: string, mes
  * @param input their current input from terminal
  * @returns a list of suggestions that match the input text
  */
-export function fuzzySearch(choices: string[], input = '') {
-  return fuzzy.filter(input, [...choices].sort()).map((el) => el.original)
+export function fuzzySearch(choices: string[], input = '', sortChoices = true) {
+  if (sortChoices) {
+    choices = [...choices].sort()
+  }
+  return fuzzy.filter(input, choices).map((el) => el.original)
 }
 
 export async function askForRegularExpression(answers: Answers = {}, key?: string, message?: string, defaultValue?: string) {
@@ -100,13 +103,13 @@ export async function askForPageFieldDisplayOrder(answers: Answers = {}, key?: s
   }], answers)
 }
 
-export async function askAutoComplete(name: string, message: string, defaultOpt: string, choices: string[], askAnswered = true, answers: Answers = {}) {
+export async function askAutoComplete(name: string, message: string, defaultOpt: string, choices: string[], askAnswered = true, sortChoices = true, answers: Answers = {}) {
   return await prompt([
     {
       name,
       message,
       type: 'autocomplete',
-      source: (_answers: unknown, input: string) => fuzzySearch(choices, input),
+      source: (_answers: unknown, input: string) => fuzzySearch(choices, input, sortChoices),
       default: defaultOpt,
       askAnswered,
       pageSize: getIdealSizeForInquirer()

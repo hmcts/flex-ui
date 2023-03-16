@@ -33,7 +33,7 @@ export async function createSingleField(answers: Answers = {}) {
 
   const idOpts = getKnownCaseFieldIDsByEvent(answers[CaseEventToFieldKeys.CaseEventID])
 
-  answers = await askAutoComplete(CaseFieldKeys.ID, QUESTION_ID, CUSTOM, [CUSTOM, ...idOpts], false, answers)
+  answers = await askAutoComplete(CaseFieldKeys.ID, QUESTION_ID, CUSTOM, [CUSTOM, ...idOpts], false, true, answers)
 
   if (answers[CaseFieldKeys.ID] === CUSTOM) {
     answers = await prompt([{ name: CaseFieldKeys.ID, message: QUESTION_ID, type: 'input', default: 'id', askAnswered: true }], answers)
