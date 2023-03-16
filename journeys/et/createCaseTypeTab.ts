@@ -4,7 +4,10 @@ import { createNewCaseTypeTab, trimCcdObject } from 'app/ccd'
 import { createTemplate } from 'app/et/questions'
 import { addToInMemoryConfig } from 'app/et/configs'
 import { Answers } from 'app/questions'
-import { addonDuplicateQuestion } from './createSingleField'
+import { addonDuplicateQuestion, QUESTION_ANOTHER } from './createSingleField'
+import { addToLastAnswers } from 'app/session'
+import { prompt } from 'inquirer'
+import { YES, YES_OR_NO } from 'app/constants'
 
 export async function createCaseTypeTab() {
   const answers = await createTemplate<unknown, CaseTypeTab>({}, CaseTypeTabKeys, createNewCaseTypeTab(), 'CaseTypeTab')
@@ -17,7 +20,21 @@ export async function createCaseTypeTab() {
     })
   }
 
+  addToLastAnswers(answers)
+
   await addonDuplicateQuestion(answers, createFn)
+
+  const followup = await prompt([{
+    name: 'another',
+    message: QUESTION_ANOTHER,
+    type: 'list',
+    choices: YES_OR_NO,
+    default: YES
+  }])
+
+  if (followup.another === YES) {
+    return createCaseTypeTab()
+  }
 }
 
 export default {
