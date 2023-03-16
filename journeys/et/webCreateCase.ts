@@ -6,7 +6,7 @@ import https from 'node:https'
 // eslint-disable-next-line n/no-deprecated-api
 import { existsSync } from 'fs'
 import { NO, YES, YES_OR_NO } from 'app/constants'
-import { execCommand, getEnvVarsFromFile, getIdealSizeForInquirer, temporaryLog } from 'app/helpers'
+import { execCommand, getEnvVarsFromFile, getIdealSizeForInquirer, temporaryLog, wait } from 'app/helpers'
 import { ChildProcess, exec } from 'child_process'
 import { getWslHostIP, setIPToHostDockerInternal, setIPToWslHostAddress } from './dockerUpdateIP'
 import { generateSpreadsheets, importConfigs } from './configsCommon'
@@ -64,6 +64,7 @@ export async function doCreateCaseTasks(answers: Record<string, any>) {
     try {
       await startAndWaitForCallbacksToBeReady()
     } catch (e) {
+      console.log(e.message)
       console.log(`Failed to start callbacks - aborting journey :(`)
       return
     }
@@ -248,6 +249,7 @@ async function makeAuthorisedRequest(url: string, cookieJar: Record<string, stri
 
 export async function createNewCase(region: string, events: string[]) {
   const cookieJar = await loginToIdam(USER, PASS)
+  await wait(10000)
   let eventToken = await createCaseInit(cookieJar, region)
 
   const caseId = await postCase(cookieJar, eventToken, region)

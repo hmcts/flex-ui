@@ -177,6 +177,16 @@ export async function ecmAddUsersAndCcdRoles() {
   await execCommand('./bin/add-ccd-roles.sh', process.env.ECM_DOCKER_DIR, false)
 }
 
+function getLayersLeft(includeSkippable = false, progress: Record<string, string>) {
+  const statuses = ['done', 'pulled', 'pull complete', 'already exists', 'skipped']
+
+  if (includeSkippable) {
+    statuses.push('extracting')
+  }
+
+  return Object.values(progress).filter(o => !statuses.find(x => o.toLowerCase().includes(x)))
+}
+
 /**
  * Runs ccd compose pull to download all related images, this can take a long time and output is not available until exit.
  */
@@ -189,11 +199,8 @@ export async function ccdComposePull() {
     const progressInterval = 10
 
     const progress: { [image: string]: string } = {}
-    const doneStatuses = ['done', 'pulled', 'pull complete', 'already exists', 'skipped']
 
     let lastProgress = ''
-
-    const getLayersLeft = () => Object.values(progress).filter(o => !doneStatuses.find(x => o.toLowerCase().includes(x))).length
 
     const checkProgress = setInterval(() => {
       const progressJson = JSON.stringify(progress)
@@ -202,7 +209,7 @@ export async function ccdComposePull() {
         return temporaryLog(`./ccd compose pull - No progress has been made in the last ${noProgressFor} seconds`)
       }
       lastProgress = progressJson
-      temporaryLog(`pulling image layers... ${getLayersLeft()} in progress`)
+      temporaryLog(`pulling image layers... ${getLayersLeft(false, progress).length} in progress`)
     }, progressInterval * 1000)
 
     const cleanupAndExit = (fn: () => void) => {
@@ -217,13 +224,12 @@ export async function ccdComposePull() {
         return cleanupAndExit(() => reject(err))
       }
 
-      if (getLayersLeft()) {
-        // If one of these are not done then its possible an error occured
-        console.warn(stdout)
-        console.warn(stderr)
+      const layersLeft = getLayersLeft(true, progress)
+      if (layersLeft.length) {
         return cleanupAndExit(() => {
-          const status = `${Object.keys(progress).map(o => `${o}: ${progress[o]}`).join(EOL)}`
-          return reject(new Error(`Not all layers are at a known done status:${EOL}${status}`))
+          const status = `${Object.keys(layersLeft).map(o => `${o}: ${progress[o]}`).join(EOL)}`
+          console.warn(`Not all layers are at a known done status:${EOL}${status}`)
+          return resolve(null)
         })
       }
 
