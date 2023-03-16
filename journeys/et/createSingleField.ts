@@ -21,6 +21,7 @@ const QUESTION_PAGE_LABEL = 'Does this page have a custom title? (optional)'
 const QUESTION_PAGE_SHOW_CONDITION = 'Enter a page show condition string (optional)'
 const QUESTION_CALLBACK_URL_MID_EVENT = 'Enter the callback url to hit before loading the next page (optional)'
 const QUESTION_AUTHORISATIONS = 'Do you want to generate authorisations for this case field?'
+const QUESTION_ANOTHER = 'Do you want to upsert another CaseField?'
 
 function shouldAskEventQuestions(answers: Answers) {
   return answers[CaseEventToFieldKeys.CaseEventID] !== NONE
@@ -106,6 +107,18 @@ export async function createSingleField(answers: Answers = {}) {
   }
 
   await addonDuplicateQuestion(answers, createFn)
+
+  const followup = await prompt([{
+    name: 'another',
+    message: QUESTION_ANOTHER,
+    type: 'list',
+    choices: YES_OR_NO,
+    default: YES
+  }])
+
+  if (followup.another === YES) {
+    return createSingleField()
+  }
 }
 
 export async function addonDuplicateQuestion(answers: Answers, fn: (answers: Answers) => void) {

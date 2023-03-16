@@ -4,10 +4,10 @@ import { QUESTION_HINT_TEXT } from './createSingleField'
 import { createNewComplexType, trimCcdObject } from 'app/ccd'
 import { addToInMemoryConfig, findObject, getKnownComplexTypeIDs, Region } from 'app/et/configs'
 import { Answers, askBasicFreeEntry, askForRegularExpression, askMinAndMax, askRetainHiddenValue, fuzzySearch } from 'app/questions'
-import { CUSTOM, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, isFieldTypeInExclusionList } from 'app/constants'
+import { CUSTOM, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, isFieldTypeInExclusionList, YES, YES_OR_NO } from 'app/constants'
 import { session } from 'app/session'
 import { Journey } from 'types/journey'
-import { getIdealSizeForInquirer, matcher } from 'app/helpers'
+import { format, getIdealSizeForInquirer, matcher } from 'app/helpers'
 import { addFlexRegionToCcdObject, askComplexTypeListElementCode, askFieldType, askFieldTypeParameter, askFlexRegion, FLEX_REGION_ANSWERS_KEY, REGION_OPTS } from 'app/et/questions'
 
 const QUESTION_ID = "What's the ID of this ComplexType?"
@@ -16,6 +16,7 @@ const QUESTION_DISPLAY_ORDER = 'What\'s the DisplayOrder for this? (use 0 to lea
 const QUESTION_DISPLAY_CONTEXT_PARAMETER = 'What\'s the DisplayContextParameter for this?'
 const QUESTION_FIELD_SHOW_CONDITION = 'Enter a FieldShowCondition (optional)'
 const QUESTION_EXISTING_REGION_DIFFERENT = 'The ComplexType object in both regions are different, which one should we bring back for defaults?'
+export const QUESTION_ANOTHER = 'Would you like to add another {0} {1} entry?'
 
 /**
  * Gets the default value for FieldDisplayOrder question
@@ -73,6 +74,18 @@ export async function createComplexType(answers: Answers = {}) {
     ComplexTypes: [trimCcdObject(complexType)]
   })
 
+  const followup = await prompt([{
+    name: 'another',
+    message: format(QUESTION_ANOTHER, answers[ComplexTypeKeys.ID], 'ComplexType'),
+    type: 'list',
+    choices: YES_OR_NO,
+    default: YES
+  }])
+
+  if (followup.another === YES) {
+    return createComplexType({ [ComplexTypeKeys.ID]: answers[ComplexTypeKeys.ID] })
+  }
+
   return answers[ComplexTypeKeys.ID]
 }
 
@@ -105,7 +118,7 @@ async function prepopulateAnswersWithExistingValues(answers: Answers) {
   return obj.region === Region.EnglandWales ? ewExisting : scExisting
 }
 
-async function askForID(answers: Answers = {}, key?: string, message?: string, defaultValue?: string) {
+async function askForID(answers: Answers = {}, key?: string, message?: string, defaultValue?: string, askAnswered = false) {
   const opts = getKnownComplexTypeIDs()
   key = key || ComplexTypeKeys.ID
 
@@ -116,7 +129,8 @@ async function askForID(answers: Answers = {}, key?: string, message?: string, d
       type: 'autocomplete',
       source: (_answers: unknown, input: string) => fuzzySearch([CUSTOM, ...opts], input),
       default: defaultValue || session.lastAnswers[key],
-      pageSize: getIdealSizeForInquirer()
+      pageSize: getIdealSizeForInquirer(),
+      askAnswered
     }
   ], answers)
 
