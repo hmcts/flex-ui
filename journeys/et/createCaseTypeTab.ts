@@ -4,12 +4,10 @@ import { createNewCaseTypeTab, trimCcdObject } from 'app/ccd'
 import { createTemplate } from 'app/et/questions'
 import { addToInMemoryConfig } from 'app/et/configs'
 import { Answers } from 'app/questions'
-import { addonDuplicateQuestion } from './createSingleField'
+import { addonDuplicateQuestion, QUESTION_ANOTHER } from './createSingleField'
 import { addToLastAnswers } from 'app/session'
 import { prompt } from 'inquirer'
 import { YES, YES_OR_NO } from 'app/constants'
-
-const QUESTION_ANOTHER = 'Do you want to upsert another?'
 
 export async function createCaseTypeTab() {
   const answers = await createTemplate<unknown, CaseTypeTab>({}, CaseTypeTabKeys, createNewCaseTypeTab(), 'CaseTypeTab')

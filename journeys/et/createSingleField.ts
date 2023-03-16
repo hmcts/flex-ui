@@ -21,7 +21,7 @@ const QUESTION_PAGE_LABEL = 'Does this page have a custom title? (optional)'
 const QUESTION_PAGE_SHOW_CONDITION = 'Enter a page show condition string (optional)'
 const QUESTION_CALLBACK_URL_MID_EVENT = 'Enter the callback url to hit before loading the next page (optional)'
 const QUESTION_AUTHORISATIONS = 'Do you want to generate authorisations for this case field?'
-const QUESTION_ANOTHER = 'Do you want to upsert another CaseField?'
+export const QUESTION_ANOTHER = 'Do you want to upsert another?'
 
 function shouldAskEventQuestions(answers: Answers) {
   return answers[CaseEventToFieldKeys.CaseEventID] !== NONE

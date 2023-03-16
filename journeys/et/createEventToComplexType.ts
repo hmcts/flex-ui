@@ -1,15 +1,13 @@
 import { prompt } from 'inquirer'
 import { EventToComplexTypeKeys } from 'types/ccd'
-import { QUESTION_HINT_TEXT } from './createSingleField'
+import { QUESTION_ANOTHER, QUESTION_HINT_TEXT } from './createSingleField'
 import { createNewEventToComplexType, trimCcdObject } from 'app/ccd'
 import { addToInMemoryConfig } from 'app/et/configs'
 import { Answers, askRetainHiddenValue } from 'app/questions'
 import { addToLastAnswers, session } from 'app/session'
 import { Journey } from 'types/journey'
 import { addFlexRegionToCcdObject, askCaseEvent, askCaseFieldID, askEventToComplexTypeListElementCode, askFlexRegion } from 'app/et/questions'
-import { QUESTION_ANOTHER } from './createComplexType'
 import { YES, YES_OR_NO } from 'app/constants'
-import { format } from 'app/helpers'
 
 const QUESTION_CASE_EVENT_ID = 'What event does this belong to?'
 const QUESTION_ID = "What's the ID of this EventToComplexType?"
@@ -58,19 +56,19 @@ export async function createEventToComplexType(answers: Answers = {}) {
     EventToComplexTypes: [trimCcdObject(eventToComplexType)]
   })
 
+  addToLastAnswers(answers)
+
   const followup = await prompt([{
     name: 'another',
-    message: format(QUESTION_ANOTHER, answers[EventToComplexTypeKeys.ID], 'EventToComplexType'),
+    message: QUESTION_ANOTHER,
     type: 'list',
     choices: YES_OR_NO,
     default: YES
   }])
 
   if (followup.another === YES) {
-    return createEventToComplexType({ [EventToComplexTypeKeys.ID]: answers[EventToComplexTypeKeys.ID] })
+    return createEventToComplexType()
   }
-
-  addToLastAnswers(answers)
 }
 
 export default {
