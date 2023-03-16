@@ -109,6 +109,7 @@ export async function doCreateCaseTasks(answers: Record<string, any>) {
     try {
       await startAndWaitForCallbacksToBeReady()
     } catch (e) {
+      console.log(e.message)
       console.log(`Failed to start callbacks - aborting journey :(`)
       return
     }

@@ -47,6 +47,11 @@ async function getDefaultTasks(tasks: TASK_CHOICES) {
 }
 
 export async function configsJourney() {
+  const { stdout } = await execCommand('docker info', undefined, false)
+  if (stdout.includes("The command 'docker' could not be found")) {
+    throw new Error('Connection with docker failed, restart docker')
+  }
+
   const wslAddon = await hasWslIPChanged() ? 'RECOMMENDED - IP MISMATCH' : await isContainerRunning(WSL_UPTIME_CONTAINER_NAME) ? 'Not needed' : 'CONTAINER EXITED'
 
   const TASK_CHOICES = {
