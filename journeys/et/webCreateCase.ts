@@ -76,6 +76,13 @@ async function askCreateOrExistingCase() {
     ...await findExistingCases('ET_Scotland', cookieJar)
   ]
 
+  if (!cases.length) {
+    // There are no cases - this may or may not be truthful (known issue with exui)
+    // TODO: How does CitUI get this data?
+    console.log(`There were no cases returned by ExUI. Aborting...`)
+    return
+  }
+
   answers = await prompt([{ name: 'cases', message: 'Select a case', type: 'list', choices: cases.map(o => o.alias), pageSize: getIdealSizeForInquirer() }])
   const selectedCase = cases.find(o => o.alias === answers.cases)
   const region = selectedCase.case_fields['[CASE_TYPE]']
@@ -125,18 +132,22 @@ export async function doCreateCaseTasks(answers: Record<string, any>) {
   const cookieJar = await loginToIdam(USER, PASS)
 
   for (const region of answers.region) {
-    const caseId = answers.caseId ?? await createNewCase(region, cookieJar)
-    await executeEventsOnCase(cookieJar, caseId, region, answers.events)
+    try {
+      const caseId = answers.caseId ?? await createNewCase(region, cookieJar)
+      await executeEventsOnCase(cookieJar, caseId, region, answers.events)
 
-    if (answers.share === YES) {
-      temporaryLog(`Finializing sharing case...`)
+      if (answers.share === YES) {
+        temporaryLog(`Finializing sharing case...`)
 
-      const result = await shareACase(caseId, region)
-      if (result === 201) {
-        console.log(`✓`)
-      } else {
-        console.log(`✕ (returned ${result})`)
+        const result = await shareACase(caseId, region)
+        if (result === 201) {
+          console.log(`✓`)
+        } else {
+          console.log(`✕ (returned ${result})`)
+        }
       }
+    } catch (e) {
+      console.log(`Failed on ${region} because ${e.message}`)
     }
   }
 
