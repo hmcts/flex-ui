@@ -61,7 +61,7 @@ async function gitJourney() {
       case TASK_CHOICES.BACK:
         return
       case TASK_CHOICES.BRANCH:
-        followup = await askAutoComplete('branch', QUESTION_BRANCH, 'master', [CUSTOM, ...branchOpts], true, followup)
+        followup = await askAutoComplete('branch', QUESTION_BRANCH, 'master', [CUSTOM, ...branchOpts], true, true, followup)
         if (followup.branch === CUSTOM) {
           followup = await prompt([{ name: 'branch', message: QUESTION_BRANCH, askAnswered: true }], followup)
         }
@@ -73,7 +73,7 @@ async function gitJourney() {
         await Promise.allSettled(repos.map(async o => await commit(REPOS[o], followup.message)))
         break
       case TASK_CHOICES.DELETE:
-        followup = await askAutoComplete('branch', QUESTION_BRANCH, 'master', [CUSTOM, ...branchOpts], true, followup)
+        followup = await askAutoComplete('branch', QUESTION_BRANCH, 'master', [CUSTOM, ...branchOpts], true, true, followup)
         if (followup.branch === CUSTOM) {
           followup = await prompt([{ name: 'branch', message: QUESTION_BRANCH, askAnswered: true }], followup)
         }

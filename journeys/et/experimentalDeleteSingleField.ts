@@ -32,7 +32,7 @@ async function journey() {
 
   const idOpts = getFieldOptions(selectedCaseTypeID, selectedCaseEventID)
 
-  answers = await askAutoComplete(CaseFieldKeys.ID, QUESTION_ID_SELECT, undefined, [MULTI, ...idOpts], true, answers)
+  answers = await askAutoComplete(CaseFieldKeys.ID, QUESTION_ID_SELECT, undefined, [MULTI, ...idOpts], true, true, answers)
 
   if (answers[CaseFieldKeys.ID] === MULTI) {
     answers = await prompt([{
