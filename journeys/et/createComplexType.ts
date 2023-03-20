@@ -7,7 +7,7 @@ import { Answers, askBasicFreeEntry, askForRegularExpression, askMinAndMax, askR
 import { CUSTOM, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, isFieldTypeInExclusionList, YES, YES_OR_NO } from 'app/constants'
 import { addToLastAnswers, session } from 'app/session'
 import { Journey } from 'types/journey'
-import { format, getIdealSizeForInquirer, matcher } from 'app/helpers'
+import { getIdealSizeForInquirer, matcher } from 'app/helpers'
 import { addFlexRegionToCcdObject, askComplexTypeListElementCode, askFieldType, askFieldTypeParameter, askFlexRegion, FLEX_REGION_ANSWERS_KEY, REGION_OPTS } from 'app/et/questions'
 
 const QUESTION_ID = "What's the ID of this ComplexType?"
