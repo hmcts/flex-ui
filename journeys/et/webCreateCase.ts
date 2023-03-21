@@ -13,6 +13,7 @@ import { generateSpreadsheets, importConfigs } from './configsCommon'
 import { fixExitedContainers } from 'app/et/docker'
 import FormData from 'form-data'
 import { Answers } from 'app/questions'
+import { EOL } from 'os'
 
 type CookieJar = Record<string, string>
 
@@ -340,8 +341,10 @@ async function executeEventsOnCase(cookieJar: CookieJar, caseId: string, region:
 
     if (result === 201) {
       console.log(`✓`)
-    } else {
+    } else if (typeof (result) === 'number') {
       console.log(`✕ (returned ${result})`)
+    } else {
+      console.log(`✕ ${EOL}${result.join(EOL)}${EOL}`)
     }
   }
 }
@@ -373,7 +376,7 @@ function tryGetResource(jsonResourcePath: string, region: string) {
   throw new Error(`Could not find requested file ${genericJson} or ${regionJson}`)
 }
 
-async function postGeneric(jsonResourcePath: string, caseId: string, cookieJar: CookieJar, eventToken: string, region: string, testFileId: string) {
+async function postGeneric(jsonResourcePath: string, caseId: string, cookieJar: CookieJar, eventToken: string, region: string, testFileId: string): Promise<number | string[]> {
   const caseData = { ...require(tryGetResource(jsonResourcePath, region)), event_token: eventToken }
   const url = `${BASE_URL}/data/cases/${caseId}/events`
   const body = JSON.stringify(caseData).replace(/<FLEX_DOC_UUID>/g, testFileId)
@@ -383,6 +386,12 @@ async function postGeneric(jsonResourcePath: string, caseId: string, cookieJar: 
     body: region === 'ET_Scotland' ? body : jankConvertScotlandToEngland(body),
     headers: { 'Content-Type': 'application/json' }
   })
+
+  const json = await res.json()
+
+  if (res.status === 422) {
+    return json.details.field_errors.map(o => `${o.id} - ${o.message}`)
+  }
 
   return res.status
 }
@@ -494,14 +503,19 @@ async function findExistingCases(region: string, cookieJar: CookieJar) {
     method: 'post'
   })
 
+  if (res.status > 299) {
+    console.log(`Unexpected return when getting cases for ${region} - ${res.status} ${res.statusText}`)
+    return []
+  }
+
   const json = await res.json()
-  return json.results.map(o => {
+  return json.results?.map(o => {
     return {
       ...o,
       caseId: o.case_id,
       alias: `${o.case_fields['[CASE_TYPE]']} - ${o.case_fields.ethosCaseReference} - ${o.case_id} (${o.case_fields.claimant} vs ${o.case_fields.respondent})`
     }
-  }) as Array<Record<string, any> & { caseId: string, alias: string }>
+  }) || [] as Array<Record<string, any> & { caseId: string, alias: string }>
 }
 
 export default {

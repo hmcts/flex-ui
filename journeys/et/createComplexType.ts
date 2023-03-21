@@ -3,7 +3,7 @@ import { CaseFieldKeys, ComplexType, ComplexTypeKeys } from 'types/ccd'
 import { QUESTION_ANOTHER, QUESTION_HINT_TEXT } from './createSingleField'
 import { createNewComplexType, trimCcdObject } from 'app/ccd'
 import { addToInMemoryConfig, findObject, getKnownComplexTypeIDs, Region } from 'app/et/configs'
-import { Answers, askBasicFreeEntry, askForRegularExpression, askMinAndMax, askRetainHiddenValue, fuzzySearch } from 'app/questions'
+import { Answers, askBasicFreeEntry, askForRegularExpression, askMinAndMax, fuzzySearch } from 'app/questions'
 import { CUSTOM, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, isFieldTypeInExclusionList, YES, YES_OR_NO } from 'app/constants'
 import { addToLastAnswers, session } from 'app/session'
 import { Journey } from 'types/journey'
@@ -48,9 +48,10 @@ export async function createComplexType(answers: Answers = {}) {
     { name: ComplexTypeKeys.HintText, message: QUESTION_HINT_TEXT, type: 'input', default: existing?.HintText }
   ], answers)
 
-  if (answers[ComplexTypeKeys.FieldShowCondition]) {
-    answers = await askRetainHiddenValue(answers, undefined, undefined, existing?.RetainHiddenValue)
-  }
+  // TODO: Verify that this is not needed
+  // if (answers[ComplexTypeKeys.FieldShowCondition]) {
+  //   answers = await askRetainHiddenValue(answers, undefined, undefined, existing?.RetainHiddenValue)
+  // }
 
   answers = await askFieldType(answers, undefined, undefined, existing?.FieldType)
 
