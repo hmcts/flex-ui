@@ -34,6 +34,54 @@ export const FIELD_TYPES_EXCLUDE_MIN_MAX = [
   'DynamicRadioList'
 ]
 
+/** Pulled from https://tools.hmcts.net/confluence/display/RCCD/CCD+Supported+Field+Types */
+export const CCD_FIELD_TYPES = [
+  'Address',
+  'AddressUK',
+  'AddressGlobal',
+  'AddressGlobalUK',
+  'BaseLocation',
+  'CaseHistoryViewer',
+  'CaseLink',
+  'CaseLocation',
+  'CasePaymentHistoryViewer',
+  'ChangeOrganisationRequest',
+  'Collection',
+  'ComponentLauncher',
+  'Date',
+  'DateTime',
+  'Document',
+  'DynamicList',
+  'DynamicRadioList',
+  'DynamicMultiSelectList',
+  'Email',
+  'FixedList',
+  'FixedRadioList',
+  'Flags',
+  'FlagsDetail',
+  'FlagLauncher',
+  'JudicialUser',
+  'Label',
+  'LinkReason',
+  'MoneyGBP',
+  'MultiSelectList',
+  'Number',
+  'OrderSummary',
+  'Organisation',
+  'OrganisationPolicy',
+  'PhoneUK',
+  'Postcode',
+  'PreviousOrganisation',
+  'Region',
+  'SearchCriteria',
+  'SearchParty',
+  'Text',
+  'TextArea',
+  'TTL',
+  'WaysToPay',
+  'YesOrNo'
+]
+
 /**
  * Checks if a given field type is in the exclusion list provided
  */

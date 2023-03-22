@@ -1,5 +1,5 @@
 import { prompt } from 'inquirer'
-import { CUSTOM, NO, YES_OR_NO } from 'app/constants'
+import { CCD_FIELD_TYPES, CUSTOM, NO, YES_OR_NO } from 'app/constants'
 import { session } from 'app/session'
 import fuzzy from 'fuzzy'
 import { AllCCDKeys, CaseEventToFieldKeys, CaseField, CaseFieldKeys, ComplexType } from 'types/ccd'
@@ -11,6 +11,14 @@ const QUESTION_MIN = 'Enter a min for this field (optional)'
 const QUESTION_MAX = 'Enter a max for this field (optional)'
 const QUESTION_PAGE_ID = 'What page will this appear on?'
 const QUESTION_PAGE_FIELD_DISPLAY_ORDER = 'Whats the PageFieldDisplayOrder for this?'
+export const QUESTION_CASE_TYPE_ID = 'What\'s the CaseTypeID?'
+export const QUESTION_CASE_EVENT_ID = 'What event does this belong to?'
+export const QUESTION_CASE_FIELD_ID = 'What field does this reference?'
+export const QUESTION_LIST_ELEMENT_CODE = 'What ListElementCode does this reference?'
+export const QUESTION_FIELD_TYPE = 'What\'s the type of this field?'
+export const QUESTION_FIELD_TYPE_PARAMETER = 'What\'s the parameter for this {0} field?'
+export const QUESTION_FIELD_TYPE_PARAMETER_FREE = 'Enter a value for FieldTypeParameter'
+const QUESTION_FIELD_TYPE_FREE = 'Enter a value for FieldType'
 
 export type Answers = AllCCDKeys & Record<string, unknown>
 
@@ -125,4 +133,61 @@ export async function sayWarning(journeyFn: () => Promise<void>) {
   }
 
   return await journeyFn()
+}
+
+/**
+ * Asks the user for a CaseTypeID.
+ * @returns extended answers object as passed in
+ */
+export async function askCaseTypeID(answers: Answers = {}, key?: string, message?: string) {
+  key = key || CaseFieldKeys.CaseTypeID
+
+  answers = await prompt([
+    {
+      name: key,
+      message: message || QUESTION_CASE_TYPE_ID,
+      default: session.lastAnswers[key],
+      pageSize: getIdealSizeForInquirer()
+    }
+  ], answers)
+
+  return answers
+}
+
+export async function askCaseEvent(answers: Answers = {}, key?: string, message?: string) {
+  key = key || CaseEventToFieldKeys.CaseEventID
+
+  answers = await prompt([
+    {
+      name: key,
+      message: message || QUESTION_CASE_EVENT_ID,
+      default: session.lastAnswers[key],
+      pageSize: getIdealSizeForInquirer()
+    }
+  ], answers)
+
+  return answers
+}
+
+export async function askFieldType(answers: Answers = {}, key?: string, message?: string, defaultValue?: string) {
+  const opts = CCD_FIELD_TYPES
+  key = key || CaseFieldKeys.FieldType
+
+  answers = await prompt([
+    {
+      name: key,
+      message: message || QUESTION_FIELD_TYPE,
+      type: 'autocomplete',
+      source: (_answers: unknown, input: string) => fuzzySearch([CUSTOM, ...opts], input),
+      default: defaultValue || 'Label',
+      pageSize: getIdealSizeForInquirer()
+    }
+  ], answers)
+
+  if (answers[key] === CUSTOM) {
+    const customFieldType = await askBasicFreeEntry({}, key, QUESTION_FIELD_TYPE_FREE)
+    answers[key] = customFieldType[key]
+  }
+
+  return answers
 }
