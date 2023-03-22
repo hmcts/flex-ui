@@ -1,8 +1,8 @@
-import { prompt } from 'inquirer'
 import { findPreviousSessions, restorePreviousSession } from 'app/session'
 import { Journey } from 'types/journey'
-import { getIdealSizeForInquirer } from 'app/helpers'
 import { loadCurrentSessionIntoMemory } from 'app/et/configs'
+import { askAutoComplete } from 'app/questions'
+import { CANCEL } from 'app/constants'
 
 const QUESTION_PREVIOUS_SESSION = 'Select a previous session'
 
@@ -26,11 +26,9 @@ async function restoreSession() {
     return aDefault ? 1 : -1
   })
 
-  const answers = await prompt([
-    { name: 'name', message: QUESTION_PREVIOUS_SESSION, type: 'list', choices: ['Cancel', ...prevSessions], pageSize: getIdealSizeForInquirer() }
-  ])
+  const answers = await askAutoComplete('name', QUESTION_PREVIOUS_SESSION, CANCEL, [CANCEL, ...prevSessions], true, false)
 
-  if (answers.name === 'Cancel') {
+  if (answers.name === CANCEL) {
     return
   }
 
