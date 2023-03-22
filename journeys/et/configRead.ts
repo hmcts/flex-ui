@@ -26,5 +26,6 @@ export default {
   group: 'et-configs',
   text: getText,
   matchText,
-  fn: readConfig
+  fn: readConfig,
+  alias: 'ConfigRead'
 } as Journey

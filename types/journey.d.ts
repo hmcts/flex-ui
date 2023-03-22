@@ -9,4 +9,6 @@ export interface Journey {
   matchText?: (text: string) => boolean
   /** The main function to call to kick off the journey */
   fn?: () => Promise<unknown>
+  /** Alias of the journey to be used by FlexUI only */
+  alias: string
 }

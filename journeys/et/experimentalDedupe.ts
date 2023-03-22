@@ -103,5 +103,6 @@ function dedupeArray(arr: any[]) {
 export default {
   group: 'et-wip',
   text: '[WIP] De-duplicate fields',
-  fn: () => sayWarning(fn)
+  fn: () => sayWarning(fn),
+  alias: 'Deduplicate'
 } as Journey

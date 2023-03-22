@@ -68,5 +68,6 @@ export default {
   disabled: true,
   group: 'et-create',
   text: 'Create/Modify an Event',
-  fn: createEvent
+  fn: createEvent,
+  alias: 'UpsertEvent'
 } as Journey

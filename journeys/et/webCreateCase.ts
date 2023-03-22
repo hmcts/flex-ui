@@ -521,5 +521,6 @@ async function findExistingCases(region: string, cookieJar: CookieJar) {
 export default {
   group: 'et-web',
   text: 'Create Case / Run Case Events',
-  fn: journey
+  fn: journey,
+  alias: 'WebUpsertCase'
 } as Journey

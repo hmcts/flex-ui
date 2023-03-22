@@ -19,6 +19,10 @@ registerPrompt('autocomplete', autocomplete)
  */
 function isJourneyValid(journey: Journey, fileName: string) {
   const excludeMessage = `Excluding ${fileName.replace(__dirname, '')} because {0}`
+  if (!journey.alias) {
+    console.warn(format(excludeMessage, 'no alias property'))
+    return false
+  }
   if (typeof (journey.text) === 'function') {
     try {
       journey.text()
@@ -45,12 +49,21 @@ function isJourneyValid(journey: Journey, fileName: string) {
  * Search the journeys folder for valid journeys to use on the main menu
  */
 async function discoverJourneys() {
-  const files = (await getFiles(DIST_JOURNEY_DIR)).filter(o => o.endsWith('.js'))
-  return files.map(o => {
+  const files = [
+    ...(await getFiles(`${DIST_JOURNEY_DIR}${sep}base`)).filter(o => o.endsWith('.js')),
+    ...(await getFiles(`${DIST_JOURNEY_DIR}${sep}${process.env.TEAM}`)).filter(o => o.endsWith('.js'))
+  ]
+
+  const journeys = files.reduce((acc: Record<string, Journey>, o: any) => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const module = require(o).default
-    return module && isJourneyValid(module, o) ? module : undefined
-  }).filter(o => o && !o.disabled) as Journey[]
+    const module = require(o).default as Journey
+    if (module && isJourneyValid(module, o)) {
+      acc[module.alias] = module
+    }
+    return acc
+  }, {})
+
+  return Object.values(journeys).filter(o => !o.disabled)
 }
 
 /**
@@ -63,7 +76,7 @@ async function createMainMenuChoices(remoteJourneys: Journey[]) {
 
   choices.sort((a, b) => (a.group || 'default') > (b.group || 'default') ? -1 : 1)
 
-  const menu = [...choices]
+  const menu = [...choices] as Array<Journey | { text: unknown }>
   let addedSeparators = 0
   for (let i = 1; i < choices.length; i++) {
     const journey = choices[i]
@@ -98,7 +111,7 @@ async function initializeTeamSpecificCode() {
   const files = await getFiles(`dist${sep}${process.env.TEAM}`)
   const initFile = files.find(o => o.endsWith('init.js'))
   if (!initFile) {
-    console.error(`${initFile} file not found - No team specific initialize code will be run`)
+    console.error(`dist${sep}${process.env.TEAM}${sep}init.js file not found - No team specific initialize code will be run`)
     return
   }
 
@@ -124,7 +137,7 @@ async function start() {
 
   while (true) {
     const discovered = await discoverJourneys()
-    const choices: Journey[] = await createMainMenuChoices(discovered)
+    const choices: Array<Journey | { text: unknown }> = await createMainMenuChoices(discovered)
 
     const answers = await prompt([
       {
@@ -145,7 +158,7 @@ async function start() {
       break
     }
 
-    const selectedFn = findSelectedJourney(choices, answers.Journey)
+    const selectedFn = findSelectedJourney(choices as Journey[], answers.Journey)
 
     if (!selectedFn) {
       throw new Error(`Unable to find a function for "${answers.Journey}"`)

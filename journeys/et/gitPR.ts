@@ -93,5 +93,6 @@ export default {
   disabled: true,
   group: 'et-git',
   text: 'Open a PR from a branch',
-  fn: openPRJourney
+  fn: openPRJourney,
+  alias: 'GitPR'
 } as Journey

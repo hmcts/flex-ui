@@ -148,5 +148,6 @@ export default {
   disabled: true,
   group: 'et-create',
   text: 'Create/Modify a ComplexType',
-  fn: createComplexType
+  fn: createComplexType,
+  alias: 'UpsertComplexTyoe'
 } as Journey

@@ -163,7 +163,8 @@ function getText() {
 
 export default {
   disabled: true,
-  group: 'et-session',
+  group: 'session',
   text: getText,
-  fn: splitSession
+  fn: splitSession,
+  alias: 'SessionSplit'
 } as Journey

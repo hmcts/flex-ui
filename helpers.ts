@@ -24,6 +24,9 @@ export function ensurePathExists(dir: string) {
  * Recursively reads files in a directory. Returns as an array of files relative to the start dir
  */
 export async function getFiles(dir: string): Promise<string[]> {
+  if (!existsSync(dir)) {
+    return []
+  }
   const dirents = await readdir(dir, { withFileTypes: true })
   const files: unknown[] = await Promise.all(dirents.map((dirent: Dirent) => {
     const res = resolve(dir, dirent.name)

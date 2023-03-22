@@ -22,5 +22,6 @@ export default {
   disabled: true,
   group: 'et-create',
   text: 'Create/Modify a CaseEventToField',
-  fn: createCaseEventToFieldJourney
+  fn: createCaseEventToFieldJourney,
+  alias: 'UpsertCaseEventToField'
 } as Journey

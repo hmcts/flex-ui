@@ -8,7 +8,8 @@ async function newSession() {
 }
 
 export default {
-  group: 'et-session',
+  group: 'session',
   text: 'Create new session',
-  fn: newSession
+  fn: newSession,
+  alias: 'SessionNew'
 } as Journey

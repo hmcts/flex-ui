@@ -64,5 +64,6 @@ function isComplexTypeReferencedInRegion(ccd: ConfigSheets, complexType: Complex
 export default {
   group: 'et-wip',
   text: '[WIP] Find Unreferenced Objects',
-  fn: () => sayWarning(journey)
+  fn: () => sayWarning(journey),
+  alias: 'FindUnreferencedObjects'
 } as Journey

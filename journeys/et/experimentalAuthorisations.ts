@@ -168,5 +168,6 @@ function mapCrudToWords(crud: string) {
 export default {
   group: 'et-wip',
   text: '[WIP] Change authorisations',
-  fn: () => sayWarning(changeAuthorisations)
+  fn: () => sayWarning(changeAuthorisations),
+  alias: 'ChangeAuthorisation'
 } as Journey

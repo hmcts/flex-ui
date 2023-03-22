@@ -23,7 +23,8 @@ function getText() {
 }
 
 export default {
-  group: 'et-session',
+  group: 'session',
   text: getText,
-  fn: setSessionName
+  fn: setSessionName,
+  alias: 'SessionName'
 } as Journey

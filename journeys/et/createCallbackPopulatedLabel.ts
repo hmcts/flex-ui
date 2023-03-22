@@ -77,5 +77,6 @@ export default {
   disabled: true,
   group: 'et-create',
   text: 'Create/Modify a callback-populated label',
-  fn: createCallbackPopulatedLabel
+  fn: createCallbackPopulatedLabel,
+  alias: 'CreateCallbackPopulatedLabel'
 } as Journey

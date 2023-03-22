@@ -165,5 +165,6 @@ export default {
   disabled: true,
   group: 'et-create',
   text: 'Create/Modify a single field',
-  fn: createSingleField
+  fn: createSingleField,
+  alias: 'UpsertCaseField'
 } as Journey

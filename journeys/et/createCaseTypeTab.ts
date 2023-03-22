@@ -42,5 +42,6 @@ export default {
   disabled: true,
   group: 'et-create',
   text: 'Create/Modify a CaseTypeTab',
-  fn: createCaseTypeTab
+  fn: createCaseTypeTab,
+  alias: 'UpsertCaseTypeTab'
 } as Journey

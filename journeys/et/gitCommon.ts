@@ -237,5 +237,6 @@ async function status(path: string) {
 export default {
   group: 'et-git',
   text: 'Git(hub) commands',
-  fn: gitJourney
+  fn: gitJourney,
+  alias: 'GitCommon'
 } as Journey

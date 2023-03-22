@@ -74,5 +74,6 @@ export default {
   disabled: true,
   group: 'et-create',
   text: 'Create/Modify a scrubbed list',
-  fn: createScrubbed
+  fn: createScrubbed,
+  alias: 'UpsertFixedList'
 } as Journey

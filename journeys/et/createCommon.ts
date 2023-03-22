@@ -9,7 +9,7 @@ import { createCallbackPopulatedLabel } from './createCallbackPopulatedLabel'
 import { createScrubbed } from './createScrubbed'
 import { createCaseEventToFieldJourney } from './createCaseEventToField'
 import { isCurrentSessionEmpty, saveSession, session } from 'app/session'
-import { setSessionName } from './sessionSetName'
+import { setSessionName } from '../base/sessionSetName'
 import { prompt } from 'inquirer'
 import { YES, YES_OR_NO } from 'app/constants'
 
@@ -88,5 +88,6 @@ async function conditionalAskForSessionName() {
 export default {
   group: 'et-create',
   text: 'Upsert a CCD Type...',
-  fn: createJourney
+  fn: createJourney,
+  alias: 'UpsertCommon'
 } as Journey

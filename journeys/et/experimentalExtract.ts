@@ -81,5 +81,6 @@ async function askFields() {
 export default {
   group: 'et-wip',
   text: '[WIP] Extract fields',
-  fn: () => sayWarning(askFields)
+  fn: () => sayWarning(askFields),
+  alias: 'Extract'
 } as Journey

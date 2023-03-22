@@ -76,5 +76,6 @@ export default {
   disabled: true,
   group: 'et-create',
   text: 'Create/Modify an EventToComplexType',
-  fn: createEventToComplexType
+  fn: createEventToComplexType,
+  alias: 'UpsertEventToComplexType'
 } as Journey
