@@ -1,5 +1,5 @@
 import { prompt } from 'inquirer'
-import { addToLastAnswers, session } from 'app/session'
+import { addToLastAnswers, saveSession, session } from 'app/session'
 import { CaseEventToField, CaseEventToFieldKeys, CaseField, CaseFieldKeys } from 'types/ccd'
 import { Answers, askAutoComplete, askForPageFieldDisplayOrder, askForPageID, askForRegularExpression, askMinAndMax, askRetainHiddenValue } from 'app/questions'
 import { CUSTOM, DISPLAY_CONTEXT_OPTIONS, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, isFieldTypeInExclusionList, NO, NONE, NO_DUPLICATE, YES, YES_OR_NO, Y_OR_N } from 'app/constants'
@@ -117,6 +117,7 @@ export async function createSingleField(answers: Answers = {}) {
   }])
 
   if (followup.another === YES) {
+    saveSession(session)
     return createSingleField()
   }
 }

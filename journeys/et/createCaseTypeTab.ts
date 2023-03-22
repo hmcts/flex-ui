@@ -5,7 +5,7 @@ import { createTemplate } from 'app/et/questions'
 import { addToInMemoryConfig } from 'app/et/configs'
 import { Answers } from 'app/questions'
 import { addonDuplicateQuestion, QUESTION_ANOTHER } from './createSingleField'
-import { addToLastAnswers } from 'app/session'
+import { addToLastAnswers, saveSession, session } from 'app/session'
 import { prompt } from 'inquirer'
 import { YES, YES_OR_NO } from 'app/constants'
 
@@ -33,6 +33,7 @@ export async function createCaseTypeTab() {
   }])
 
   if (followup.another === YES) {
+    saveSession(session)
     return createCaseTypeTab()
   }
 }

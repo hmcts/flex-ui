@@ -4,7 +4,7 @@ import { QUESTION_ANOTHER, QUESTION_HINT_TEXT } from './createSingleField'
 import { createNewEventToComplexType, trimCcdObject } from 'app/ccd'
 import { addToInMemoryConfig } from 'app/et/configs'
 import { Answers, askRetainHiddenValue } from 'app/questions'
-import { addToLastAnswers, session } from 'app/session'
+import { addToLastAnswers, saveSession, session } from 'app/session'
 import { Journey } from 'types/journey'
 import { addFlexRegionToCcdObject, askCaseEvent, askCaseFieldID, askEventToComplexTypeListElementCode, askFlexRegion } from 'app/et/questions'
 import { YES, YES_OR_NO } from 'app/constants'
@@ -67,6 +67,7 @@ export async function createEventToComplexType(answers: Answers = {}) {
   }])
 
   if (followup.another === YES) {
+    saveSession(session)
     return createEventToComplexType()
   }
 }

@@ -5,7 +5,7 @@ import { createNewComplexType, trimCcdObject } from 'app/ccd'
 import { addToInMemoryConfig, findObject, getKnownComplexTypeIDs, Region } from 'app/et/configs'
 import { Answers, askBasicFreeEntry, askForRegularExpression, askMinAndMax, fuzzySearch } from 'app/questions'
 import { CUSTOM, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, isFieldTypeInExclusionList, YES, YES_OR_NO } from 'app/constants'
-import { addToLastAnswers, session } from 'app/session'
+import { addToLastAnswers, saveSession, session } from 'app/session'
 import { Journey } from 'types/journey'
 import { getIdealSizeForInquirer, matcher } from 'app/helpers'
 import { addFlexRegionToCcdObject, askComplexTypeListElementCode, askFieldType, askFieldTypeParameter, askFlexRegion, FLEX_REGION_ANSWERS_KEY, REGION_OPTS } from 'app/et/questions'
@@ -85,6 +85,7 @@ export async function createComplexType(answers: Answers = {}) {
   }])
 
   if (followup.another === YES) {
+    saveSession(session)
     return createComplexType()
   }
 
