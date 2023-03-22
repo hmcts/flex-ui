@@ -32,18 +32,6 @@ async function getCurrentBranchName(dir: string) {
   return stdout.replace('\n', '')
 }
 
-function getRepoDir(repo: string) {
-  if (repo.includes('et-ccd-definitions-englandwales')) {
-    return process.env.ENGWALES_DEF_DIR
-  }
-
-  if (repo.includes('et-ccd-definitions-scotland')) {
-    return process.env.SCOTLAND_DEF_DIR
-  }
-
-  return process.env.ET_CCD_CALLBACKS_DIR
-}
-
 export async function openPRJourney(answers: any = {}) {
   const REPOS = await getRepoOpts()
 
@@ -55,8 +43,10 @@ export async function openPRJourney(answers: any = {}) {
     return
   }
 
+  const branchName = await getCurrentBranchName(REPOS[answers.repos[0]])
+
   answers = await prompt([
-    { name: 'ticket', message: QUESTION_TICKET_NUMBER, default: await getCurrentBranchName(REPOS[answers.repos[0]]) },
+    { name: 'ticket', message: QUESTION_TICKET_NUMBER, default: /\d+/g.exec(branchName)?.[0] || branchName },
     { name: 'title', message: QUESTION_TITLE },
     { name: 'base', message: QUESTION_BASE_BRANCH, default: 'master' }
   ], answers)
@@ -72,7 +62,7 @@ export async function openPRJourney(answers: any = {}) {
     .replace('%NO%', answers.breaking === 'No' ? 'x' : '')
 
   await Promise.allSettled(answers.repos.map(async o => {
-    const currentBranchName = await getCurrentBranchName(getRepoDir(o))
+    const currentBranchName = await getCurrentBranchName(REPOS[o])
     const command = `gh pr create --title "RET-${answers.ticket}: ${answers.title}" --head ${currentBranchName} --base ${answers.base} --body '${content}'`
     console.log(command)
     await openPRFor(command, REPOS[o])
@@ -91,7 +81,7 @@ async function openPRFor(command: string, dir: string) {
 
 export default {
   disabled: true,
-  group: 'et-git',
+  group: 'git',
   text: 'Open a PR from a branch',
   fn: openPRJourney,
   alias: 'GitPR'
