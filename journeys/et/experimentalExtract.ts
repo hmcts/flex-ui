@@ -1,9 +1,9 @@
 import { prompt } from 'inquirer'
 import { session, saveSession, addToSession } from 'app/session'
 import { Journey } from 'types/journey'
-import { getKnownCaseFieldIDsByEvent, getRegionFromCaseTypeId, Region, getEnglandWales, getScotland, addToConfig } from 'app/et/configs'
-import { Answers, askAutoComplete, sayWarning } from 'app/questions'
-import { addFlexRegionToCcdObject, askCaseEvent, askCaseTypeID, FLEX_REGION_ANSWERS_KEY } from 'app/et/questions'
+import { getKnownETCaseFieldIDsByEvent, getRegionFromCaseTypeId, Region, getEnglandWales, getScotland, addToConfig } from 'app/et/configs'
+import { Answers, askAutoComplete, askCaseEvent, askCaseTypeID, sayWarning } from 'app/questions'
+import { addFlexRegionToCcdObject, FLEX_REGION_ANSWERS_KEY } from 'app/et/questions'
 import { CaseEventToFieldKeys, CaseFieldKeys, createNewConfigSheets } from 'app/types/ccd'
 import { MULTI, NONE } from 'app/constants'
 import { getObjectsReferencedByCaseFields } from 'app/et/duplicateCaseField'
@@ -22,7 +22,7 @@ function getFieldOptions(caseTypeID: string, caseEventID: string) {
     return fields.map(o => o.ID)
   }
 
-  return getKnownCaseFieldIDsByEvent(caseEventID)
+  return getKnownETCaseFieldIDsByEvent(caseEventID)
 }
 
 async function extractFieldsAndDependants(region: Region, fieldIDs: string[]) {
@@ -46,7 +46,7 @@ async function askFields() {
   let answers: Answers = {}
 
   answers = await askCaseTypeID(answers)
-  answers = await askCaseEvent(answers, undefined, undefined, [ALL, NONE])
+  answers = await askCaseEvent(answers, undefined, undefined, [ALL, NONE], false)
 
   const selectedCaseTypeID = answers[CaseFieldKeys.CaseTypeID]
   const region = getRegionFromCaseTypeId(selectedCaseTypeID)

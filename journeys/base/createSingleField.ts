@@ -1,13 +1,11 @@
 import { prompt } from 'inquirer'
-import { addToLastAnswers, saveSession, session } from 'app/session'
+import { addToLastAnswers, addToSession, saveSession, session } from 'app/session'
 import { CaseEventToField, CaseEventToFieldKeys, CaseField, CaseFieldKeys } from 'types/ccd'
 import { Answers, askAutoComplete, askCaseEvent, askCaseTypeID, askDuplicate, askFieldType, askFieldTypeParameter, askForPageFieldDisplayOrder, askForPageID, askForRegularExpression, askMinAndMax, askRetainHiddenValue } from 'app/questions'
-import { CUSTOM, DISPLAY_CONTEXT_OPTIONS, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, isFieldTypeInExclusionList, NO, NONE, NO_DUPLICATE, YES, YES_OR_NO, Y_OR_N } from 'app/constants'
-import { addToInMemoryConfig, createCaseFieldAuthorisations, findETObject, getKnownETCaseFieldIDsByEvent, getNextPageFieldIDForPageET } from 'app/et/configs'
+import { CUSTOM, DISPLAY_CONTEXT_OPTIONS, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, isFieldTypeInExclusionList, NONE, NO_DUPLICATE, YES, YES_OR_NO, Y_OR_N } from 'app/constants'
 import { createNewCaseEventToField, createNewCaseField, trimCaseEventToField, trimCaseField } from 'app/ccd'
 import { Journey } from 'types/journey'
-import { createEvent } from './createEvent'
-import { createScrubbed } from './createScrubbed'
+import { findObject, getKnownCaseFieldIDsByEvent, getNextPageFieldIDForPage } from 'app/configs'
 
 export const QUESTION_ID = 'What\'s the ID for this field?'
 export const QUESTION_ANOTHER = 'Do you want to upsert another?'
@@ -21,7 +19,6 @@ const QUESTION_SHOW_SUMMARY_CHANGE_OPTION = 'Should this field appear on the CYA
 const QUESTION_PAGE_LABEL = 'Does this page have a custom title? (optional)'
 const QUESTION_PAGE_SHOW_CONDITION = 'Enter a page show condition string (optional)'
 const QUESTION_CALLBACK_URL_MID_EVENT = 'Enter the callback url to hit before loading the next page (optional)'
-const QUESTION_AUTHORISATIONS = 'Do you want to generate authorisations for this case field?'
 
 function shouldAskEventQuestions(answers: Answers) {
   return answers[CaseEventToFieldKeys.CaseEventID] !== NONE
@@ -29,9 +26,9 @@ function shouldAskEventQuestions(answers: Answers) {
 
 export async function createSingleField(answers: Answers = {}) {
   answers = await askCaseTypeID(answers)
-  answers = await askCaseEvent(answers, undefined, QUESTION_CASE_EVENT_ID, [NONE], true, createEvent)
+  answers = await askCaseEvent(answers, undefined, QUESTION_CASE_EVENT_ID, [NONE])
 
-  const idOpts = getKnownETCaseFieldIDsByEvent(answers[CaseEventToFieldKeys.CaseEventID])
+  const idOpts = getKnownCaseFieldIDsByEvent(answers[CaseEventToFieldKeys.CaseEventID])
 
   answers = await askAutoComplete(CaseFieldKeys.ID, QUESTION_ID, CUSTOM, [CUSTOM, ...idOpts], false, true, answers)
 
@@ -39,8 +36,8 @@ export async function createSingleField(answers: Answers = {}) {
     answers = await prompt([{ name: CaseFieldKeys.ID, message: QUESTION_ID, type: 'input', default: 'id', askAnswered: true }], answers)
   }
 
-  const existingField: CaseField | undefined = findETObject<CaseField>(answers, 'CaseField')
-  const existingCaseEventToField: CaseEventToField | undefined = findETObject<CaseEventToField>({ ...answers, CaseFieldID: answers.ID }, 'CaseEventToFields')
+  const existingField: CaseField | undefined = findObject<CaseField>(answers, 'CaseField')
+  const existingCaseEventToField: CaseEventToField | undefined = findObject<CaseEventToField>({ ...answers, CaseFieldID: answers.ID }, 'CaseEventToFields')
 
   answers = await prompt(
     [
@@ -59,7 +56,7 @@ export async function createSingleField(answers: Answers = {}) {
   answers = await askFieldType(answers, undefined, undefined, existingField?.FieldType)
 
   if (!isFieldTypeInExclusionList(answers[CaseFieldKeys.FieldType], FIELD_TYPES_EXCLUDE_PARAMETER)) {
-    answers = await askFieldTypeParameter(answers, undefined, undefined, existingField?.FieldTypeParameter, createScrubbed)
+    answers = await askFieldTypeParameter(answers, undefined, undefined, existingField?.FieldTypeParameter)
   }
 
   if (answers[CaseFieldKeys.FieldType] !== 'Label') {
@@ -86,20 +83,17 @@ export async function createSingleField(answers: Answers = {}) {
     answers = await askRetainHiddenValue(answers, undefined, undefined, existingCaseEventToField?.RetainHiddenValue)
   }
 
-  if (existingField) {
-    answers = await prompt([{ name: 'authorisations', message: QUESTION_AUTHORISATIONS, type: 'list', choices: YES_OR_NO, default: NO }], answers)
-  } else {
-    answers.authorisations = YES
-  }
-
   addToLastAnswers(answers)
 
   const createFn = (answers: Answers) => {
     const caseField = createNewCaseField(answers)
     const caseEventToField = askEvent ? createNewCaseEventToField(answers) : undefined
-    const authorisations = answers.authorisations === YES ? createCaseFieldAuthorisations(answers.CaseTypeID, answers.ID) : []
 
-    addToInMemoryConfig({
+    // ET creates authorisations here - this is highly specific code so teams implementing this will
+    // need to provide their own journey for this. See journeys/et/createSingleField for an example.
+    const authorisations = []
+
+    addToSession({
       AuthorisationCaseField: authorisations,
       CaseField: [trimCaseField(caseField)],
       CaseEventToFields: askEvent ? [trimCaseEventToField(caseEventToField)] : []
@@ -141,7 +135,7 @@ function getDefaultForPageFieldDisplayOrder(answers: Answers = {}) {
   const pageID = CaseEventToFieldKeys.PageID
   const pageFieldDisplayOrder = CaseEventToFieldKeys.PageFieldDisplayOrder
   if (answers[pageID] && answers[CaseEventToFieldKeys.CaseEventID] && answers[CaseEventToFieldKeys.CaseTypeID]) {
-    return getNextPageFieldIDForPageET(
+    return getNextPageFieldIDForPage(
       answers[CaseEventToFieldKeys.CaseTypeID],
       answers[CaseEventToFieldKeys.CaseEventID],
       answers[pageID]

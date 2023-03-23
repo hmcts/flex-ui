@@ -1,7 +1,7 @@
+import { getKnownScrubbedLists, sheets } from 'app/configs'
 import { CUSTOM, YES_OR_NO } from 'app/constants'
-import { addToInMemoryConfig, getConfigSheetsFromFlexRegion, getKnownETScrubbedLists } from 'app/et/configs'
-import { addFlexRegionToCcdObject, askFlexRegion, getFlexRegionFromAnswers } from 'app/et/questions'
 import { Answers, askAutoComplete } from 'app/questions'
+import { addToSession } from 'app/session'
 import { prompt } from 'inquirer'
 import { Scrubbed, ScrubbedKeys } from 'types/ccd'
 import { Journey } from 'types/journey'
@@ -13,7 +13,7 @@ const QUESTION_DISPLAY_ORDER = 'Whats the DisplayOrder for this item?'
 const QUESTION_ADD_ANOTHER = 'Add another?'
 
 export async function createScrubbed(answers: Answers = {}) {
-  const opts = getKnownETScrubbedLists()
+  const opts = getKnownScrubbedLists()
 
   answers = await askAutoComplete(ScrubbedKeys.ID, QUESTION_ID, CUSTOM, [CUSTOM, ...opts], false, true, answers)
 
@@ -25,7 +25,6 @@ export async function createScrubbed(answers: Answers = {}) {
 
   let x = 0
   while (answers.More !== 'No') {
-    answers = await askFlexRegion(undefined, undefined, undefined, answers)
     if (!x) {
       x = getLastDisplayOrderInScrubbed(answers)
     }
@@ -51,12 +50,10 @@ export async function createScrubbed(answers: Answers = {}) {
       DisplayOrder: answers.DisplayOrder
     }
 
-    addFlexRegionToCcdObject(obj, answers)
-
     createdItems.push(obj)
   }
 
-  addToInMemoryConfig({
+  addToSession({
     Scrubbed: createdItems
   })
 
@@ -64,8 +61,7 @@ export async function createScrubbed(answers: Answers = {}) {
 }
 
 function getLastDisplayOrderInScrubbed(answers: Answers) {
-  const selectedRegions = getFlexRegionFromAnswers(answers)
-  const existingObjs = getConfigSheetsFromFlexRegion(selectedRegions).Scrubbed.filter(o => o.ID === answers.ID)
+  const existingObjs = sheets.Scrubbed.filter(o => o.ID === answers.ID)
   const descendingSorted = existingObjs.sort((a, b) => a.DisplayOrder > b.DisplayOrder ? -1 : 1)
   return descendingSorted[0]?.DisplayOrder || 0
 }

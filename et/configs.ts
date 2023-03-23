@@ -1,9 +1,10 @@
 import { readFileSync, writeFileSync } from 'fs'
 import { sep } from 'path'
-import { findLastIndex, format, getUniqueByKey, getUniqueByKeyAsArray, groupBy, removeFields, upsertFields } from 'app/helpers'
+import { findLastIndex, format, removeFields, upsertFields } from 'app/helpers'
 import { addToSession, session } from 'app/session'
 import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventKeys, CaseEventToField, CaseEventToFieldKeys, CaseField, CaseTypeTab, CaseTypeTabKeys, CCDSheets, CCDTypes, ComplexType, ConfigSheets, createNewConfigSheets, EventToComplexType, EventToComplexTypeKeys, FlexExtensions, Scrubbed, ScrubbedKeys, sheets } from 'types/ccd'
-import { COMPOUND_KEYS, NONE } from 'app/constants'
+import { COMPOUND_KEYS } from 'app/constants'
+import { findObject, getCaseEventIDOpts, getKnownCaseFieldIDs, getKnownCaseFieldIDsByEvent, getKnownCaseFieldTypeParameters, getKnownCaseFieldTypes, getKnownCaseTypeIDs, getKnownComplexTypeIDs, getKnownComplexTypeListElementCodes, getKnownScrubbedLists, getNextPageFieldIDForPage, sheets as genericConfigSheets } from 'app/configs'
 
 let readTime = 0
 let englandwales: ConfigSheets
@@ -113,31 +114,14 @@ export function getConfigSheetsFromFlexRegion(flexRegion: Region[]) {
   return createNewConfigSheets()
 }
 
-export function findObject<T>(keys: Record<string, any>, sheetName: keyof CCDTypes, region?: Region): T | undefined {
+export function findETObject<T>(keys: Record<string, any>, sheetName: keyof CCDTypes, region?: Region): T | undefined {
   const ccd = region === Region.EnglandWales
     ? getEnglandWales()
     : region === Region.Scotland
       ? getScotland()
       : getCombinedSheets()
 
-  const arr = ccd[sheetName] as Array<Record<string, any>>
-  const keysThatMatter = COMPOUND_KEYS[sheetName] as string[]
-  const found = arr.find(o => {
-    for (const key in keys) {
-      if (!keysThatMatter.includes(key)) {
-        continue
-      }
-
-      if (keys[key] && !Number.isNaN(keys[key]) && o[key] !== keys[key]) {
-        return false
-      }
-    }
-    return true
-  })
-
-  if (found) {
-    return found as T
-  }
+  return findObject<T>(keys, sheetName, ccd)
 }
 
 /**
@@ -157,101 +141,88 @@ export function getRegionFromCaseTypeId(caseTypeID: string) {
 }
 
 /**
+ * @deprecated Use generic method in root/configs.ts
  * Get all defined CaseEvent IDs in englandwales and scotland configs
  */
-export function getCaseEventIDOpts() {
-  return getUniqueByKeyAsArray([...englandwales.CaseEvent, ...scotland.CaseEvent], 'ID')
+export function getETCaseEventIDOpts() {
+  return getCaseEventIDOpts(getCombinedSheets())
 }
 
 /**
+ * @deprecated Use generic method in root/configs.ts
  * Get all currently known FieldType IDs in englandwales and scotland configs (FieldTypes that are referenced by at least one CaseField)
  */
-export function getKnownCaseFieldTypes() {
-  const knownFieldTypes = [...englandwales.CaseField, ...scotland.CaseField].map(o => o.FieldType)
-  const knownComplexTypes = [...englandwales.ComplexTypes, ...scotland.ComplexTypes].map(o => o.ID)
-  return Object.keys(groupBy([...knownFieldTypes, ...knownComplexTypes]))
+export function getKnownETCaseFieldTypes() {
+  return getKnownCaseFieldTypes(getCombinedSheets())
 }
 
 /**
- * Gets (most) options for FieldTypeParameters in englandwales and scotland configs by looking at existing CaseField FieldTypeParameters and getting all scrubbed ID options
- * TOOD: When ComplexTypes JSON support is added. Add it here
+ * @deprecated Use generic method in root/configs.ts
+ * Gets possible FieldTypeParameters by collecting
+ *  * FieldTypeParameters refereced in other CaseFields
+ *  * Available FixedList IDs
+ *  * Available ComplexType IDs
+ *  * Known CCD Field Types as defined on Confluence
  */
-export function getKnownCaseFieldTypeParameters() {
-  const inUse = getUniqueByKey([...englandwales.CaseField, ...scotland.CaseField], 'FieldTypeParameter')
-  const scrubbed = getUniqueByKey([...englandwales.Scrubbed, ...scotland.Scrubbed], 'ID')
-  return Object.keys({ ...inUse, ...scrubbed })
+export function getKnownETCaseFieldTypeParameters() {
+  return getKnownCaseFieldTypeParameters(getCombinedSheets())
 }
 
 /**
+ * @deprecated Use generic method in root/configs.ts
  * Get all defined Scrubbed IDs in englandwales and scotland configs
  */
-export function getKnownScrubbedLists() {
-  return getUniqueByKeyAsArray([...englandwales.Scrubbed, ...scotland.Scrubbed], 'ID')
+export function getKnownETScrubbedLists() {
+  return getKnownScrubbedLists(getCombinedSheets())
 }
 
 /**
+ * @deprecated Use generic method in root/configs.ts
  * Get all defined CaseType IDs in englandwales and scotland configs
  */
-export function getKnownCaseTypeIDs() {
-  return getUniqueByKeyAsArray([...englandwales.CaseField, ...scotland.CaseField], 'CaseTypeID')
+export function getKnownETCaseTypeIDs() {
+  return getKnownCaseTypeIDs(getCombinedSheets())
 }
 
 /**
+ * @deprecated Use generic method in root/configs.ts
  * Get all defined CaseField IDs in englandwales and scotland configs
  */
-export function getKnownCaseFieldIDs(filter?: (obj: CaseField) => CaseField[]) {
-  const arr = [...englandwales.CaseField, ...scotland.CaseField]
-  return getUniqueByKeyAsArray(filter ? arr.filter(filter) : arr, 'ID')
+export function getKnownETCaseFieldIDs(filter?: (obj: CaseField) => CaseField[]) {
+  return getKnownCaseFieldIDs(getCombinedSheets(), filter)
 }
 
 /**
+ * @deprecated Use generic method in root/configs.ts
  * Get all defined CaseField IDs in englandwales and scotland configs on an event
  */
-export function getKnownCaseFieldIDsByEvent(caseEventId?: string, regions: Region[] = [Region.EnglandWales, Region.Scotland]) {
-  let arr = []
-
-  if (regions.includes(Region.EnglandWales)) {
-    arr = [...englandwales.CaseField]
-  }
-
-  if (regions.includes(Region.Scotland)) {
-    arr = arr.concat(scotland.CaseField)
-  }
-
-  const byEventId = (obj: CaseEventToField) => obj.CaseEventID === caseEventId
-
-  const allCaseEventToFields = [...englandwales.CaseEventToFields, ...scotland.CaseEventToFields]
-  const fieldToEvent = allCaseEventToFields.filter(byEventId)
-  const subsetFields = caseEventId === NONE ?
-    arr.filter(o => !allCaseEventToFields.some(x => o.ID === x.CaseFieldID))
-    : arr.filter(o => fieldToEvent.find(x => x.CaseFieldID === o.ID))
-
-  return getUniqueByKeyAsArray(subsetFields, 'ID')
+export function getKnownETCaseFieldIDsByEvent(caseEventId?: string, regions: Region[] = [Region.EnglandWales, Region.Scotland]) {
+  return getKnownCaseFieldIDsByEvent(caseEventId, getConfigSheetsFromFlexRegion(regions))
 }
 
 /**
+ * @deprecated Use generic method in root/configs.ts
  * Get all defined ComplexType IDs in englandwales and scotland configs
  */
-export function getKnownComplexTypeIDs() {
-  return getUniqueByKeyAsArray([...englandwales.ComplexTypes, ...scotland.ComplexTypes], 'ID')
+export function getKnownETComplexTypeIDs() {
+  return getKnownComplexTypeIDs(getCombinedSheets())
 }
 
 /**
+ * @deprecated Use generic method in root/configs.ts
  * Get all defined ComplexType IDs in englandwales and scotland configs
  */
-export function getKnownComplexTypeListElementCodes(id: string) {
-  const complexTypesOfID = [...englandwales.ComplexTypes.filter(o => o.ID === id), ...scotland.ComplexTypes.filter(o => o.ID === id)]
-  return getUniqueByKeyAsArray(complexTypesOfID, 'ListElementCode')
+export function getKnownETComplexTypeListElementCodes(id: string) {
+  return getKnownComplexTypeListElementCodes(id, getCombinedSheets())
 }
 
 /**
+ * @deprecated Use generic method in root/configs.ts
  * Gets the highest PageFieldDisplayOrder number from fields on a certain page
  */
-export function getNextPageFieldIDForPage(caseTypeID: string, caseEventID: string, pageID: number) {
+export function getNextPageFieldIDForPageET(caseTypeID: string, caseEventID: string, pageID: number) {
   const region = getConfigSheetsForCaseTypeID(caseTypeID)
-  const fieldsOnPage = region.CaseEventToFields.filter(o => o.CaseEventID === caseEventID && o.PageID === pageID)
-  const fieldOrders = fieldsOnPage.map(o => Number(o.PageFieldDisplayOrder))
-  return fieldsOnPage.length ? Math.max(...fieldOrders) + 1 : 1
+  return getNextPageFieldIDForPage(caseTypeID, caseEventID, pageID, region)
 }
 
 export function getConfigSheetName(region: Region, configSheet: keyof (ConfigSheets)) {
@@ -268,6 +239,7 @@ export function readInCurrentConfig() {
   const builder = (envVar: string, region: Region) => {
     return sheets.reduce<Partial<ConfigSheets>>((acc, sheetName) => {
       acc[sheetName] = getJson(envVar, getConfigSheetName(region, sheetName))
+      genericConfigSheets[sheetName] = [...genericConfigSheets[sheetName], ...acc[sheetName]] as any[]
       return acc
     }, {}) as ConfigSheets
   }
@@ -550,6 +522,30 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
   })
 
   addToConfig(scotland, {
+    AuthorisationCaseEvent: scAuthorisationCaseEvents,
+    AuthorisationCaseField: scAuthorisationCaseFields,
+    CaseEvent: scCaseEvents,
+    CaseEventToFields: scCaseEventToFields,
+    CaseField: scCaseFields,
+    CaseTypeTab: scCaseTypeTabs,
+    ComplexTypes: scComplexTypes,
+    EventToComplexTypes: scEventToComplexTypes,
+    Scrubbed: scScrubbed
+  })
+
+  addToConfig(genericConfigSheets, {
+    AuthorisationCaseEvent: ewAuthorisationCaseEvents,
+    AuthorisationCaseField: ewAuthorisationCaseFields,
+    CaseEvent: ewCaseEvents,
+    CaseEventToFields: ewCaseEventToFields,
+    CaseField: ewCaseFields,
+    CaseTypeTab: ewCaseTypeTabs,
+    ComplexTypes: ewComplexTypes,
+    EventToComplexTypes: ewEventToComplexTypes,
+    Scrubbed: ewScrubbed
+  })
+
+  addToConfig(genericConfigSheets, {
     AuthorisationCaseEvent: scAuthorisationCaseEvents,
     AuthorisationCaseField: scAuthorisationCaseFields,
     CaseEvent: scCaseEvents,

@@ -2,10 +2,11 @@ import { prompt } from 'inquirer'
 import { Journey } from 'types/journey'
 import { Answers, askCaseEvent, askCaseTypeID } from 'app/questions'
 import { createNewCaseEvent } from 'app/ccd'
-import { addToInMemoryConfig, createCaseEventAuthorisations, findETObject } from 'app/et/configs'
-import { NEW, NO, YES, YES_OR_NO, Y_OR_N } from 'app/constants'
+import { NEW, Y_OR_N } from 'app/constants'
 import { CaseEvent, CaseEventKeys } from 'app/types/ccd'
 import { addonDuplicateQuestion } from './createSingleField'
+import { findObject } from 'app/configs'
+import { addToSession } from 'app/session'
 
 const QUESTION_NAME = 'Give the new event a name (shows in the event dropdown)'
 const QUESTION_DESCRIPTION = 'Give the new event a description'
@@ -27,7 +28,7 @@ export async function createEvent(answers: Answers = {}) {
     answers = await prompt([{ name: CaseEventKeys.ID, message: 'What\'s the ID of the new Event?', askAnswered: true, validate: (input: string) => input.length > 0 }], answers)
   }
 
-  const existing: CaseEvent | undefined = findETObject(answers, 'CaseEvent')
+  const existing: CaseEvent | undefined = findObject(answers, 'CaseEvent')
 
   answers = await prompt(
     [
@@ -44,17 +45,14 @@ export async function createEvent(answers: Answers = {}) {
       { name: 'CallBackURLSubmittedEvent', message: QUESTION_CALLBACK_URL_SUBMITTED_EVENT, type: 'input', default: existing?.CallBackURLSubmittedEvent }
     ], answers)
 
-  if (existing) {
-    answers = await prompt([{ name: 'authorisations', message: 'Do you want to create authorisations for this existing event?', type: 'list', choices: YES_OR_NO, default: NO }], answers)
-  } else {
-    answers.authorisations = YES
-  }
-
   await addonDuplicateQuestion(answers, (answers: Answers) => {
     const caseEvent = createNewCaseEvent(answers)
-    const authorisations = answers.authorisations === YES ? createCaseEventAuthorisations(answers.CaseTypeID, answers.ID) : []
 
-    addToInMemoryConfig({
+    // ET creates authorisations here - this is highly specific code so teams implementing this will
+    // need to provide their own journey for this. See journeys/et/createSingleField for an example.
+    const authorisations = []
+
+    addToSession({
       AuthorisationCaseEvent: authorisations,
       CaseEvent: [caseEvent]
     })

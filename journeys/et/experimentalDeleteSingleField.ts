@@ -1,9 +1,8 @@
 import { MULTI, NONE } from 'app/constants'
-import { getRegionFromCaseTypeId, Region, getKnownCaseFieldIDsByEvent, getEnglandWales, getScotland, deleteFromConfig } from 'app/et/configs'
+import { getRegionFromCaseTypeId, Region, getKnownETCaseFieldIDsByEvent, getEnglandWales, getScotland, deleteFromConfig } from 'app/et/configs'
 import { getObjectsReferencedByCaseFields } from 'app/et/duplicateCaseField'
-import { askCaseEvent, askCaseTypeID } from 'app/et/questions'
 import { getIdealSizeForInquirer } from 'app/helpers'
-import { Answers, askAutoComplete, sayWarning } from 'app/questions'
+import { Answers, askAutoComplete, askCaseEvent, askCaseTypeID, sayWarning } from 'app/questions'
 import { CaseEventToFieldKeys, CaseFieldKeys } from 'app/types/ccd'
 import { prompt } from 'inquirer'
 import { Journey } from 'types/journey'
@@ -24,7 +23,7 @@ async function journey() {
   let answers: Answers = {}
 
   answers = await askCaseTypeID(answers)
-  answers = await askCaseEvent(answers, undefined, undefined, [NONE])
+  answers = await askCaseEvent(answers, undefined, undefined, [NONE], false)
 
   const selectedCaseTypeID = answers[CaseFieldKeys.CaseTypeID]
   const region = getRegionFromCaseTypeId(selectedCaseTypeID)
@@ -75,7 +74,7 @@ function getFieldOptions(caseTypeID: string, caseEventID: string) {
     return fields.map(o => o.ID)
   }
 
-  return getKnownCaseFieldIDsByEvent(caseEventID)
+  return getKnownETCaseFieldIDsByEvent(caseEventID)
 }
 
 export default {

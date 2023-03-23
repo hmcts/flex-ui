@@ -1,10 +1,9 @@
 import { prompt } from 'inquirer'
 import { session, saveSession } from 'app/session'
 import { Journey } from 'types/journey'
-import { getKnownCaseFieldIDsByEvent, getRegionFromCaseTypeId, Region, RoleMappings, defaultRoleMappings, Roles, createCaseFieldAuthorisations, addToInMemoryConfig, getEnglandWales, getScotland, createCaseEventAuthorisations } from 'app/et/configs'
-import { Answers, askAutoComplete, sayWarning } from 'app/questions'
+import { getKnownETCaseFieldIDsByEvent, getRegionFromCaseTypeId, Region, RoleMappings, defaultRoleMappings, Roles, createCaseFieldAuthorisations, addToInMemoryConfig, getEnglandWales, getScotland, createCaseEventAuthorisations } from 'app/et/configs'
+import { Answers, askAutoComplete, sayWarning, askCaseEvent, askCaseTypeID } from 'app/questions'
 import { format, getIdealSizeForInquirer } from 'app/helpers'
-import { askCaseEvent, askCaseTypeID } from 'app/et/questions'
 import { CaseEventToFieldKeys, CaseFieldKeys } from 'app/types/ccd'
 import { MULTI, NONE } from 'app/constants'
 import { addonDuplicateQuestion } from './createSingleField'
@@ -70,7 +69,7 @@ function getFieldOptions(caseTypeID: string, caseEventID: string) {
     return fields.map(o => o.ID)
   }
 
-  return getKnownCaseFieldIDsByEvent(caseEventID)
+  return getKnownETCaseFieldIDsByEvent(caseEventID)
 }
 
 async function changeAuthorisationsForCaseEvent(caseTypeID: string, caseEventID: string, region: Region) {
@@ -119,7 +118,7 @@ export async function changeAuthorisations() {
   let answers: Answers = {}
 
   answers = await askCaseTypeID(answers)
-  answers = await askCaseEvent(answers, undefined, undefined, [ALL, NONE])
+  answers = await askCaseEvent(answers, undefined, undefined, [ALL, NONE], false)
 
   const selectedCaseTypeID = answers[CaseFieldKeys.CaseTypeID]
   const region = getRegionFromCaseTypeId(selectedCaseTypeID)

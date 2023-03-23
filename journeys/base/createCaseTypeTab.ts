@@ -2,9 +2,8 @@ import { Journey } from 'types/journey'
 import { CaseTypeTab, CaseTypeTabKeys } from 'app/types/ccd'
 import { createNewCaseTypeTab, trimCcdObject } from 'app/ccd'
 import { createTemplate, Answers } from 'app/questions'
-import { addToInMemoryConfig } from 'app/et/configs'
 import { addonDuplicateQuestion, QUESTION_ANOTHER } from './createSingleField'
-import { addToLastAnswers, saveSession, session } from 'app/session'
+import { addToLastAnswers, addToSession, saveSession, session } from 'app/session'
 import { prompt } from 'inquirer'
 import { YES, YES_OR_NO } from 'app/constants'
 
@@ -14,7 +13,7 @@ export async function createCaseTypeTab() {
   const createFn = (answers: Answers) => {
     const caseTypeTab = createNewCaseTypeTab(answers)
 
-    addToInMemoryConfig({
+    addToSession({
       CaseTypeTab: [trimCcdObject(caseTypeTab)]
     })
   }

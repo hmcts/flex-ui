@@ -1,9 +1,10 @@
 import { prompt } from 'inquirer'
-import { CCD_FIELD_TYPES, CUSTOM, NO, YES_OR_NO } from 'app/constants'
+import { COMPOUND_KEYS, CUSTOM, NO, NONE, NO_DUPLICATE, YES_OR_NO } from 'app/constants'
 import { session } from 'app/session'
 import fuzzy from 'fuzzy'
-import { AllCCDKeys, CaseEventToFieldKeys, CaseField, CaseFieldKeys, ComplexType } from 'types/ccd'
-import { getIdealSizeForInquirer } from 'app/helpers'
+import { AllCCDKeys, CaseEventKeys, CaseEventToFieldKeys, CaseField, CaseFieldKeys, CCDSheets, CCDTypes, ComplexType, ComplexTypeKeys, EventToComplexTypeKeys, ScrubbedKeys } from 'types/ccd'
+import { format, getIdealSizeForInquirer } from 'app/helpers'
+import { findObject, getCaseEventIDOpts, getKnownCaseFieldIDs, getKnownCaseFieldTypeParameters, getKnownCaseFieldTypes, getKnownCaseTypeIDs, getKnownComplexTypeListElementCodes } from './configs'
 
 const QUESTION_REGULAR_EXPRESSION = 'Do we need a RegularExpression for the field?'
 export const QUESTION_RETAIN_HIDDEN_VALUE = 'Should the field retain its value when hidden?'
@@ -19,6 +20,15 @@ export const QUESTION_FIELD_TYPE = 'What\'s the type of this field?'
 export const QUESTION_FIELD_TYPE_PARAMETER = 'What\'s the parameter for this {0} field?'
 export const QUESTION_FIELD_TYPE_PARAMETER_FREE = 'Enter a value for FieldTypeParameter'
 const QUESTION_FIELD_TYPE_FREE = 'Enter a value for FieldType'
+const QUESTION_CASE_TYPE_ID_CUSTOM = 'Enter a custom value for CaseTypeID'
+const QUESTION_CREATE = 'Would you like to create a new {0} with ID {1}?'
+const QUESTION_DUPLICATE_ADDON = 'Do we need this field duplicated under another caseTypeID?'
+const QUESTION_FIELD_TYPE_PARAMETER_CUSTOM = 'Do you want to create a new scrubbed list or free text enter a FieldTypeParameter?'
+
+const FIELD_TYPE_PARAMETERS_CUSTOM_OPTS = {
+  ScrubbedList: 'Create a new Scrubbed List and use that',
+  FreeText: 'Enter a custom value for FieldTypeParameter'
+}
 
 export type Answers = AllCCDKeys & Record<string, unknown>
 
@@ -136,41 +146,71 @@ export async function sayWarning(journeyFn: () => Promise<void>) {
 }
 
 /**
- * Asks the user for a CaseTypeID.
+ * Asks the user for a CaseTypeID. Allows for creation if <custom> is selected.
  * @returns extended answers object as passed in
  */
 export async function askCaseTypeID(answers: Answers = {}, key?: string, message?: string) {
+  const opts = getKnownCaseTypeIDs()
   key = key || CaseFieldKeys.CaseTypeID
 
   answers = await prompt([
     {
       name: key,
       message: message || QUESTION_CASE_TYPE_ID,
+      type: 'autocomplete',
+      source: (_answers: unknown, input: string) => fuzzySearch([CUSTOM, ...opts], input),
       default: session.lastAnswers[key],
       pageSize: getIdealSizeForInquirer()
     }
   ], answers)
 
+  if (answers[key] === CUSTOM) {
+    const newEventTypeAnswers = await askBasicFreeEntry({}, key, QUESTION_CASE_TYPE_ID_CUSTOM)
+    answers[key] = newEventTypeAnswers[key]
+    // TODO: There's no support for CaseType.json yet so theres no flow to create one. But we could...
+  }
+
   return answers
 }
 
-export async function askCaseEvent(answers: Answers = {}, key?: string, message?: string) {
+export async function askCaseEvent(answers: Answers = {}, key?: string, message?: string, addOpts: string[] = [], allowCustom = true, createEventFn?: (answers: Answers) => Promise<string>) {
+  const opts = getCaseEventIDOpts()
   key = key || CaseEventToFieldKeys.CaseEventID
+
+  const choices = allowCustom ? [...addOpts, CUSTOM, ...opts] : [...addOpts, ...opts]
 
   answers = await prompt([
     {
       name: key,
       message: message || QUESTION_CASE_EVENT_ID,
+      type: 'autocomplete',
+      source: (_answers: unknown, input: string) => fuzzySearch(choices, input),
       default: session.lastAnswers[key],
       pageSize: getIdealSizeForInquirer()
     }
   ], answers)
 
+  if (answers[key] !== CUSTOM) {
+    return answers
+  }
+
+  answers[key] = await askBasicFreeEntry({}, key, QUESTION_CASE_EVENT_ID, 'eventId')
+
+  if (createEventFn) {
+    const followup = await prompt([{ name: 'create', message: format(QUESTION_CREATE, 'Case Field', answers[key] as string), type: 'list', choices: YES_OR_NO }])
+
+    if (followup.create === NO) {
+      return answers
+    }
+
+    answers[key] = await createEventFn({ ID: answers[key] as string, CaseTypeID: answers[CaseEventKeys.CaseTypeID] })
+  }
+
   return answers
 }
 
 export async function askFieldType(answers: Answers = {}, key?: string, message?: string, defaultValue?: string) {
-  const opts = CCD_FIELD_TYPES
+  const opts = getKnownCaseFieldTypes()
   key = key || CaseFieldKeys.FieldType
 
   answers = await prompt([
@@ -187,6 +227,149 @@ export async function askFieldType(answers: Answers = {}, key?: string, message?
   if (answers[key] === CUSTOM) {
     const customFieldType = await askBasicFreeEntry({}, key, QUESTION_FIELD_TYPE_FREE)
     answers[key] = customFieldType[key]
+  }
+
+  return answers
+}
+
+export async function askCaseFieldID(answers: Answers = {}, key?: string, message?: string, defaultValue?: string, createSingleFieldFn?: (answers: Answers) => Promise<string>) {
+  const opts = getKnownCaseFieldIDs()
+  key = key || EventToComplexTypeKeys.CaseFieldID
+
+  answers = await prompt([
+    {
+      name: key,
+      message: message || QUESTION_CASE_FIELD_ID,
+      type: 'autocomplete',
+      source: (_answers: unknown, input: string) => fuzzySearch([CUSTOM, ...opts], input),
+      default: session.lastAnswers[key] || defaultValue,
+      pageSize: getIdealSizeForInquirer()
+    }
+  ], answers)
+
+  if (answers[key] !== CUSTOM) {
+    return answers
+  }
+
+  answers[key] = await askBasicFreeEntry({}, key, QUESTION_CASE_FIELD_ID, 'fieldId')
+
+  if (createSingleFieldFn) {
+    const followup = await prompt([{ name: 'create', message: format(QUESTION_CREATE, 'Case Field', answers[key] as string), type: 'list', choices: YES_OR_NO }])
+
+    if (followup.create === NO) {
+      return answers
+    }
+
+    answers[key] = await createSingleFieldFn({
+      [CaseFieldKeys.CaseTypeID]: answers[CaseFieldKeys.CaseTypeID],
+      [CaseEventToFieldKeys.CaseEventID]: answers[CaseEventToFieldKeys.CaseEventID],
+      [CaseFieldKeys.ID]: answers[key] as string
+    })
+  }
+
+  return answers
+}
+
+export async function askDuplicate(answers: Answers) {
+  const opts = [NO_DUPLICATE, ...getKnownCaseTypeIDs()]
+  return await listOrFreeType(answers, 'duplicate', QUESTION_DUPLICATE_ADDON, opts, undefined, true)
+}
+
+export async function askComplexTypeListElementCode(answers: Answers = {}, key?: string, message?: string, defaultValue?: string) {
+  const opts = getKnownComplexTypeListElementCodes(answers[ComplexTypeKeys.ID])
+  key = key || ComplexTypeKeys.ListElementCode
+
+  answers = await prompt([
+    {
+      name: key,
+      message: message || QUESTION_LIST_ELEMENT_CODE,
+      type: 'autocomplete',
+      source: (_answers: unknown, input: string) => fuzzySearch([CUSTOM, ...opts], input),
+      default: defaultValue || answers[ComplexTypeKeys.ListElementCode] || CUSTOM,
+      pageSize: getIdealSizeForInquirer()
+    }
+  ], answers)
+
+  if (answers[key] === CUSTOM) {
+    const customFieldType = await askBasicFreeEntry({}, key, QUESTION_LIST_ELEMENT_CODE)
+    answers[key] = customFieldType[key]
+  }
+
+  return answers
+}
+
+export async function askFieldTypeParameter(answers: Answers = {}, key?: string, message?: string, defaultValue?: string, createFixedListFn?: (answers: Answers) => Promise<string>) {
+  const opts = getKnownCaseFieldTypeParameters()
+  key = key || CaseFieldKeys.FieldTypeParameter
+
+  answers = await prompt([
+    {
+      name: key,
+      message: message || format(QUESTION_FIELD_TYPE_PARAMETER, answers[CaseFieldKeys.FieldType]),
+      type: 'autocomplete',
+      source: (_answers: unknown, input: string) => fuzzySearch([NONE, CUSTOM, ...opts], input),
+      pageSize: getIdealSizeForInquirer(),
+      default: defaultValue
+    }
+  ], answers)
+
+  if (answers[key] === NONE) {
+    answers[key] = ''
+    return answers
+  }
+
+  if (answers[key] !== CUSTOM) {
+    return answers
+  }
+
+  const followup = await prompt([{ name: 'journey', message: QUESTION_FIELD_TYPE_PARAMETER_CUSTOM, choices: Object.values(FIELD_TYPE_PARAMETERS_CUSTOM_OPTS), type: 'list' }])
+  if (followup.journey === FIELD_TYPE_PARAMETERS_CUSTOM_OPTS.ScrubbedList) {
+    answers[key] = await createFixedListFn({ [ScrubbedKeys.ID]: CUSTOM })
+    return answers
+  }
+
+  return await askBasicFreeEntry(answers, key, QUESTION_FIELD_TYPE_PARAMETER_FREE)
+}
+
+/**
+ * Asks questions based on the keys contained in the target object type
+ * (convenience method for not creating a custom method for asking questions)
+ * @param answers An existing answers object that may have answers already filled
+ * @param keys An enum representing the keys on the target object (ie, CaseFieldKeys)
+ * @param obj A blank/default object of the target type (ie, createNewCaseField)
+ * @returns An answers object with answers to questions automatically asked based on the passed in object
+ */
+export async function createTemplate<T, P>(answers: Answers = {}, keys: T, obj: P, sheet: keyof CCDSheets<CCDTypes>) {
+  const fields = Object.keys(keys)
+  const compoundKeys = COMPOUND_KEYS[sheet]
+
+  const tasks: Array<() => Promise<void>> = []
+  let existing: T | undefined
+
+  for (const field of fields) {
+    if (!compoundKeys.some(o => !answers[o])) {
+      existing = findObject(answers, sheet)
+    }
+
+    const question = { name: field, message: `Give a value for ${field}`, type: 'input', default: existing?.[field] || session.lastAnswers[field] }
+
+    if (typeof (obj[field]) === 'number') {
+      question.type = 'number'
+    }
+
+    if (field === 'CaseEventID') {
+      answers = await askCaseEvent(answers, undefined, undefined, [NONE])
+    } else if (field === 'CaseTypeID') {
+      answers = await askCaseTypeID(answers)
+    } else if (field === 'CaseFieldID') {
+      answers = await askCaseFieldID(answers)
+    } else {
+      answers = await prompt([question], answers)
+    }
+  }
+
+  for (const task of tasks) {
+    await task()
   }
 
   return answers
