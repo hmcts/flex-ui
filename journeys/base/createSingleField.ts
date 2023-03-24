@@ -1,8 +1,8 @@
 import { prompt } from 'inquirer'
 import { addToLastAnswers, addToSession, saveSession, session } from 'app/session'
 import { CaseEventToField, CaseEventToFieldKeys, CaseField, CaseFieldKeys } from 'types/ccd'
-import { Answers, askAutoComplete, askCaseEvent, askCaseTypeID, askDuplicate, askFieldType, askFieldTypeParameter, askForPageFieldDisplayOrder, askForPageID, askForRegularExpression, askMinAndMax, askRetainHiddenValue } from 'app/questions'
-import { CUSTOM, DISPLAY_CONTEXT_OPTIONS, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, isFieldTypeInExclusionList, NONE, NO_DUPLICATE, YES, YES_OR_NO, Y_OR_N } from 'app/constants'
+import { addonDuplicateQuestion, Answers, askAutoComplete, askCaseEvent, askCaseTypeID, askFieldType, askFieldTypeParameter, askForPageFieldDisplayOrder, askForPageID, askForRegularExpression, askMinAndMax, askRetainHiddenValue } from 'app/questions'
+import { CUSTOM, DISPLAY_CONTEXT_OPTIONS, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, isFieldTypeInExclusionList, NONE, YES, YES_OR_NO, Y_OR_N } from 'app/constants'
 import { createNewCaseEventToField, createNewCaseField, trimCaseEventToField, trimCaseField } from 'app/ccd'
 import { Journey } from 'types/journey'
 import { findObject, getKnownCaseFieldIDsByEvent, getNextPageFieldIDForPage } from 'app/configs'
@@ -113,21 +113,6 @@ export async function createSingleField(answers: Answers = {}) {
   if (followup.another === YES) {
     saveSession(session)
     return createSingleField()
-  }
-}
-
-export async function addonDuplicateQuestion(answers: Answers, fn: (answers: Answers) => void) {
-  fn(answers)
-
-  while (true) {
-    answers = await askDuplicate(answers)
-
-    if (answers.duplicate === NO_DUPLICATE) {
-      return answers.ID
-    }
-
-    answers.CaseTypeID = answers.CaseTypeId = answers.duplicate as string
-    fn(answers)
   }
 }
 

@@ -81,17 +81,12 @@ export function getKnownCaseFieldIDs(configSheets: ConfigSheets = sheets, filter
  * Get all defined CaseField IDs on an event
  */
 export function getKnownCaseFieldIDsByEvent(caseEventId?: string, configSheets: ConfigSheets = sheets) {
-  const arr = configSheets.CaseEvent
-
   const byEventId = (obj: CaseEventToField) => obj.CaseEventID === caseEventId
 
   const allCaseEventToFields = configSheets.CaseEventToFields
   const fieldToEvent = allCaseEventToFields.filter(byEventId)
-  const subsetFields = caseEventId === NONE ?
-    arr.filter(o => !allCaseEventToFields.some(x => o.ID === x.CaseFieldID))
-    : arr.filter(o => fieldToEvent.find(x => x.CaseFieldID === o.ID))
 
-  return getUniqueByKeyAsArray(subsetFields, 'ID')
+  return getUniqueByKeyAsArray(caseEventId === NONE ? allCaseEventToFields : fieldToEvent, 'CaseFieldID')
 }
 
 /**

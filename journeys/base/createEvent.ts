@@ -1,10 +1,9 @@
 import { prompt } from 'inquirer'
 import { Journey } from 'types/journey'
-import { Answers, askCaseEvent, askCaseTypeID } from 'app/questions'
+import { addonDuplicateQuestion, Answers, askCaseEvent, askCaseTypeID } from 'app/questions'
 import { createNewCaseEvent } from 'app/ccd'
 import { NEW, Y_OR_N } from 'app/constants'
 import { CaseEvent, CaseEventKeys } from 'app/types/ccd'
-import { addonDuplicateQuestion } from './createSingleField'
 import { findObject } from 'app/configs'
 import { addToSession } from 'app/session'
 

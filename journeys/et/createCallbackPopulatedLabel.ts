@@ -1,10 +1,10 @@
 import { prompt } from 'inquirer'
 import { CaseEventToFieldKeys, CaseFieldKeys } from 'types/ccd'
 import { Journey } from 'types/journey'
-import { Answers, askCaseEvent, askCaseTypeID, askForPageFieldDisplayOrder, askForPageID } from 'app/questions'
+import { addonDuplicateQuestion, Answers, askCaseEvent, askCaseTypeID, askForPageFieldDisplayOrder, askForPageID } from 'app/questions'
 import { createNewCaseEventToField, createNewCaseField, trimCaseEventToField, trimCaseField } from 'app/ccd'
 import { addToInMemoryConfig, createCaseFieldAuthorisations } from 'app/et/configs'
-import { addonDuplicateQuestion, askFirstOnPageQuestions, QUESTION_FIELD_SHOW_CONDITION, QUESTION_ID } from './createSingleField'
+import { askFirstOnPageQuestions, QUESTION_FIELD_SHOW_CONDITION, QUESTION_ID } from './createSingleField'
 import { addToLastAnswers } from 'app/session'
 
 export async function createCallbackPopulatedLabel(answers: Answers = {}) {

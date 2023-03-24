@@ -1,13 +1,14 @@
 import { prompt } from 'inquirer'
 import { addToLastAnswers, saveSession, session } from 'app/session'
 import { CaseEventToField, CaseEventToFieldKeys, CaseField, CaseFieldKeys } from 'types/ccd'
-import { Answers, askAutoComplete, askCaseEvent, askCaseTypeID, askDuplicate, askFieldType, askFieldTypeParameter, askForPageFieldDisplayOrder, askForPageID, askForRegularExpression, askMinAndMax, askRetainHiddenValue } from 'app/questions'
-import { CUSTOM, DISPLAY_CONTEXT_OPTIONS, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, isFieldTypeInExclusionList, NO, NONE, NO_DUPLICATE, YES, YES_OR_NO, Y_OR_N } from 'app/constants'
-import { addToInMemoryConfig, createCaseFieldAuthorisations, findETObject, getKnownETCaseFieldIDsByEvent, getNextPageFieldIDForPageET } from 'app/et/configs'
+import { addonDuplicateQuestion, Answers, askAutoComplete, askCaseEvent, askCaseTypeID, askFieldType, askFieldTypeParameter, askForPageFieldDisplayOrder, askForPageID, askForRegularExpression, askMinAndMax, askRetainHiddenValue } from 'app/questions'
+import { CUSTOM, DISPLAY_CONTEXT_OPTIONS, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, isFieldTypeInExclusionList, NO, NONE, YES, YES_OR_NO, Y_OR_N } from 'app/constants'
+import { addToInMemoryConfig, createCaseFieldAuthorisations } from 'app/et/configs'
 import { createNewCaseEventToField, createNewCaseField, trimCaseEventToField, trimCaseField } from 'app/ccd'
 import { Journey } from 'types/journey'
 import { createEvent } from './createEvent'
 import { createScrubbed } from './createScrubbed'
+import { findObject, getKnownCaseFieldIDsByEvent, getNextPageFieldIDForPage } from 'app/configs'
 
 export const QUESTION_ID = 'What\'s the ID for this field?'
 export const QUESTION_ANOTHER = 'Do you want to upsert another?'
@@ -31,7 +32,7 @@ export async function createSingleField(answers: Answers = {}) {
   answers = await askCaseTypeID(answers)
   answers = await askCaseEvent(answers, undefined, QUESTION_CASE_EVENT_ID, [NONE], true, createEvent)
 
-  const idOpts = getKnownETCaseFieldIDsByEvent(answers[CaseEventToFieldKeys.CaseEventID])
+  const idOpts = getKnownCaseFieldIDsByEvent(answers[CaseEventToFieldKeys.CaseEventID])
 
   answers = await askAutoComplete(CaseFieldKeys.ID, QUESTION_ID, CUSTOM, [CUSTOM, ...idOpts], false, true, answers)
 
@@ -39,8 +40,8 @@ export async function createSingleField(answers: Answers = {}) {
     answers = await prompt([{ name: CaseFieldKeys.ID, message: QUESTION_ID, type: 'input', default: 'id', askAnswered: true }], answers)
   }
 
-  const existingField: CaseField | undefined = findETObject<CaseField>(answers, 'CaseField')
-  const existingCaseEventToField: CaseEventToField | undefined = findETObject<CaseEventToField>({ ...answers, CaseFieldID: answers.ID }, 'CaseEventToFields')
+  const existingField: CaseField | undefined = findObject<CaseField>(answers, 'CaseField')
+  const existingCaseEventToField: CaseEventToField | undefined = findObject<CaseEventToField>({ ...answers, CaseFieldID: answers.ID }, 'CaseEventToFields')
 
   answers = await prompt(
     [
@@ -122,26 +123,11 @@ export async function createSingleField(answers: Answers = {}) {
   }
 }
 
-export async function addonDuplicateQuestion(answers: Answers, fn: (answers: Answers) => void) {
-  fn(answers)
-
-  while (true) {
-    answers = await askDuplicate(answers)
-
-    if (answers.duplicate === NO_DUPLICATE) {
-      return answers.ID
-    }
-
-    answers.CaseTypeID = answers.CaseTypeId = answers.duplicate as string
-    fn(answers)
-  }
-}
-
 function getDefaultForPageFieldDisplayOrder(answers: Answers = {}) {
   const pageID = CaseEventToFieldKeys.PageID
   const pageFieldDisplayOrder = CaseEventToFieldKeys.PageFieldDisplayOrder
   if (answers[pageID] && answers[CaseEventToFieldKeys.CaseEventID] && answers[CaseEventToFieldKeys.CaseTypeID]) {
-    return getNextPageFieldIDForPageET(
+    return getNextPageFieldIDForPage(
       answers[CaseEventToFieldKeys.CaseTypeID],
       answers[CaseEventToFieldKeys.CaseEventID],
       answers[pageID]

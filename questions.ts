@@ -374,3 +374,18 @@ export async function createTemplate<T, P>(answers: Answers = {}, keys: T, obj: 
 
   return answers
 }
+
+export async function addonDuplicateQuestion(answers: Answers, fn: (answers: Answers) => void) {
+  fn(answers)
+
+  while (true) {
+    answers = await askDuplicate(answers)
+
+    if (answers.duplicate === NO_DUPLICATE) {
+      return answers.ID
+    }
+
+    answers.CaseTypeID = answers.CaseTypeId = answers.duplicate as string
+    fn(answers)
+  }
+}

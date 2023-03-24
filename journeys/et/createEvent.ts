@@ -1,11 +1,10 @@
 import { prompt } from 'inquirer'
 import { Journey } from 'types/journey'
-import { Answers, askCaseEvent, askCaseTypeID } from 'app/questions'
+import { addonDuplicateQuestion, Answers, askCaseEvent, askCaseTypeID } from 'app/questions'
 import { createNewCaseEvent } from 'app/ccd'
-import { addToInMemoryConfig, createCaseEventAuthorisations, findETObject } from 'app/et/configs'
+import { addToInMemoryConfig, createCaseEventAuthorisations, findETObject, getRegionFromCaseTypeId } from 'app/et/configs'
 import { NEW, NO, YES, YES_OR_NO, Y_OR_N } from 'app/constants'
 import { CaseEvent, CaseEventKeys } from 'app/types/ccd'
-import { addonDuplicateQuestion } from './createSingleField'
 
 const QUESTION_NAME = 'Give the new event a name (shows in the event dropdown)'
 const QUESTION_DESCRIPTION = 'Give the new event a description'
@@ -27,7 +26,7 @@ export async function createEvent(answers: Answers = {}) {
     answers = await prompt([{ name: CaseEventKeys.ID, message: 'What\'s the ID of the new Event?', askAnswered: true, validate: (input: string) => input.length > 0 }], answers)
   }
 
-  const existing: CaseEvent | undefined = findETObject(answers, 'CaseEvent')
+  const existing: CaseEvent | undefined = findETObject(answers, 'CaseEvent', getRegionFromCaseTypeId(answers[CaseEventKeys.CaseTypeID]))
 
   answers = await prompt(
     [

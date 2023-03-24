@@ -1,8 +1,7 @@
 import { Journey } from 'types/journey'
 import { CaseEventToField, CaseEventToFieldKeys } from 'app/types/ccd'
 import { createNewCaseEventToField, trimCaseEventToField } from 'app/ccd'
-import { createTemplate, Answers } from 'app/questions'
-import { addonDuplicateQuestion } from './createSingleField'
+import { createTemplate, Answers, addonDuplicateQuestion } from 'app/questions'
 import { addToSession } from 'app/session'
 
 export async function createCaseEventToFieldJourney() {
