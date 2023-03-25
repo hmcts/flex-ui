@@ -2,7 +2,7 @@ import { prompt } from 'inquirer'
 import { Journey } from 'types/journey'
 import { addonDuplicateQuestion, Answers, askCaseEvent, askCaseTypeID } from 'app/questions'
 import { createNewCaseEvent } from 'app/ccd'
-import { addToInMemoryConfig, createCaseEventAuthorisations, findETObject, getRegionFromCaseTypeId } from 'app/et/configs'
+import { addToInMemoryConfig, createCaseEventAuthorisations, findETObject, getETCaseEventIDOpts, getKnownETCaseTypeIDs, getRegionFromCaseTypeId } from 'app/et/configs'
 import { NEW, NO, YES, YES_OR_NO, Y_OR_N } from 'app/constants'
 import { CaseEvent, CaseEventKeys } from 'app/types/ccd'
 
@@ -19,8 +19,8 @@ const QUESTION_CALLBACK_URL_ABOUT_TO_SUBMIT_EVENT = 'Do we need a callback befor
 const QUESTION_CALLBACK_URL_SUBMITTED_EVENT = 'Do we need a callback after we submit? (optional)'
 
 export async function createEvent(answers: Answers = {}) {
-  answers = await askCaseTypeID(answers)
-  answers = await askCaseEvent(answers, CaseEventKeys.ID, "What's the ID of the new/existing Event?", [NEW], false)
+  answers = await askCaseTypeID(answers, { choices: getKnownETCaseTypeIDs() })
+  answers = await askCaseEvent(answers, { name: CaseEventKeys.ID, message: "What's the ID of the new/existing Event?", choices: [NEW, ...getETCaseEventIDOpts()] })
 
   if (answers.ID === NEW) {
     answers = await prompt([{ name: CaseEventKeys.ID, message: 'What\'s the ID of the new Event?', askAnswered: true, validate: (input: string) => input.length > 0 }], answers)
@@ -49,7 +49,7 @@ export async function createEvent(answers: Answers = {}) {
     answers.authorisations = YES
   }
 
-  await addonDuplicateQuestion(answers, (answers: Answers) => {
+  await addonDuplicateQuestion(answers, getKnownETCaseTypeIDs(), (answers: Answers) => {
     const caseEvent = createNewCaseEvent(answers)
     const authorisations = answers.authorisations === YES ? createCaseEventAuthorisations(answers.CaseTypeID, answers.ID) : []
 

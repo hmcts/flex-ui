@@ -4,7 +4,7 @@ import { createCaseTypeTab } from './createCaseTypeTab'
 import { createComplexType } from './createComplexType'
 import { createEvent } from './createEvent'
 import { createEventToComplexType } from './createEventToComplexType'
-import { createSingleField } from './createSingleFieldBasic'
+import { createSingleField } from './createSingleField'
 import { createCallbackPopulatedLabel } from './createCallbackPopulatedLabel'
 import { createScrubbed } from './createScrubbed'
 import { createCaseEventToFieldJourney } from './createCaseEventToField'
@@ -29,7 +29,7 @@ const TASK_CHOICES = {
 
 export async function createJourney() {
   while (true) {
-    const answers = await askAutoComplete('task', QUESTION_TASK, TASK_CHOICES.BACK, Object.values(TASK_CHOICES))
+    const answers = await askAutoComplete({}, { name: 'task', message: QUESTION_TASK, default: TASK_CHOICES.BACK, choices: Object.values(TASK_CHOICES) })
 
     switch (answers.task) {
       case TASK_CHOICES.BACK:

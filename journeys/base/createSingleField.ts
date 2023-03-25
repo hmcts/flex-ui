@@ -2,10 +2,13 @@ import { prompt } from 'inquirer'
 import { addToLastAnswers, addToSession, saveSession, session } from 'app/session'
 import { CaseEventToField, CaseEventToFieldKeys, CaseField, CaseFieldKeys } from 'types/ccd'
 import { addonDuplicateQuestion, Answers, askAutoComplete, askCaseEvent, askCaseTypeID, askFieldType, askFieldTypeParameter, askForPageFieldDisplayOrder, askForPageID, askForRegularExpression, askMinAndMax, askRetainHiddenValue } from 'app/questions'
-import { CUSTOM, DISPLAY_CONTEXT_OPTIONS, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, isFieldTypeInExclusionList, NONE, YES, YES_OR_NO, Y_OR_N } from 'app/constants'
+import { COMPOUND_KEYS, CUSTOM, DISPLAY_CONTEXT_OPTIONS, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, isFieldTypeInExclusionList, NONE, YES, YES_OR_NO, Y_OR_N } from 'app/constants'
 import { createNewCaseEventToField, createNewCaseField, trimCaseEventToField, trimCaseField } from 'app/ccd'
 import { Journey } from 'types/journey'
-import { findObject, getKnownCaseFieldIDsByEvent, getNextPageFieldIDForPage } from 'app/configs'
+import { findObject, getCaseEventIDOpts, getKnownCaseFieldIDsByEvent, getNextPageFieldIDForPage, sheets } from 'app/configs'
+import { upsertFields } from 'app/helpers'
+import { createEvent } from './createEvent'
+import { createScrubbed } from './createScrubbed'
 
 export const QUESTION_ID = 'What\'s the ID for this field?'
 export const QUESTION_ANOTHER = 'Do you want to upsert another?'
@@ -26,11 +29,11 @@ function shouldAskEventQuestions(answers: Answers) {
 
 export async function createSingleField(answers: Answers = {}) {
   answers = await askCaseTypeID(answers)
-  answers = await askCaseEvent(answers, undefined, QUESTION_CASE_EVENT_ID, [NONE])
+  answers = await askCaseEvent(answers, { message: QUESTION_CASE_EVENT_ID, choices: [NONE, ...getCaseEventIDOpts()] }, createEvent)
 
   const idOpts = getKnownCaseFieldIDsByEvent(answers[CaseEventToFieldKeys.CaseEventID])
 
-  answers = await askAutoComplete(CaseFieldKeys.ID, QUESTION_ID, CUSTOM, [CUSTOM, ...idOpts], false, true, answers)
+  answers = await askAutoComplete(answers, { name: CaseFieldKeys.ID, message: QUESTION_ID, default: CUSTOM, choices: [CUSTOM, ...idOpts], askAnswered: false, sort: true })
 
   if (answers[CaseFieldKeys.ID] === CUSTOM) {
     answers = await prompt([{ name: CaseFieldKeys.ID, message: QUESTION_ID, type: 'input', default: 'id', askAnswered: true }], answers)
@@ -49,14 +52,14 @@ export async function createSingleField(answers: Answers = {}) {
   const askEvent = answers[CaseEventToFieldKeys.CaseEventID] !== NONE
 
   if (askEvent) {
-    answers = await askForPageID(answers, undefined, undefined, existingCaseEventToField?.PageID)
-    answers = await askForPageFieldDisplayOrder(answers, undefined, undefined, existingCaseEventToField?.PageFieldDisplayOrder || getDefaultForPageFieldDisplayOrder(answers))
+    answers = await askForPageID(answers, { default: existingCaseEventToField?.PageID })
+    answers = await askForPageFieldDisplayOrder(answers, { default: existingCaseEventToField?.PageFieldDisplayOrder || getDefaultForPageFieldDisplayOrder(answers) })
   }
 
-  answers = await askFieldType(answers, undefined, undefined, existingField?.FieldType)
+  answers = await askFieldType(answers, { default: existingField?.FieldType })
 
   if (!isFieldTypeInExclusionList(answers[CaseFieldKeys.FieldType], FIELD_TYPES_EXCLUDE_PARAMETER)) {
-    answers = await askFieldTypeParameter(answers, undefined, undefined, existingField?.FieldTypeParameter)
+    answers = await askFieldTypeParameter(answers, { default: existingField?.FieldTypeParameter }, createScrubbed)
   }
 
   if (answers[CaseFieldKeys.FieldType] !== 'Label') {
@@ -72,7 +75,7 @@ export async function createSingleField(answers: Answers = {}) {
   }
 
   if (answers[CaseFieldKeys.FieldType] === 'Text') {
-    answers = await askForRegularExpression(answers, undefined, undefined, existingField?.RegularExpression)
+    answers = await askForRegularExpression(answers, { default: existingField?.RegularExpression })
   }
 
   if (!isFieldTypeInExclusionList(answers[CaseFieldKeys.FieldType], FIELD_TYPES_EXCLUDE_MIN_MAX)) {
@@ -80,7 +83,7 @@ export async function createSingleField(answers: Answers = {}) {
   }
 
   if (askEvent && answers[CaseEventToFieldKeys.FieldShowCondition]) {
-    answers = await askRetainHiddenValue(answers, undefined, undefined, existingCaseEventToField?.RetainHiddenValue)
+    answers = await askRetainHiddenValue(answers, { default: existingCaseEventToField?.RetainHiddenValue })
   }
 
   addToLastAnswers(answers)
@@ -93,14 +96,19 @@ export async function createSingleField(answers: Answers = {}) {
     // need to provide their own journey for this. See journeys/et/createSingleField for an example.
     const authorisations = []
 
-    addToSession({
+    const newFields = {
       AuthorisationCaseField: authorisations,
       CaseField: [trimCaseField(caseField)],
       CaseEventToFields: askEvent ? [trimCaseEventToField(caseEventToField)] : []
-    })
+    }
+    addToSession(newFields)
+
+    for (const sheetName in newFields) {
+      upsertFields(sheets[sheetName], newFields[sheetName], COMPOUND_KEYS[sheetName])
+    }
   }
 
-  await addonDuplicateQuestion(answers, createFn)
+  await addonDuplicateQuestion(answers, undefined, createFn)
 
   const followup = await prompt([{
     name: 'another',

@@ -3,11 +3,11 @@ import { CaseFieldKeys, ComplexType, ComplexTypeKeys } from 'types/ccd'
 import { QUESTION_ANOTHER, QUESTION_HINT_TEXT } from './createSingleField'
 import { createNewComplexType, trimCcdObject } from 'app/ccd'
 import { Answers, askBasicFreeEntry, askComplexTypeListElementCode, askFieldType, askFieldTypeParameter, askForRegularExpression, askMinAndMax, fuzzySearch } from 'app/questions'
-import { CUSTOM, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, isFieldTypeInExclusionList, YES, YES_OR_NO } from 'app/constants'
+import { COMPOUND_KEYS, CUSTOM, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, isFieldTypeInExclusionList, YES, YES_OR_NO } from 'app/constants'
 import { addToLastAnswers, addToSession, saveSession, session } from 'app/session'
 import { Journey } from 'types/journey'
-import { getIdealSizeForInquirer } from 'app/helpers'
-import { getKnownComplexTypeIDs } from 'app/configs'
+import { getIdealSizeForInquirer, upsertFields } from 'app/helpers'
+import { getKnownComplexTypeIDs, sheets } from 'app/configs'
 
 const QUESTION_ID = "What's the ID of this ComplexType?"
 const QUESTION_ELEMENT_LABEL = 'What\'s the custom label for this control?'
@@ -64,9 +64,14 @@ export async function createComplexType(answers: Answers = {}) {
 
   const complexType = createNewComplexType(answers)
 
-  addToSession({
+  const newFields = {
     ComplexTypes: [trimCcdObject(complexType)]
-  })
+  }
+  addToSession(newFields)
+
+  for (const sheetName in newFields) {
+    upsertFields(sheets[sheetName], newFields[sheetName], COMPOUND_KEYS[sheetName])
+  }
 
   addToLastAnswers(answers)
 
@@ -102,7 +107,7 @@ async function askForID(answers: Answers = {}, key?: string, message?: string, d
   ], answers)
 
   if (answers[key] === CUSTOM) {
-    const newEventTypeAnswers = await askBasicFreeEntry({}, key, 'Enter a custom value for ID')
+    const newEventTypeAnswers = await askBasicFreeEntry({}, { name: key, message: 'Enter a custom value for ID' })
     answers[key] = newEventTypeAnswers[key]
   }
 

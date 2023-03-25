@@ -248,3 +248,10 @@ export async function isRunningInWsl() {
   const { stdout } = await execCommand('echo $WSL_DISTRO_NAME', undefined, false)
   return stdout.length > 1
 }
+
+export function remove<T>(arr: T[], item: T) {
+  const index = arr.indexOf(item)
+  if (index > -1) {
+    arr.splice(index, 1)
+  }
+}

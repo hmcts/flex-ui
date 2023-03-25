@@ -52,7 +52,7 @@ export function getKnownCaseFieldTypeParameters(configSheets: ConfigSheets = she
   const inUse = getUniqueByKey(configSheets.CaseField, 'FieldTypeParameter')
   const fixedLists = getUniqueByKey(configSheets.Scrubbed, 'ID')
   const complexTypes = getUniqueByKey(configSheets.ComplexTypes, 'ID')
-  return Object.keys({ ...inUse, ...fixedLists, ...complexTypes, ...CCD_FIELD_TYPES })
+  return [...Object.keys({ ...inUse, ...fixedLists, ...complexTypes }), ...CCD_FIELD_TYPES]
 }
 
 /**

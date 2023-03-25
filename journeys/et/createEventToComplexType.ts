@@ -2,7 +2,7 @@ import { prompt } from 'inquirer'
 import { EventToComplexTypeKeys } from 'types/ccd'
 import { QUESTION_ANOTHER, QUESTION_HINT_TEXT } from './createSingleField'
 import { createNewEventToComplexType, trimCcdObject } from 'app/ccd'
-import { addToInMemoryConfig } from 'app/et/configs'
+import { addToInMemoryConfig, getETCaseEventIDOpts, getKnownETCaseFieldIDsByEvent } from 'app/et/configs'
 import { Answers, askCaseEvent, askCaseFieldID, askRetainHiddenValue } from 'app/questions'
 import { addToLastAnswers, saveSession, session } from 'app/session'
 import { Journey } from 'types/journey'
@@ -32,11 +32,11 @@ function getDefaultValueForFieldDisplayOrder() {
 export async function createEventToComplexType(answers: Answers = {}) {
   answers = await askFlexRegion(undefined, undefined, undefined, answers)
 
-  answers = await askCaseEvent(answers, undefined, QUESTION_CASE_EVENT_ID, undefined, true, createEvent)
+  answers = await askCaseEvent(answers, { message: QUESTION_CASE_EVENT_ID, choices: getETCaseEventIDOpts() }, createEvent)
 
   answers = await prompt([{ name: EventToComplexTypeKeys.ID, message: QUESTION_ID, type: 'input', default: session.lastAnswers.ID }], answers)
 
-  answers = await askCaseFieldID(answers)
+  answers = await askCaseFieldID(answers, { choices: getKnownETCaseFieldIDsByEvent(answers.CaseEventID) })
 
   answers = await askEventToComplexTypeListElementCode(answers)
 

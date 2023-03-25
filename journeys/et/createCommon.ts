@@ -29,7 +29,7 @@ const TASK_CHOICES = {
 
 export async function createJourney() {
   while (true) {
-    const answers = await askAutoComplete('task', QUESTION_TASK, TASK_CHOICES.BACK, Object.values(TASK_CHOICES))
+    const answers = await askAutoComplete({}, { name: 'task', message: QUESTION_TASK, default: TASK_CHOICES.BACK, choices: Object.values(TASK_CHOICES) })
 
     switch (answers.task) {
       case TASK_CHOICES.BACK:

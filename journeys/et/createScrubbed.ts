@@ -1,6 +1,5 @@
-import { getKnownScrubbedLists } from 'app/configs'
 import { CUSTOM, YES_OR_NO } from 'app/constants'
-import { addToInMemoryConfig, getConfigSheetsFromFlexRegion } from 'app/et/configs'
+import { addToInMemoryConfig, getConfigSheetsFromFlexRegion, getKnownETScrubbedLists } from 'app/et/configs'
 import { addFlexRegionToCcdObject, askFlexRegion, getFlexRegionFromAnswers } from 'app/et/questions'
 import { Answers, askAutoComplete } from 'app/questions'
 import { prompt } from 'inquirer'
@@ -14,9 +13,7 @@ const QUESTION_DISPLAY_ORDER = 'Whats the DisplayOrder for this item?'
 const QUESTION_ADD_ANOTHER = 'Add another?'
 
 export async function createScrubbed(answers: Answers = {}) {
-  const opts = getKnownScrubbedLists()
-
-  answers = await askAutoComplete(ScrubbedKeys.ID, QUESTION_ID, CUSTOM, [CUSTOM, ...opts], false, true, answers)
+  answers = await askAutoComplete(answers, { name: ScrubbedKeys.ID, message: QUESTION_ID, default: CUSTOM, choices: [CUSTOM, ...getKnownETScrubbedLists()], askAnswered: false, sort: true })
 
   if (answers[ScrubbedKeys.ID] === CUSTOM) {
     answers = await prompt([{ name: ScrubbedKeys.ID, message: QUESTION_ID, askAnswered: true }], answers)

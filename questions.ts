@@ -1,9 +1,9 @@
-import { prompt } from 'inquirer'
+import inquirer, { prompt } from 'inquirer'
 import { COMPOUND_KEYS, CUSTOM, NO, NONE, NO_DUPLICATE, YES_OR_NO } from 'app/constants'
 import { session } from 'app/session'
 import fuzzy from 'fuzzy'
 import { AllCCDKeys, CaseEventKeys, CaseEventToFieldKeys, CaseField, CaseFieldKeys, CCDSheets, CCDTypes, ComplexType, ComplexTypeKeys, EventToComplexTypeKeys, ScrubbedKeys } from 'types/ccd'
-import { format, getIdealSizeForInquirer } from 'app/helpers'
+import { format, getIdealSizeForInquirer, remove } from 'app/helpers'
 import { findObject, getCaseEventIDOpts, getKnownCaseFieldIDs, getKnownCaseFieldTypeParameters, getKnownCaseFieldTypes, getKnownCaseTypeIDs, getKnownComplexTypeListElementCodes } from './configs'
 
 const QUESTION_REGULAR_EXPRESSION = 'Do we need a RegularExpression for the field?'
@@ -31,35 +31,48 @@ const FIELD_TYPE_PARAMETERS_CUSTOM_OPTS = {
 }
 
 export type Answers = AllCCDKeys & Record<string, unknown>
+export type Question = inquirer.Question & { choices?: string[], sort?: boolean }
 
 /**
  * Asks for generic input selecting from a list
  * @returns extended answers object as passed in
  */
-async function list(answers: Answers = {}, name: string, message: string, choices: string[], defaultValue?: unknown, askAnswered?: boolean) {
-  return await prompt([{ name, message, type: 'list', choices, default: defaultValue, pageSize: getIdealSizeForInquirer(), askAnswered }], answers)
+export async function list(answers: Answers = {}, question: Question = {}) {
+  question.name ||= 'name'
+  question.message ||= 'no message provided'
+  question.choices ||= []
+
+  return await prompt([{ type: 'list', pageSize: getIdealSizeForInquirer(), ...question }], answers)
 }
 
 /**
  * Asks for generic input select from a list AND allowing free typing
  * @returns extended answers object as passed in
  */
-export async function listOrFreeType(answers: Answers = {}, name: string, message: string, choices: string[], defaultValue?: unknown, askAnswered?: boolean) {
-  answers = await list(answers, name, message, [CUSTOM, ...choices], defaultValue, askAnswered)
+export async function listOrFreeType(answers: Answers = {}, question: Question = {}) {
+  question.name ||= 'name'
+  question.message ||= 'no message provided'
+  question.choices = question.choices.includes(CUSTOM) ? question.choices : [CUSTOM, ...question.choices]
 
-  if (answers[name] !== CUSTOM) {
+  answers = await list(answers, question)
+
+  if (answers[question.name] !== CUSTOM) {
     return answers
   }
 
-  return await prompt([{ name, message: 'Enter a custom value', askAnswered: true }], answers)
+  return await prompt([{ name: question.name, message: 'Enter a custom value', askAnswered: true }], answers)
 }
 
 /**
  * Asks for basic text entry given a question
  * @returns extended answers object as passed in
  */
-export async function askBasicFreeEntry(answers: Answers = {}, name: string, message?: string, defaultValue?: unknown) {
-  return await prompt([{ name, message: message || `What's the ${name}?`, default: defaultValue || session.lastAnswers[name], askAnswered: true }], answers || {})
+export async function askBasicFreeEntry(answers: Answers = {}, question: Question = {}) {
+  question.name ||= 'question'
+  question.message ||= `What's the ${question.name}?`
+  question.default ||= session.lastAnswers[question.name]
+
+  return await prompt([question], answers)
 }
 
 /**
@@ -75,25 +88,18 @@ export function fuzzySearch(choices: string[], input = '', sortChoices = true) {
   return fuzzy.filter(input, choices).map((el) => el.original)
 }
 
-export async function askForRegularExpression(answers: Answers = {}, key?: string, message?: string, defaultValue?: string) {
-  return await prompt([{
-    name: key || CaseFieldKeys.RegularExpression,
-    message: message || QUESTION_REGULAR_EXPRESSION,
-    type: 'input',
-    default: defaultValue || session.lastAnswers[key] || session.lastAnswers.RegularExpression
-  }
-  ], answers)
+export async function askForRegularExpression(answers: Answers = {}, question: Question = {}) {
+  question.name ||= CaseFieldKeys.RegularExpression
+  question.message ||= QUESTION_REGULAR_EXPRESSION
+
+  return await prompt([{ type: 'input', ...question }], answers)
 }
 
-export async function askRetainHiddenValue(answers: Answers = {}, key?: string, message?: string, defaultValue?: string) {
-  return await prompt([{
-    name: key || CaseEventToFieldKeys.RetainHiddenValue,
-    message: message || QUESTION_RETAIN_HIDDEN_VALUE,
-    type: 'list',
-    choices: YES_OR_NO,
-    default: defaultValue
-  }
-  ], answers)
+export async function askRetainHiddenValue(answers: Answers = {}, question: Question = {}) {
+  question.name ||= CaseEventToFieldKeys.RetainHiddenValue
+  question.message ||= QUESTION_RETAIN_HIDDEN_VALUE
+
+  return await prompt([{ type: 'list', choices: YES_OR_NO, ...question }], answers)
 }
 
 export async function askMinAndMax(answers: Answers = {}, existingCaseField?: CaseField | ComplexType) {
@@ -103,34 +109,28 @@ export async function askMinAndMax(answers: Answers = {}, existingCaseField?: Ca
   ], answers)
 }
 
-export async function askForPageID(answers: Answers = {}, key?: string, message?: string, defaultValue?: number) {
-  return await prompt([{
-    name: key || CaseEventToFieldKeys.PageID,
-    message: message || QUESTION_PAGE_ID,
-    type: 'number',
-    default: defaultValue || session.lastAnswers.PageID || 1
-  }], answers)
+export async function askForPageID(answers: Answers = {}, question: Question = {}) {
+  question.name ||= CaseEventToFieldKeys.PageID
+  question.message ||= QUESTION_PAGE_ID
+  question.default ||= session.lastAnswers[CaseEventToFieldKeys.PageID] || 1
+
+  return await prompt([{ type: 'number', ...question }], answers)
 }
 
-export async function askForPageFieldDisplayOrder(answers: Answers = {}, key?: string, message?: string, defaultValue?: number) {
-  return await prompt([{
-    name: key || CaseEventToFieldKeys.PageFieldDisplayOrder,
-    message: message || QUESTION_PAGE_FIELD_DISPLAY_ORDER,
-    type: 'number',
-    default: defaultValue
-  }], answers)
+export async function askForPageFieldDisplayOrder(answers: Answers = {}, question: Question = {}) {
+  question.name ||= CaseEventToFieldKeys.PageFieldDisplayOrder
+  question.message ||= QUESTION_PAGE_FIELD_DISPLAY_ORDER
+
+  return await prompt([{ type: 'number', ...question }], answers)
 }
 
-export async function askAutoComplete(name: string, message: string, defaultOpt: string, choices: string[], askAnswered = true, sortChoices = true, answers: Answers = {}) {
+export async function askAutoComplete(answers: Answers = {}, question: Question = {}) {
   return await prompt([
     {
-      name,
-      message,
       type: 'autocomplete',
-      source: (_answers: unknown, input: string) => fuzzySearch(choices, input, sortChoices),
-      default: defaultOpt,
-      askAnswered,
-      pageSize: getIdealSizeForInquirer()
+      source: (_answers: unknown, input: string) => fuzzySearch(question.choices, input, question.sort),
+      pageSize: getIdealSizeForInquirer(),
+      ...question
     }
   ], answers)
 }
@@ -149,55 +149,63 @@ export async function sayWarning(journeyFn: () => Promise<void>) {
  * Asks the user for a CaseTypeID. Allows for creation if <custom> is selected.
  * @returns extended answers object as passed in
  */
-export async function askCaseTypeID(answers: Answers = {}, key?: string, message?: string) {
-  const opts = getKnownCaseTypeIDs()
-  key = key || CaseFieldKeys.CaseTypeID
+export async function askCaseTypeID(answers: Answers = {}, question: Question = {}) {
+  question.name ||= CaseFieldKeys.CaseTypeID
+  question.message ||= QUESTION_CASE_TYPE_ID
+  question.default ||= session.lastAnswers[question.name]
+  question.choices ||= getKnownCaseTypeIDs()
+
+  remove(question.choices, CUSTOM)
+  question.choices.splice(0, 0, CUSTOM)
 
   answers = await prompt([
     {
-      name: key,
-      message: message || QUESTION_CASE_TYPE_ID,
       type: 'autocomplete',
-      source: (_answers: unknown, input: string) => fuzzySearch([CUSTOM, ...opts], input),
-      default: session.lastAnswers[key],
-      pageSize: getIdealSizeForInquirer()
+      source: (_answers: unknown, input: string) => fuzzySearch(question.choices, input),
+      pageSize: getIdealSizeForInquirer(),
+      ...question
     }
   ], answers)
 
-  if (answers[key] === CUSTOM) {
-    const newEventTypeAnswers = await askBasicFreeEntry({}, key, QUESTION_CASE_TYPE_ID_CUSTOM)
-    answers[key] = newEventTypeAnswers[key]
+  if (answers[question.name] === CUSTOM) {
+    const newEventTypeAnswers = await askBasicFreeEntry({}, { name: question.name, message: QUESTION_CASE_TYPE_ID_CUSTOM })
+    answers[question.name] = newEventTypeAnswers[question.name]
     // TODO: There's no support for CaseType.json yet so theres no flow to create one. But we could...
   }
 
   return answers
 }
 
-export async function askCaseEvent(answers: Answers = {}, key?: string, message?: string, addOpts: string[] = [], allowCustom = true, createEventFn?: (answers: Answers) => Promise<string>) {
-  const opts = getCaseEventIDOpts()
-  key = key || CaseEventToFieldKeys.CaseEventID
+export async function askCaseEvent(answers: Answers = {}, question: Question = {}, createEventFn?: (answers: Answers) => Promise<string>) {
+  question.name ||= CaseEventToFieldKeys.CaseEventID
+  question.message ||= QUESTION_CASE_EVENT_ID
+  question.default ||= session.lastAnswers[question.name]
+  question.choices ||= [CUSTOM, NONE, ...getCaseEventIDOpts()]
 
-  const choices = allowCustom ? [...addOpts, CUSTOM, ...opts] : [...addOpts, ...opts]
+  remove(question.choices, CUSTOM)
+  question.choices.splice(0, 0, CUSTOM)
+  remove(question.choices, NONE)
+  question.choices.splice(1, 0, NONE)
 
   answers = await prompt([
     {
-      name: key,
-      message: message || QUESTION_CASE_EVENT_ID,
       type: 'autocomplete',
-      source: (_answers: unknown, input: string) => fuzzySearch(choices, input),
-      default: session.lastAnswers[key],
-      pageSize: getIdealSizeForInquirer()
+      source: (_answers: unknown, input: string) => fuzzySearch(question.choices, input),
+      pageSize: getIdealSizeForInquirer(),
+      ...question
     }
   ], answers)
+
+  const key = question.name
 
   if (answers[key] !== CUSTOM) {
     return answers
   }
 
-  answers[key] = await askBasicFreeEntry({}, key, QUESTION_CASE_EVENT_ID, 'eventId')
+  answers = await askBasicFreeEntry(answers, { name: key, message: QUESTION_CASE_EVENT_ID, default: 'eventId', askAnswered: true })
 
   if (createEventFn) {
-    const followup = await prompt([{ name: 'create', message: format(QUESTION_CREATE, 'Case Field', answers[key] as string), type: 'list', choices: YES_OR_NO }])
+    const followup = await prompt([{ name: 'create', message: format(QUESTION_CREATE, 'CaseEvent', answers[key] as string), type: 'list', choices: YES_OR_NO }])
 
     if (followup.create === NO) {
       return answers
@@ -209,49 +217,59 @@ export async function askCaseEvent(answers: Answers = {}, key?: string, message?
   return answers
 }
 
-export async function askFieldType(answers: Answers = {}, key?: string, message?: string, defaultValue?: string) {
-  const opts = getKnownCaseFieldTypes()
-  key = key || CaseFieldKeys.FieldType
+export async function askFieldType(answers: Answers = {}, question: Question = {}) {
+  question.name ||= CaseFieldKeys.FieldType
+  question.message ||= QUESTION_FIELD_TYPE
+  question.default ||= 'Label'
+  question.choices ||= getKnownCaseFieldTypes()
+
+  remove(question.choices, CUSTOM)
+  question.choices.splice(0, 0, CUSTOM)
 
   answers = await prompt([
     {
-      name: key,
-      message: message || QUESTION_FIELD_TYPE,
       type: 'autocomplete',
-      source: (_answers: unknown, input: string) => fuzzySearch([CUSTOM, ...opts], input),
-      default: defaultValue || 'Label',
-      pageSize: getIdealSizeForInquirer()
+      source: (_answers: unknown, input: string) => fuzzySearch(question.choices, input),
+      pageSize: getIdealSizeForInquirer(),
+      ...question
     }
   ], answers)
 
+  const key = question.name
+
   if (answers[key] === CUSTOM) {
-    const customFieldType = await askBasicFreeEntry({}, key, QUESTION_FIELD_TYPE_FREE)
+    const customFieldType = await askBasicFreeEntry({}, { name: key, message: QUESTION_FIELD_TYPE_FREE })
     answers[key] = customFieldType[key]
   }
 
   return answers
 }
 
-export async function askCaseFieldID(answers: Answers = {}, key?: string, message?: string, defaultValue?: string, createSingleFieldFn?: (answers: Answers) => Promise<string>) {
-  const opts = getKnownCaseFieldIDs()
-  key = key || EventToComplexTypeKeys.CaseFieldID
+export async function askCaseFieldID(answers: Answers = {}, question: Question = {}, createSingleFieldFn?: (answers: Answers) => Promise<string>) {
+  question.name ||= EventToComplexTypeKeys.CaseFieldID
+  question.message ||= QUESTION_CASE_FIELD_ID
+  question.default ||= session.lastAnswers[question.name]
+  question.choices ||= getKnownCaseFieldIDs()
+
+  remove(question.choices, CUSTOM)
+  question.choices.splice(0, 0, CUSTOM)
 
   answers = await prompt([
     {
-      name: key,
-      message: message || QUESTION_CASE_FIELD_ID,
       type: 'autocomplete',
-      source: (_answers: unknown, input: string) => fuzzySearch([CUSTOM, ...opts], input),
-      default: session.lastAnswers[key] || defaultValue,
-      pageSize: getIdealSizeForInquirer()
+      source: (_answers: unknown, input: string) => fuzzySearch(question.choices, input),
+      pageSize: getIdealSizeForInquirer(),
+      ...question
     }
   ], answers)
+
+  const key = question.name
 
   if (answers[key] !== CUSTOM) {
     return answers
   }
 
-  answers[key] = await askBasicFreeEntry({}, key, QUESTION_CASE_FIELD_ID, 'fieldId')
+  answers = await askBasicFreeEntry(answers, { name: key, message: QUESTION_CASE_FIELD_ID, default: 'fieldId', askAnswered: true })
 
   if (createSingleFieldFn) {
     const followup = await prompt([{ name: 'create', message: format(QUESTION_CREATE, 'Case Field', answers[key] as string), type: 'list', choices: YES_OR_NO }])
@@ -270,48 +288,60 @@ export async function askCaseFieldID(answers: Answers = {}, key?: string, messag
   return answers
 }
 
-export async function askDuplicate(answers: Answers) {
-  const opts = [NO_DUPLICATE, ...getKnownCaseTypeIDs()]
-  return await listOrFreeType(answers, 'duplicate', QUESTION_DUPLICATE_ADDON, opts, undefined, true)
+export async function askDuplicate(answers: Answers, opts = getKnownCaseTypeIDs()) {
+  opts = opts.includes(NO_DUPLICATE) ? opts : [NO_DUPLICATE, ...opts]
+  return await listOrFreeType(answers, { name: 'duplicate', message: QUESTION_DUPLICATE_ADDON, choices: opts, askAnswered: true })
 }
 
-export async function askComplexTypeListElementCode(answers: Answers = {}, key?: string, message?: string, defaultValue?: string) {
-  const opts = getKnownComplexTypeListElementCodes(answers[ComplexTypeKeys.ID])
-  key = key || ComplexTypeKeys.ListElementCode
+export async function askComplexTypeListElementCode(answers: Answers = {}, question: Question = {}) {
+  question.name ||= ComplexTypeKeys.ListElementCode
+  question.message ||= QUESTION_LIST_ELEMENT_CODE
+  question.default ||= session.lastAnswers[question.name] || CUSTOM
+  question.choices ||= getKnownComplexTypeListElementCodes(answers[ComplexTypeKeys.ID])
+
+  remove(question.choices, CUSTOM)
+  question.choices.splice(0, 0, CUSTOM)
 
   answers = await prompt([
     {
-      name: key,
-      message: message || QUESTION_LIST_ELEMENT_CODE,
       type: 'autocomplete',
-      source: (_answers: unknown, input: string) => fuzzySearch([CUSTOM, ...opts], input),
-      default: defaultValue || answers[ComplexTypeKeys.ListElementCode] || CUSTOM,
-      pageSize: getIdealSizeForInquirer()
+      source: (_answers: unknown, input: string) => fuzzySearch(question.choices, input),
+      pageSize: getIdealSizeForInquirer(),
+      ...question
     }
   ], answers)
 
+  const key = question.name
+
   if (answers[key] === CUSTOM) {
-    const customFieldType = await askBasicFreeEntry({}, key, QUESTION_LIST_ELEMENT_CODE)
+    const customFieldType = await askBasicFreeEntry({}, { name: key, message: QUESTION_LIST_ELEMENT_CODE })
     answers[key] = customFieldType[key]
   }
 
   return answers
 }
 
-export async function askFieldTypeParameter(answers: Answers = {}, key?: string, message?: string, defaultValue?: string, createFixedListFn?: (answers: Answers) => Promise<string>) {
-  const opts = getKnownCaseFieldTypeParameters()
-  key = key || CaseFieldKeys.FieldTypeParameter
+export async function askFieldTypeParameter(answers: Answers = {}, question: Question = {}, createFixedListFn?: (answers: Answers) => Promise<string>) {
+  question.name ||= CaseFieldKeys.FieldTypeParameter
+  question.message ||= format(QUESTION_FIELD_TYPE_PARAMETER, answers[CaseFieldKeys.FieldType])
+  question.default ||= NONE
+  question.choices ||= getKnownCaseFieldTypeParameters()
+
+  remove(question.choices, CUSTOM)
+  question.choices.splice(0, 0, CUSTOM)
+  remove(question.choices, NONE)
+  question.choices.splice(1, 0, NONE)
 
   answers = await prompt([
     {
-      name: key,
-      message: message || format(QUESTION_FIELD_TYPE_PARAMETER, answers[CaseFieldKeys.FieldType]),
       type: 'autocomplete',
-      source: (_answers: unknown, input: string) => fuzzySearch([NONE, CUSTOM, ...opts], input),
+      source: (_answers: unknown, input: string) => fuzzySearch(question.choices, input),
       pageSize: getIdealSizeForInquirer(),
-      default: defaultValue
+      ...question
     }
   ], answers)
+
+  const key = question.name
 
   if (answers[key] === NONE) {
     answers[key] = ''
@@ -328,7 +358,7 @@ export async function askFieldTypeParameter(answers: Answers = {}, key?: string,
     return answers
   }
 
-  return await askBasicFreeEntry(answers, key, QUESTION_FIELD_TYPE_PARAMETER_FREE)
+  return await askBasicFreeEntry(answers, { name: key, message: QUESTION_FIELD_TYPE_PARAMETER_FREE })
 }
 
 /**
@@ -358,7 +388,7 @@ export async function createTemplate<T, P>(answers: Answers = {}, keys: T, obj: 
     }
 
     if (field === 'CaseEventID') {
-      answers = await askCaseEvent(answers, undefined, undefined, [NONE])
+      answers = await askCaseEvent(answers, { choices: [NONE, ...getCaseEventIDOpts()] })
     } else if (field === 'CaseTypeID') {
       answers = await askCaseTypeID(answers)
     } else if (field === 'CaseFieldID') {
@@ -375,11 +405,11 @@ export async function createTemplate<T, P>(answers: Answers = {}, keys: T, obj: 
   return answers
 }
 
-export async function addonDuplicateQuestion(answers: Answers, fn: (answers: Answers) => void) {
+export async function addonDuplicateQuestion(answers: Answers, opts = getKnownCaseTypeIDs(), fn: (answers: Answers) => void) {
   fn(answers)
 
   while (true) {
-    answers = await askDuplicate(answers)
+    answers = await askDuplicate(answers, opts)
 
     if (answers.duplicate === NO_DUPLICATE) {
       return answers.ID

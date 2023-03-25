@@ -1,6 +1,6 @@
 import { prompt } from 'inquirer'
 import { Journey } from 'types/journey'
-import { getKnownETCaseFieldIDsByEvent, getRegionFromCaseTypeId, Region, getEnglandWales, getScotland, addToConfig, addToInMemoryConfig } from 'app/et/configs'
+import { getKnownETCaseFieldIDsByEvent, getRegionFromCaseTypeId, Region, getEnglandWales, getScotland, addToConfig, addToInMemoryConfig, getETCaseEventIDOpts } from 'app/et/configs'
 import { Answers, askAutoComplete, askCaseEvent, askCaseTypeID, sayWarning } from 'app/questions'
 import { addFlexRegionToCcdObject, FLEX_REGION_ANSWERS_KEY } from 'app/et/questions'
 import { CaseEventToFieldKeys, CaseFieldKeys, createNewConfigSheets } from 'app/types/ccd'
@@ -57,7 +57,7 @@ async function askFields() {
   let answers: Answers = {}
 
   answers = await askCaseTypeID(answers)
-  answers = await askCaseEvent(answers, undefined, undefined, [ALL, NONE], false)
+  answers = await askCaseEvent(answers, { choices: [ALL, NONE, ...getETCaseEventIDOpts()] })
 
   const selectedCaseTypeID = answers[CaseFieldKeys.CaseTypeID]
   const region = getRegionFromCaseTypeId(selectedCaseTypeID)
@@ -65,7 +65,7 @@ async function askFields() {
 
   const idOpts = getFieldOptions(selectedCaseTypeID, selectedCaseEventID)
 
-  answers = await askAutoComplete(CaseFieldKeys.ID, QUESTION_ID_SELECT, undefined, [MULTI, ...idOpts], true, true, answers)
+  answers = await askAutoComplete(answers, { name: CaseFieldKeys.ID, message: QUESTION_ID_SELECT, default: undefined, choices: [MULTI, ...idOpts], askAnswered: true, sort: true })
 
   if (answers[CaseFieldKeys.ID] === MULTI) {
     answers = await prompt([{
@@ -86,7 +86,7 @@ async function askFields() {
     return
   }
 
-  const toCaseTypeID = (await askCaseTypeID({}, undefined, QUESTION_DUPLICATE_TO)).CaseTypeID
+  const toCaseTypeID = (await askCaseTypeID({}, { message: QUESTION_DUPLICATE_TO })).CaseTypeID
 
   return await extractFieldsAndDependants(region, toCaseTypeID, selectedIDs)
 }

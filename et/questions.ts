@@ -15,7 +15,7 @@ export const REGION_OPTS = [
 ]
 
 async function askEventToComplexTypeListElementCodeFallback(answers: Answers = {}, key?: string) {
-  const customNameAnswers = await askBasicFreeEntry({}, key, QUESTION_LIST_ELEMENT_CODE)
+  const customNameAnswers = await askBasicFreeEntry({}, { name: key, message: QUESTION_LIST_ELEMENT_CODE })
   answers[key] = customNameAnswers[key]
   return answers
 }
@@ -54,7 +54,7 @@ export async function askEventToComplexTypeListElementCode(answers: Answers = {}
 
   // Can have a result for EW and SC, thats fine, but the FieldType should be the same, if not, just ask them to manually type in the name
   if (selected.length === 2 && selected[0].FieldType !== selected[1].FieldType) {
-    const customNameAnswers = await askBasicFreeEntry({}, key, QUESTION_LIST_ELEMENT_CODE)
+    const customNameAnswers = await askBasicFreeEntry({}, { name: key, message: QUESTION_LIST_ELEMENT_CODE })
     answers[key] = customNameAnswers[key]
   }
 
@@ -82,6 +82,7 @@ export async function askEventToComplexTypeListElementCode(answers: Answers = {}
   return answers
 }
 
+// TODO: Update this to take in a Question object as a parameter
 export async function askFlexRegion(key?: string, message?: string, defaultValue?: string[], answers?: Answers) {
   return await prompt([
     {

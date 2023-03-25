@@ -2,10 +2,11 @@ import { prompt } from 'inquirer'
 import { Journey } from 'types/journey'
 import { addonDuplicateQuestion, Answers, askCaseEvent, askCaseTypeID } from 'app/questions'
 import { createNewCaseEvent } from 'app/ccd'
-import { NEW, Y_OR_N } from 'app/constants'
+import { COMPOUND_KEYS, NEW, Y_OR_N } from 'app/constants'
 import { CaseEvent, CaseEventKeys } from 'app/types/ccd'
-import { findObject } from 'app/configs'
+import { findObject, getCaseEventIDOpts, sheets } from 'app/configs'
 import { addToSession } from 'app/session'
+import { upsertFields } from 'app/helpers'
 
 const QUESTION_NAME = 'Give the new event a name (shows in the event dropdown)'
 const QUESTION_DESCRIPTION = 'Give the new event a description'
@@ -21,7 +22,7 @@ const QUESTION_CALLBACK_URL_SUBMITTED_EVENT = 'Do we need a callback after we su
 
 export async function createEvent(answers: Answers = {}) {
   answers = await askCaseTypeID(answers)
-  answers = await askCaseEvent(answers, CaseEventKeys.ID, "What's the ID of the new/existing Event?", [NEW], false)
+  answers = await askCaseEvent(answers, { name: CaseEventKeys.ID, message: "What's the ID of the new/existing Event?", choices: [NEW, ...getCaseEventIDOpts()] })
 
   if (answers.ID === NEW) {
     answers = await prompt([{ name: CaseEventKeys.ID, message: 'What\'s the ID of the new Event?', askAnswered: true, validate: (input: string) => input.length > 0 }], answers)
@@ -44,17 +45,22 @@ export async function createEvent(answers: Answers = {}) {
       { name: 'CallBackURLSubmittedEvent', message: QUESTION_CALLBACK_URL_SUBMITTED_EVENT, type: 'input', default: existing?.CallBackURLSubmittedEvent }
     ], answers)
 
-  await addonDuplicateQuestion(answers, (answers: Answers) => {
+  await addonDuplicateQuestion(answers, undefined, (answers: Answers) => {
     const caseEvent = createNewCaseEvent(answers)
 
     // ET creates authorisations here - this is highly specific code so teams implementing this will
     // need to provide their own journey for this. See journeys/et/createSingleField for an example.
     const authorisations = []
 
-    addToSession({
+    const newFields = {
       AuthorisationCaseEvent: authorisations,
       CaseEvent: [caseEvent]
-    })
+    }
+    addToSession(newFields)
+
+    for (const sheetName in newFields) {
+      upsertFields(sheets[sheetName], newFields[sheetName], COMPOUND_KEYS[sheetName])
+    }
   })
 
   return answers[CaseEventKeys.ID]

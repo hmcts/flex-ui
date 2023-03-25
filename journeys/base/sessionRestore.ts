@@ -25,7 +25,7 @@ export async function restoreSession() {
     return aDefault ? 1 : -1
   })
 
-  const answers = await askAutoComplete('name', QUESTION_PREVIOUS_SESSION, CANCEL, [CANCEL, ...prevSessions], true, false)
+  const answers = await askAutoComplete({}, { name: 'name', message: QUESTION_PREVIOUS_SESSION, default: CANCEL, choices: [CANCEL, ...prevSessions], sort: false })
 
   if (answers.name === CANCEL) {
     return

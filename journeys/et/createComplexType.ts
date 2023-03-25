@@ -2,7 +2,7 @@ import { prompt } from 'inquirer'
 import { CaseFieldKeys, ComplexType, ComplexTypeKeys } from 'types/ccd'
 import { QUESTION_ANOTHER, QUESTION_HINT_TEXT } from './createSingleField'
 import { createNewComplexType, trimCcdObject } from 'app/ccd'
-import { addToInMemoryConfig, findETObject, getKnownETComplexTypeIDs, Region } from 'app/et/configs'
+import { addToInMemoryConfig, findETObject, getKnownETCaseFieldTypeParameters, getKnownETCaseFieldTypes, getKnownETComplexTypeIDs, getKnownETComplexTypeListElementCodes, Region } from 'app/et/configs'
 import { Answers, askBasicFreeEntry, askComplexTypeListElementCode, askFieldType, askFieldTypeParameter, askForRegularExpression, askMinAndMax, fuzzySearch } from 'app/questions'
 import { CUSTOM, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, isFieldTypeInExclusionList, YES, YES_OR_NO } from 'app/constants'
 import { addToLastAnswers, saveSession, session } from 'app/session'
@@ -36,7 +36,7 @@ export async function createComplexType(answers: Answers = {}) {
   answers = await askFlexRegion(undefined, undefined, undefined, answers)
   answers = await askForID(answers, undefined, undefined, session.lastAnswers[ComplexTypeKeys.ID])
 
-  answers = await askComplexTypeListElementCode(answers)
+  answers = await askComplexTypeListElementCode(answers, { choices: getKnownETComplexTypeListElementCodes(answers.ID) })
 
   const existing = await prepopulateAnswersWithExistingValues(answers)
 
@@ -53,14 +53,14 @@ export async function createComplexType(answers: Answers = {}) {
   //   answers = await askRetainHiddenValue(answers, undefined, undefined, existing?.RetainHiddenValue)
   // }
 
-  answers = await askFieldType(answers, undefined, undefined, existing?.FieldType)
+  answers = await askFieldType(answers, { default: existing?.FieldType, choices: getKnownETCaseFieldTypes() })
 
   if (!isFieldTypeInExclusionList(answers[CaseFieldKeys.FieldType], FIELD_TYPES_EXCLUDE_PARAMETER)) {
-    answers = await askFieldTypeParameter(answers, undefined, undefined, existing?.FieldTypeParameter)
+    answers = await askFieldTypeParameter(answers, { default: existing?.FieldTypeParameter, choices: getKnownETCaseFieldTypeParameters() })
   }
 
   if (answers[ComplexTypeKeys.FieldType] === 'Text') {
-    answers = await askForRegularExpression(answers, undefined, undefined, existing?.RegularExpression)
+    answers = await askForRegularExpression(answers, { default: existing?.RegularExpression })
   }
 
   if (!isFieldTypeInExclusionList(answers[CaseFieldKeys.FieldType], FIELD_TYPES_EXCLUDE_MIN_MAX)) {
@@ -121,6 +121,7 @@ async function prepopulateAnswersWithExistingValues(answers: Answers) {
   return obj.region === Region.EnglandWales ? ewExisting : scExisting
 }
 
+// TODO: Update this to take in Question parameter
 async function askForID(answers: Answers = {}, key?: string, message?: string, defaultValue?: string) {
   const opts = getKnownETComplexTypeIDs()
   key = key || ComplexTypeKeys.ID
@@ -137,7 +138,7 @@ async function askForID(answers: Answers = {}, key?: string, message?: string, d
   ], answers)
 
   if (answers[key] === CUSTOM) {
-    const newEventTypeAnswers = await askBasicFreeEntry({}, key, 'Enter a custom value for ID')
+    const newEventTypeAnswers = await askBasicFreeEntry({}, { name: key, message: 'Enter a custom value for ID' })
     answers[key] = newEventTypeAnswers[key]
   }
 

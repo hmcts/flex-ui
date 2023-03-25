@@ -65,7 +65,7 @@ export async function gitJourney() {
     let followup: Record<string, any> = { repos: answers.repos }
     const branchOpts = await getBranchOpts(REPOS[followup.repos[0]])
 
-    followup = await askAutoComplete('task', QUESTION_TASK, TASK_CHOICES.PULL, Object.values(TASK_CHOICES), true, false, followup)
+    followup = await askAutoComplete(followup, { name: 'task', message: QUESTION_TASK, default: TASK_CHOICES.PULL, choices: Object.values(TASK_CHOICES), askAnswered: true, sort: false })
     const repos = followup.repos as string[]
 
     switch (followup.task) {
@@ -76,7 +76,7 @@ export async function gitJourney() {
       case TASK_CHOICES.BACK:
         return
       case TASK_CHOICES.BRANCH:
-        followup = await askAutoComplete('branch', QUESTION_BRANCH, 'master', [CUSTOM, ...branchOpts], true, true, followup)
+        followup = await askAutoComplete(followup, { name: 'branch', message: QUESTION_BRANCH, default: 'master', choices: [CUSTOM, ...branchOpts], askAnswered: true, sort: true })
         if (followup.branch === CUSTOM) {
           followup = await prompt([{ name: 'branch', message: QUESTION_BRANCH, askAnswered: true }], followup)
         }
@@ -84,11 +84,11 @@ export async function gitJourney() {
         await Promise.allSettled(repos.map(async o => await switchBranch(REPOS[o], followup.branch, /(.+?) \(/.exec(o)?.[1])))
         break
       case TASK_CHOICES.COMMIT:
-        followup = await askBasicFreeEntry(followup, 'message', QUESTION_MESSAGE_COMMIT)
+        followup = await askBasicFreeEntry(followup, { name: 'message', message: QUESTION_MESSAGE_COMMIT })
         await Promise.allSettled(repos.map(async o => await commit(REPOS[o], followup.message)))
         break
       case TASK_CHOICES.DELETE:
-        followup = await askAutoComplete('branch', QUESTION_BRANCH, 'master', [CUSTOM, ...branchOpts], true, true, followup)
+        followup = await askAutoComplete(followup, { name: 'branch', message: QUESTION_BRANCH, default: 'master', choices: [CUSTOM, ...branchOpts], askAnswered: true, sort: true })
         if (followup.branch === CUSTOM) {
           followup = await prompt([{ name: 'branch', message: QUESTION_BRANCH, askAnswered: true }], followup)
         }
@@ -117,11 +117,11 @@ export async function gitJourney() {
         await Promise.allSettled(repos.map(async o => await status(REPOS[o])))
         break
       case TASK_CHOICES.STASH:
-        followup = await askBasicFreeEntry(followup, 'message', QUESTION_MESSAGE_STASH)
+        followup = await askBasicFreeEntry(followup, { name: 'message', message: QUESTION_MESSAGE_STASH })
         await Promise.allSettled(repos.map(async o => await stash(REPOS[o], followup.message)))
         break
       case TASK_CHOICES.ABITRARY:
-        followup = await askBasicFreeEntry(followup, 'message', QUESTION_ABITRARY_COMMAND)
+        followup = await askBasicFreeEntry(followup, { name: 'message', message: QUESTION_ABITRARY_COMMAND })
         await Promise.allSettled(repos.map(async o => await runCommand(REPOS[o], followup.message)))
         break
     }

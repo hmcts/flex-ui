@@ -1,12 +1,11 @@
 import { prompt } from 'inquirer'
 import { session, saveSession } from 'app/session'
 import { Journey } from 'types/journey'
-import { getKnownETCaseFieldIDsByEvent, getRegionFromCaseTypeId, Region, RoleMappings, defaultRoleMappings, Roles, createCaseFieldAuthorisations, addToInMemoryConfig, getEnglandWales, getScotland, createCaseEventAuthorisations } from 'app/et/configs'
-import { Answers, askAutoComplete, sayWarning, askCaseEvent, askCaseTypeID } from 'app/questions'
+import { getKnownETCaseFieldIDsByEvent, getRegionFromCaseTypeId, Region, RoleMappings, defaultRoleMappings, Roles, createCaseFieldAuthorisations, addToInMemoryConfig, getEnglandWales, getScotland, createCaseEventAuthorisations, getETCaseEventIDOpts, getKnownETCaseTypeIDs } from 'app/et/configs'
+import { Answers, askAutoComplete, sayWarning, askCaseEvent, askCaseTypeID, addonDuplicateQuestion } from 'app/questions'
 import { format, getIdealSizeForInquirer } from 'app/helpers'
 import { CaseEventToFieldKeys, CaseFieldKeys } from 'app/types/ccd'
 import { MULTI, NONE } from 'app/constants'
-import { addonDuplicateQuestion } from './createSingleField'
 
 const QUESTION_ID_SELECT = 'What fields do you want to change authorisations for?'
 const QUESTION_AUTHORISATIONS = 'What permissions are we giving {0} for {1}?'
@@ -76,7 +75,7 @@ async function changeAuthorisationsForCaseEvent(caseTypeID: string, caseEventID:
   const newMapping = await askAuthorisations(QUESTION_AUTHORISATIONS.replace('{1}', caseEventID), region)
   const answers = { [CaseFieldKeys.CaseTypeID]: caseTypeID }
 
-  await addonDuplicateQuestion(answers, (answers: Answers) => {
+  await addonDuplicateQuestion(answers, getKnownETCaseTypeIDs(), (answers: Answers) => {
     const duplicateRegion = getRegionFromCaseTypeId(answers[CaseFieldKeys.CaseTypeID])
     for (const key in newMapping) {
       newMapping[key][duplicateRegion] = newMapping[key][region]
@@ -97,7 +96,7 @@ async function changeAuthorisationsForCaseField(caseTypeID: string, region: Regi
   const newMapping = await askAuthorisations(message, region)
 
   const answers = { [CaseFieldKeys.CaseTypeID]: caseTypeID }
-  await addonDuplicateQuestion(answers, (answers: Answers) => {
+  await addonDuplicateQuestion(answers, getKnownETCaseTypeIDs(), (answers: Answers) => {
     const duplicateRegion = getRegionFromCaseTypeId(answers[CaseFieldKeys.CaseTypeID])
     for (const key in newMapping) {
       newMapping[key][duplicateRegion] = newMapping[key][region]
@@ -118,7 +117,7 @@ export async function changeAuthorisations() {
   let answers: Answers = {}
 
   answers = await askCaseTypeID(answers)
-  answers = await askCaseEvent(answers, undefined, undefined, [ALL, NONE], false)
+  answers = await askCaseEvent(answers, { choices: [ALL, NONE, ...getETCaseEventIDOpts()] })
 
   const selectedCaseTypeID = answers[CaseFieldKeys.CaseTypeID]
   const region = getRegionFromCaseTypeId(selectedCaseTypeID)
@@ -126,7 +125,7 @@ export async function changeAuthorisations() {
 
   const idOpts = getFieldOptions(selectedCaseTypeID, selectedCaseEventID)
 
-  answers = await askAutoComplete(CaseFieldKeys.ID, QUESTION_ID_SELECT, undefined, [THIS, MULTI, ...idOpts], true, true, answers)
+  answers = await askAutoComplete(answers, { name: CaseFieldKeys.ID, message: QUESTION_ID_SELECT, default: undefined, choices: [THIS, MULTI, ...idOpts], askAnswered: true, sort: true })
 
   if (answers[CaseFieldKeys.ID] === THIS) {
     return await changeAuthorisationsForCaseEvent(selectedCaseTypeID, selectedCaseEventID, region)

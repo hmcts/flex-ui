@@ -1,5 +1,5 @@
 import { MULTI, NONE } from 'app/constants'
-import { getRegionFromCaseTypeId, Region, getKnownETCaseFieldIDsByEvent, getEnglandWales, getScotland, deleteFromConfig } from 'app/et/configs'
+import { getRegionFromCaseTypeId, Region, getKnownETCaseFieldIDsByEvent, getEnglandWales, getScotland, deleteFromConfig, getETCaseEventIDOpts } from 'app/et/configs'
 import { getObjectsReferencedByCaseFields } from 'app/et/duplicateCaseField'
 import { getIdealSizeForInquirer } from 'app/helpers'
 import { Answers, askAutoComplete, askCaseEvent, askCaseTypeID, sayWarning } from 'app/questions'
@@ -23,7 +23,7 @@ async function journey() {
   let answers: Answers = {}
 
   answers = await askCaseTypeID(answers)
-  answers = await askCaseEvent(answers, undefined, undefined, [NONE], false)
+  answers = await askCaseEvent(answers, { choices: [NONE, ...getETCaseEventIDOpts()] })
 
   const selectedCaseTypeID = answers[CaseFieldKeys.CaseTypeID]
   const region = getRegionFromCaseTypeId(selectedCaseTypeID)
@@ -31,7 +31,7 @@ async function journey() {
 
   const idOpts = getFieldOptions(selectedCaseTypeID, selectedCaseEventID)
 
-  answers = await askAutoComplete(CaseFieldKeys.ID, QUESTION_ID_SELECT, undefined, [MULTI, ...idOpts], true, true, answers)
+  answers = await askAutoComplete(answers, { name: CaseFieldKeys.ID, message: QUESTION_ID_SELECT, default: undefined, choices: [MULTI, ...idOpts], askAnswered: true, sort: true })
 
   if (answers[CaseFieldKeys.ID] === MULTI) {
     answers = await prompt([{

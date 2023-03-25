@@ -1,5 +1,6 @@
 import { getKnownScrubbedLists, sheets } from 'app/configs'
-import { CUSTOM, YES_OR_NO } from 'app/constants'
+import { COMPOUND_KEYS, CUSTOM, YES_OR_NO } from 'app/constants'
+import { upsertFields } from 'app/helpers'
 import { Answers, askAutoComplete } from 'app/questions'
 import { addToSession } from 'app/session'
 import { prompt } from 'inquirer'
@@ -15,7 +16,7 @@ const QUESTION_ADD_ANOTHER = 'Add another?'
 export async function createScrubbed(answers: Answers = {}) {
   const opts = getKnownScrubbedLists()
 
-  answers = await askAutoComplete(ScrubbedKeys.ID, QUESTION_ID, CUSTOM, [CUSTOM, ...opts], false, true, answers)
+  answers = await askAutoComplete(answers, { name: ScrubbedKeys.ID, message: QUESTION_ID, default: CUSTOM, choices: [CUSTOM, ...opts], askAnswered: false, sort: true })
 
   if (answers[ScrubbedKeys.ID] === CUSTOM) {
     answers = await prompt([{ name: ScrubbedKeys.ID, message: QUESTION_ID, askAnswered: true }], answers)
@@ -53,9 +54,14 @@ export async function createScrubbed(answers: Answers = {}) {
     createdItems.push(obj)
   }
 
-  addToSession({
+  const newFields = {
     Scrubbed: createdItems
-  })
+  }
+  addToSession(newFields)
+
+  for (const sheetName in newFields) {
+    upsertFields(sheets[sheetName], newFields[sheetName], COMPOUND_KEYS[sheetName])
+  }
 
   return answers.ID
 }

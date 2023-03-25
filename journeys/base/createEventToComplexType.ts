@@ -5,7 +5,9 @@ import { createNewEventToComplexType, trimCcdObject } from 'app/ccd'
 import { Answers, askCaseEvent, askCaseFieldID, askRetainHiddenValue } from 'app/questions'
 import { addToLastAnswers, addToSession, saveSession, session } from 'app/session'
 import { Journey } from 'types/journey'
-import { YES, YES_OR_NO } from 'app/constants'
+import { COMPOUND_KEYS, YES, YES_OR_NO } from 'app/constants'
+import { sheets } from 'app/configs'
+import { upsertFields } from 'app/helpers'
 
 const QUESTION_CASE_EVENT_ID = 'What event does this belong to?'
 const QUESTION_ID = "What's the ID of this EventToComplexType?"
@@ -28,7 +30,7 @@ function getDefaultValueForFieldDisplayOrder() {
 }
 
 export async function createEventToComplexType(answers: Answers = {}) {
-  answers = await askCaseEvent(answers, undefined, QUESTION_CASE_EVENT_ID)
+  answers = await askCaseEvent(answers, { message: QUESTION_CASE_EVENT_ID })
 
   answers = await prompt([{ name: EventToComplexTypeKeys.ID, message: QUESTION_ID, type: 'input', default: session.lastAnswers.ID }], answers)
 
@@ -47,9 +49,14 @@ export async function createEventToComplexType(answers: Answers = {}) {
 
   const eventToComplexType = createNewEventToComplexType(answers)
 
-  addToSession({
+  const newFields = {
     EventToComplexTypes: [trimCcdObject(eventToComplexType)]
-  })
+  }
+  addToSession(newFields)
+
+  for (const sheetName in newFields) {
+    upsertFields(sheets[sheetName], newFields[sheetName], COMPOUND_KEYS[sheetName])
+  }
 
   addToLastAnswers(answers)
 

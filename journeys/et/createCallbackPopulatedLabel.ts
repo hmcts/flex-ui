@@ -3,13 +3,14 @@ import { CaseEventToFieldKeys, CaseFieldKeys } from 'types/ccd'
 import { Journey } from 'types/journey'
 import { addonDuplicateQuestion, Answers, askCaseEvent, askCaseTypeID, askForPageFieldDisplayOrder, askForPageID } from 'app/questions'
 import { createNewCaseEventToField, createNewCaseField, trimCaseEventToField, trimCaseField } from 'app/ccd'
-import { addToInMemoryConfig, createCaseFieldAuthorisations } from 'app/et/configs'
+import { addToInMemoryConfig, createCaseFieldAuthorisations, getETCaseEventIDOpts, getKnownETCaseTypeIDs } from 'app/et/configs'
 import { askFirstOnPageQuestions, QUESTION_FIELD_SHOW_CONDITION, QUESTION_ID } from './createSingleField'
 import { addToLastAnswers } from 'app/session'
+import { createEvent } from './createEvent'
 
 export async function createCallbackPopulatedLabel(answers: Answers = {}) {
-  answers = await askCaseTypeID(answers)
-  answers = await askCaseEvent(answers)
+  answers = await askCaseTypeID(answers, { choices: getKnownETCaseTypeIDs() })
+  answers = await askCaseEvent(answers, { choices: getETCaseEventIDOpts() }, createEvent)
 
   answers = await prompt(
     [
@@ -27,7 +28,7 @@ export async function createCallbackPopulatedLabel(answers: Answers = {}) {
 
   addToLastAnswers(answers)
 
-  await addonDuplicateQuestion(answers, (answers: Answers) => {
+  await addonDuplicateQuestion(answers, getKnownETCaseTypeIDs(), (answers: Answers) => {
     const caseField = createNewCaseField({
       ...answers,
       FieldType: 'Text',

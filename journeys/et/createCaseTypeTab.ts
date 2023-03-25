@@ -2,7 +2,7 @@ import { Journey } from 'types/journey'
 import { CaseTypeTab, CaseTypeTabKeys } from 'app/types/ccd'
 import { createNewCaseTypeTab, trimCcdObject } from 'app/ccd'
 import { createTemplate, Answers, addonDuplicateQuestion } from 'app/questions'
-import { addToInMemoryConfig } from 'app/et/configs'
+import { addToInMemoryConfig, getKnownETCaseTypeIDs } from 'app/et/configs'
 import { QUESTION_ANOTHER } from './createSingleField'
 import { addToLastAnswers, saveSession, session } from 'app/session'
 import { prompt } from 'inquirer'
@@ -21,7 +21,7 @@ export async function createCaseTypeTab() {
 
   addToLastAnswers(answers)
 
-  await addonDuplicateQuestion(answers, createFn)
+  await addonDuplicateQuestion(answers, getKnownETCaseTypeIDs(), createFn)
 
   const followup = await prompt([{
     name: 'another',

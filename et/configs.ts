@@ -4,11 +4,17 @@ import { findLastIndex, format, removeFields, upsertFields } from 'app/helpers'
 import { addToSession, session } from 'app/session'
 import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventKeys, CaseEventToField, CaseEventToFieldKeys, CaseField, CaseTypeTab, CaseTypeTabKeys, CCDSheets, CCDTypes, ComplexType, ConfigSheets, createNewConfigSheets, EventToComplexType, EventToComplexTypeKeys, FlexExtensions, Scrubbed, ScrubbedKeys, sheets } from 'types/ccd'
 import { COMPOUND_KEYS } from 'app/constants'
-import { findObject, getCaseEventIDOpts, getKnownCaseFieldIDs, getKnownCaseFieldIDsByEvent, getKnownCaseFieldTypeParameters, getKnownCaseFieldTypes, getKnownCaseTypeIDs, getKnownComplexTypeIDs, getKnownComplexTypeListElementCodes, getKnownScrubbedLists, getNextPageFieldIDForPage, sheets as genericConfigSheets } from 'app/configs'
+import { findObject, getCaseEventIDOpts, getKnownCaseFieldIDs, getKnownCaseFieldIDsByEvent, getKnownCaseFieldTypeParameters, getKnownCaseFieldTypes, getKnownCaseTypeIDs, getKnownComplexTypeIDs, getKnownComplexTypeListElementCodes, getKnownScrubbedLists, getNextPageFieldIDForPage } from 'app/configs'
 
 let readTime = 0
 let englandwales: ConfigSheets
 let scotland: ConfigSheets
+
+export interface ETFlexExtensions extends FlexExtensions {
+  flex?: {
+    regions: Region[]
+  }
+}
 
 export enum Region {
   EnglandWales = 'ET_EnglandWales',
@@ -141,7 +147,6 @@ export function getRegionFromCaseTypeId(caseTypeID: string) {
 }
 
 /**
- * @deprecated Use generic method in root/configs.ts
  * Get all defined CaseEvent IDs in englandwales and scotland configs
  */
 export function getETCaseEventIDOpts() {
@@ -149,7 +154,6 @@ export function getETCaseEventIDOpts() {
 }
 
 /**
- * @deprecated Use generic method in root/configs.ts
  * Get all currently known FieldType IDs in englandwales and scotland configs (FieldTypes that are referenced by at least one CaseField)
  */
 export function getKnownETCaseFieldTypes() {
@@ -157,7 +161,6 @@ export function getKnownETCaseFieldTypes() {
 }
 
 /**
- * @deprecated Use generic method in root/configs.ts
  * Gets possible FieldTypeParameters by collecting
  *  * FieldTypeParameters refereced in other CaseFields
  *  * Available FixedList IDs
@@ -169,7 +172,6 @@ export function getKnownETCaseFieldTypeParameters() {
 }
 
 /**
- * @deprecated Use generic method in root/configs.ts
  * Get all defined Scrubbed IDs in englandwales and scotland configs
  */
 export function getKnownETScrubbedLists() {
@@ -177,7 +179,6 @@ export function getKnownETScrubbedLists() {
 }
 
 /**
- * @deprecated Use generic method in root/configs.ts
  * Get all defined CaseType IDs in englandwales and scotland configs
  */
 export function getKnownETCaseTypeIDs() {
@@ -185,7 +186,6 @@ export function getKnownETCaseTypeIDs() {
 }
 
 /**
- * @deprecated Use generic method in root/configs.ts
  * Get all defined CaseField IDs in englandwales and scotland configs
  */
 export function getKnownETCaseFieldIDs(filter?: (obj: CaseField) => CaseField[]) {
@@ -193,7 +193,6 @@ export function getKnownETCaseFieldIDs(filter?: (obj: CaseField) => CaseField[])
 }
 
 /**
- * @deprecated Use generic method in root/configs.ts
  * Get all defined CaseField IDs in englandwales and scotland configs on an event
  */
 export function getKnownETCaseFieldIDsByEvent(caseEventId?: string, regions: Region[] = [Region.EnglandWales, Region.Scotland]) {
@@ -201,7 +200,6 @@ export function getKnownETCaseFieldIDsByEvent(caseEventId?: string, regions: Reg
 }
 
 /**
- * @deprecated Use generic method in root/configs.ts
  * Get all defined ComplexType IDs in englandwales and scotland configs
  */
 export function getKnownETComplexTypeIDs() {
@@ -209,7 +207,6 @@ export function getKnownETComplexTypeIDs() {
 }
 
 /**
- * @deprecated Use generic method in root/configs.ts
  * Get all defined ComplexType IDs in englandwales and scotland configs
  */
 export function getKnownETComplexTypeListElementCodes(id: string) {
@@ -217,7 +214,6 @@ export function getKnownETComplexTypeListElementCodes(id: string) {
 }
 
 /**
- * @deprecated Use generic method in root/configs.ts
  * Gets the highest PageFieldDisplayOrder number from fields on a certain page
  */
 export function getNextPageFieldIDForPageET(caseTypeID: string, caseEventID: string, pageID: number) {
@@ -239,7 +235,6 @@ export function readInCurrentConfig() {
   const builder = (envVar: string, region: Region) => {
     return sheets.reduce<Partial<ConfigSheets>>((acc, sheetName) => {
       acc[sheetName] = getJson(envVar, getConfigSheetName(region, sheetName))
-      genericConfigSheets[sheetName] = [...genericConfigSheets[sheetName], ...acc[sheetName]] as any[]
       return acc
     }, {}) as ConfigSheets
   }
@@ -522,30 +517,6 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
   })
 
   addToConfig(scotland, {
-    AuthorisationCaseEvent: scAuthorisationCaseEvents,
-    AuthorisationCaseField: scAuthorisationCaseFields,
-    CaseEvent: scCaseEvents,
-    CaseEventToFields: scCaseEventToFields,
-    CaseField: scCaseFields,
-    CaseTypeTab: scCaseTypeTabs,
-    ComplexTypes: scComplexTypes,
-    EventToComplexTypes: scEventToComplexTypes,
-    Scrubbed: scScrubbed
-  })
-
-  addToConfig(genericConfigSheets, {
-    AuthorisationCaseEvent: ewAuthorisationCaseEvents,
-    AuthorisationCaseField: ewAuthorisationCaseFields,
-    CaseEvent: ewCaseEvents,
-    CaseEventToFields: ewCaseEventToFields,
-    CaseField: ewCaseFields,
-    CaseTypeTab: ewCaseTypeTabs,
-    ComplexTypes: ewComplexTypes,
-    EventToComplexTypes: ewEventToComplexTypes,
-    Scrubbed: ewScrubbed
-  })
-
-  addToConfig(genericConfigSheets, {
     AuthorisationCaseEvent: scAuthorisationCaseEvents,
     AuthorisationCaseField: scAuthorisationCaseFields,
     CaseEvent: scCaseEvents,
