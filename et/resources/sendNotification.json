@@ -46,7 +46,7 @@
     "sendNotificationResponseTribunal": "Yes - view document for details",
     "sendNotificationSelectParties": "Claimant only",
     "sendNotificationWhoCaseOrder": "Legal officer",
-    "sendNotificationRequestBy": null,
+    "sendNotificationRequestMadeBy": "Judge",
     "sendNotificationWhoMadeJudgement": "Judge",
     "sendNotificationFullName": "Name of person 1",
     "sendNotificationFullName2": "Full name for judgment",

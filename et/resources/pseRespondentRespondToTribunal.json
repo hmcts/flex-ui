@@ -1,0 +1,44 @@
+{
+  "data": {
+    "pseRespondentSelectOrderOrRequest": {
+      "value": {
+        "code": "1",
+        "label": "1 Notification Title"
+      },
+      "selectedCode": "1",
+      "selectedLabel": "1 Notification Title",
+      "list_items": [
+        {
+          "code": "1",
+          "label": "1 Notification Title"
+        }
+      ]
+    },
+    "pseRespondentOrdReqTableMarkUp": "|Hearing, case management order or request | |\r\n|--|--|\r\n|Notification | Notification Title|\r\n|Hearing | 1: Hearing - Barnstaple - 16 May 2022 01:00|\r\n|Date sent | 25 March 2023|\r\n|Sent by | Tribunal|\r\n|Case management order or request? | Case management order|\r\n|Response due | Yes - view document for details|\r\n|Party or parties to respond | Claimant only|\r\n|Additional information | more data|\r\n|Description | FlexUI sample document|\r\n|Document | <a href=\"/documents/089c9945-9f3b-46fb-a4d2-5fc9b1a0b988/binary\" target=\"_blank\">evidence.txt</a>|\r\n|Case management order made by | Legal officer|\r\n|Name | Name of person 1|\r\n|Sent to | Both parties|",
+    "pseRespondentOrdReqResponseText": "idklol",
+    "pseRespondentOrdReqHasSupportingMaterial": "Yes",
+    "pseRespondentOrdReqUploadDocument": [
+      {
+        "value": {
+          "typeOfDocument": null,
+          "shortDescription": null,
+          "uploadedDocument": {
+            "document_url": "http://dm-store:8080/documents/<FLEX_DOC_UUID>",
+            "document_binary_url": "http://dm-store:8080/documents/<FLEX_DOC_UUID>/binary",
+            "document_filename": "evidence.txt"
+          }
+        },
+        "id": null
+      }
+    ],
+    "pseRespondentOrdReqCopyToOtherParty": "Yes",
+    "pseRespondentOrdReqCopyNoGiveDetails": null
+  },
+  "event": {
+    "id": "pseRespondentRespondToTribunal",
+    "summary": "",
+    "description": ""
+  },
+  "event_token": "",
+  "ignore_warning": false
+}
