@@ -86,7 +86,7 @@ export function getKnownCaseFieldIDsByEvent(caseEventId?: string, configSheets: 
   const allCaseEventToFields = configSheets.CaseEventToFields
   const fieldToEvent = allCaseEventToFields.filter(byEventId)
 
-  return getUniqueByKeyAsArray(caseEventId === NONE ? allCaseEventToFields : fieldToEvent, 'CaseFieldID')
+  return getUniqueByKeyAsArray(!caseEventId || caseEventId === NONE ? allCaseEventToFields : fieldToEvent, 'CaseFieldID')
 }
 
 /**

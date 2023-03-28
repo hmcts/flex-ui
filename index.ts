@@ -2,13 +2,14 @@ import 'source-map-support/register'
 // https://dev.to/larswaechter/path-aliases-with-typescript-in-nodejs-4353
 import 'module-alias/register'
 import { config as envConfig } from 'dotenv'
-import { prompt, Separator, registerPrompt } from 'inquirer'
+import { prompt, registerPrompt } from 'inquirer'
 import autocomplete from 'inquirer-autocomplete-prompt'
 import { ensurePathExists, format, getFiles, getIdealSizeForInquirer } from 'app/helpers'
 import { cleanupEmptySessions, SESSION_DIR } from 'app/session'
 import { DIST_JOURNEY_DIR } from 'app/constants'
 import { Journey } from 'types/journey'
 import { resolve, sep } from 'path'
+import Separator from 'inquirer/lib/objects/separator'
 
 envConfig()
 process.env.APP_ROOT = resolve(__dirname)
@@ -76,7 +77,7 @@ async function createMainMenuChoices(remoteJourneys: Journey[]) {
 
   choices.sort((a, b) => (a.group || 'default') > (b.group || 'default') ? -1 : 1)
 
-  const menu = [...choices] as Array<Journey | { text: unknown }>
+  const menu = [...choices] as Array<Journey | { text: Separator }>
   let addedSeparators = 0
   for (let i = 1; i < choices.length; i++) {
     const journey = choices[i]
