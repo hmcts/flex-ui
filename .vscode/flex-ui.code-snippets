@@ -25,9 +25,11 @@
 			"}",
 			"",
 			"export default {",
+			"  disabled: false",
 			"  group: 'et-${1:groupName}',",
-			"  text: '${2:Alias}',",
+			"  text: '${2:TextShownOnMainMenu}',",
 			"  fn: journey",
+			"  alias: '${3:Alias}'",
 			"} as Journey",
 			""
 		],

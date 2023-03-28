@@ -6,7 +6,7 @@ import { createNewCaseEventToField, createNewCaseField, trimCaseEventToField, tr
 import { addToInMemoryConfig, createCaseFieldAuthorisations, getETCaseEventIDOpts, getKnownETCaseTypeIDs } from 'app/et/configs'
 import { askFirstOnPageQuestions, QUESTION_FIELD_SHOW_CONDITION, QUESTION_ID } from './createSingleField'
 import { addToLastAnswers } from 'app/session'
-import { createEvent } from './createEvent'
+import { createEvent } from 'app/journeys/et/createEvent'
 
 export async function createCallbackPopulatedLabel(answers: Answers = {}) {
   answers = await askCaseTypeID(answers, { choices: getKnownETCaseTypeIDs() })

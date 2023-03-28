@@ -33,10 +33,6 @@ module.exports = {
     "@typescript-eslint/no-base-to-string": 0,
     // Perference, This rule can be useful for logic flow, but in cases of Promise.allSettled it results in superfluous code
     "@typescript-eslint/promise-function-async": 1,
-    // Personal preference "?" looks better on the same line as the statement
-    "operator-linebreak": 0,
-    // Same as above
-    "multiline-ternary": 0,
     // Labels are useful
     "no-labels": 0
   }
