@@ -23,7 +23,7 @@ function readConfig() {
 }
 
 export default {
-  group: 'et-configs',
+  group: 'configs',
   text: getText,
   matchText,
   fn: readConfig,

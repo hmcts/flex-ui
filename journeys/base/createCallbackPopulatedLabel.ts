@@ -8,7 +8,7 @@ import { addToLastAnswers, addToSession } from 'app/session'
 import { sheets } from 'app/configs'
 import { upsertFields } from 'app/helpers'
 import { COMPOUND_KEYS } from 'app/constants'
-import { createEvent } from './createEvent'
+import { createEvent } from 'app/journeys/base/createEvent'
 
 export async function createCallbackPopulatedLabel(answers: Answers = {}) {
   answers = await askCaseTypeID(answers)

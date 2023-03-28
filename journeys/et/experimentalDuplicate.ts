@@ -94,6 +94,6 @@ async function askFields() {
 export default {
   group: 'et-wip',
   text: '[WIP] Duplicate to another CaseTypeId',
-  fn: () => sayWarning(askFields),
+  fn: async () => await sayWarning(askFields),
   alias: 'Duplicate'
 } as Journey

@@ -80,6 +80,6 @@ function getFieldOptions(caseTypeID: string, caseEventID: string) {
 export default {
   group: 'et-wip',
   text: '[WIP] Delete a single field',
-  fn: () => sayWarning(journey),
+  fn: async () => await sayWarning(journey),
   alias: 'DeleteCaseField'
 } as Journey
