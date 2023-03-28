@@ -1,14 +1,14 @@
 import { prompt } from 'inquirer'
-import { addToLastAnswers, saveSession, session } from 'app/session'
+import { addToLastAnswers, addToSession, saveSession, session } from 'app/session'
 import { CaseEventToField, CaseEventToFieldKeys, CaseField, CaseFieldKeys } from 'types/ccd'
 import { addonDuplicateQuestion, Answers, askAutoComplete, askCaseEvent, askCaseTypeID, askFieldType, askFieldTypeParameter, askForPageFieldDisplayOrder, askForPageID, askForRegularExpression, askMinAndMax, askRetainHiddenValue } from 'app/questions'
-import { CUSTOM, DISPLAY_CONTEXT_OPTIONS, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, isFieldTypeInExclusionList, NO, NONE, YES, YES_OR_NO, Y_OR_N } from 'app/constants'
-import { addToInMemoryConfig, createCaseFieldAuthorisations, getCombinedSheets, getETCaseEventIDOpts, getKnownETCaseFieldIDsByEvent, getKnownETCaseFieldTypeParameters, getKnownETCaseFieldTypes, getKnownETCaseTypeIDs, getNextPageFieldIDForPageET } from 'app/et/configs'
+import { COMPOUND_KEYS, CUSTOM, DISPLAY_CONTEXT_OPTIONS, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, isFieldTypeInExclusionList, NONE, YES, YES_OR_NO, Y_OR_N } from 'app/constants'
 import { createNewCaseEventToField, createNewCaseField, trimCaseEventToField, trimCaseField } from 'app/ccd'
 import { Journey } from 'types/journey'
+import { findObject, getCaseEventIDOpts, getKnownCaseFieldIDsByEvent, getNextPageFieldIDForPage, sheets } from 'app/configs'
+import { upsertFields } from 'app/helpers'
 import { createEvent } from './createEvent'
 import { createScrubbed } from './createScrubbed'
-import { findObject } from 'app/configs'
 
 export const QUESTION_ID = 'What\'s the ID for this field?'
 export const QUESTION_ANOTHER = 'Do you want to upsert another?'
@@ -22,17 +22,16 @@ const QUESTION_SHOW_SUMMARY_CHANGE_OPTION = 'Should this field appear on the CYA
 const QUESTION_PAGE_LABEL = 'Does this page have a custom title? (optional)'
 const QUESTION_PAGE_SHOW_CONDITION = 'Enter a page show condition string (optional)'
 const QUESTION_CALLBACK_URL_MID_EVENT = 'Enter the callback url to hit before loading the next page (optional)'
-const QUESTION_AUTHORISATIONS = 'Do you want to generate authorisations for this case field?'
 
 function shouldAskEventQuestions(answers: Answers) {
   return answers[CaseEventToFieldKeys.CaseEventID] !== NONE
 }
 
 export async function createSingleField(answers: Answers = {}) {
-  answers = await askCaseTypeID(answers, { choices: getKnownETCaseTypeIDs() })
-  answers = await askCaseEvent(answers, { message: QUESTION_CASE_EVENT_ID, choices: [NONE, ...getETCaseEventIDOpts()] }, createEvent)
+  answers = await askCaseTypeID(answers)
+  answers = await askCaseEvent(answers, { message: QUESTION_CASE_EVENT_ID, choices: [NONE, ...getCaseEventIDOpts()] }, createEvent)
 
-  const idOpts = getKnownETCaseFieldIDsByEvent(answers[CaseEventToFieldKeys.CaseEventID])
+  const idOpts = getKnownCaseFieldIDsByEvent(answers[CaseEventToFieldKeys.CaseEventID])
 
   answers = await askAutoComplete(answers, { name: CaseFieldKeys.ID, message: QUESTION_ID, default: CUSTOM, choices: [CUSTOM, ...idOpts], askAnswered: false, sort: true })
 
@@ -40,8 +39,8 @@ export async function createSingleField(answers: Answers = {}) {
     answers = await prompt([{ name: CaseFieldKeys.ID, message: QUESTION_ID, type: 'input', default: 'id', askAnswered: true }], answers)
   }
 
-  const existingField: CaseField | undefined = findObject<CaseField>(answers, 'CaseField', getCombinedSheets())
-  const existingCaseEventToField: CaseEventToField | undefined = findObject<CaseEventToField>({ ...answers, CaseFieldID: answers.ID }, 'CaseEventToFields', getCombinedSheets())
+  const existingField: CaseField | undefined = findObject<CaseField>(answers, 'CaseField')
+  const existingCaseEventToField: CaseEventToField | undefined = findObject<CaseEventToField>({ ...answers, CaseFieldID: answers.ID }, 'CaseEventToFields')
 
   answers = await prompt(
     [
@@ -57,10 +56,10 @@ export async function createSingleField(answers: Answers = {}) {
     answers = await askForPageFieldDisplayOrder(answers, { default: existingCaseEventToField?.PageFieldDisplayOrder || getDefaultForPageFieldDisplayOrder(answers) })
   }
 
-  answers = await askFieldType(answers, { choices: getKnownETCaseFieldTypes(), default: existingField?.FieldType })
+  answers = await askFieldType(answers, { default: existingField?.FieldType })
 
   if (!isFieldTypeInExclusionList(answers[CaseFieldKeys.FieldType], FIELD_TYPES_EXCLUDE_PARAMETER)) {
-    answers = await askFieldTypeParameter(answers, { choices: getKnownETCaseFieldTypeParameters(), default: existingField?.FieldTypeParameter }, createScrubbed)
+    answers = await askFieldTypeParameter(answers, { default: existingField?.FieldTypeParameter }, createScrubbed)
   }
 
   if (answers[CaseFieldKeys.FieldType] !== 'Label') {
@@ -87,27 +86,29 @@ export async function createSingleField(answers: Answers = {}) {
     answers = await askRetainHiddenValue(answers, { default: existingCaseEventToField?.RetainHiddenValue })
   }
 
-  if (existingField) {
-    answers = await prompt([{ name: 'authorisations', message: QUESTION_AUTHORISATIONS, type: 'list', choices: YES_OR_NO, default: NO }], answers)
-  } else {
-    answers.authorisations = YES
-  }
-
   addToLastAnswers(answers)
 
   const createFn = (answers: Answers) => {
     const caseField = createNewCaseField(answers)
     const caseEventToField = askEvent ? createNewCaseEventToField(answers) : undefined
-    const authorisations = answers.authorisations === YES ? createCaseFieldAuthorisations(answers.CaseTypeID, answers.ID) : []
 
-    addToInMemoryConfig({
+    // ET creates authorisations here - this is highly specific code so teams implementing this will
+    // need to provide their own journey for this. See journeys/et/createSingleField for an example.
+    const authorisations = []
+
+    const newFields = {
       AuthorisationCaseField: authorisations,
       CaseField: [trimCaseField(caseField)],
       CaseEventToFields: askEvent ? [trimCaseEventToField(caseEventToField)] : []
-    })
+    }
+    addToSession(newFields)
+
+    for (const sheetName in newFields) {
+      upsertFields(sheets[sheetName], newFields[sheetName], COMPOUND_KEYS[sheetName])
+    }
   }
 
-  await addonDuplicateQuestion(answers, getKnownETCaseTypeIDs(), createFn)
+  await addonDuplicateQuestion(answers, undefined, createFn)
 
   const followup = await prompt([{
     name: 'another',
@@ -127,7 +128,7 @@ function getDefaultForPageFieldDisplayOrder(answers: Answers = {}) {
   const pageID = CaseEventToFieldKeys.PageID
   const pageFieldDisplayOrder = CaseEventToFieldKeys.PageFieldDisplayOrder
   if (answers[pageID] && answers[CaseEventToFieldKeys.CaseEventID] && answers[CaseEventToFieldKeys.CaseTypeID]) {
-    return getNextPageFieldIDForPageET(
+    return getNextPageFieldIDForPage(
       answers[CaseEventToFieldKeys.CaseTypeID],
       answers[CaseEventToFieldKeys.CaseEventID],
       answers[pageID]

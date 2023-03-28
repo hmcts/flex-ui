@@ -1,7 +1,8 @@
-import { CUSTOM, YES_OR_NO } from 'app/constants'
-import { addToInMemoryConfig, getConfigSheetsFromFlexRegion, getKnownETScrubbedLists } from 'app/et/configs'
-import { addFlexRegionToCcdObject, askFlexRegion, getFlexRegionFromAnswers } from 'app/et/questions'
+import { getKnownScrubbedLists, sheets } from 'app/configs'
+import { COMPOUND_KEYS, CUSTOM, YES_OR_NO } from 'app/constants'
+import { upsertFields } from 'app/helpers'
 import { Answers, askAutoComplete } from 'app/questions'
+import { addToSession } from 'app/session'
 import { prompt } from 'inquirer'
 import { Scrubbed, ScrubbedKeys } from 'types/ccd'
 import { Journey } from 'types/journey'
@@ -13,7 +14,9 @@ const QUESTION_DISPLAY_ORDER = 'Whats the DisplayOrder for this item?'
 const QUESTION_ADD_ANOTHER = 'Add another?'
 
 export async function createScrubbed(answers: Answers = {}) {
-  answers = await askAutoComplete(answers, { name: ScrubbedKeys.ID, message: QUESTION_ID, default: CUSTOM, choices: [CUSTOM, ...getKnownETScrubbedLists()], askAnswered: false, sort: true })
+  const opts = getKnownScrubbedLists()
+
+  answers = await askAutoComplete(answers, { name: ScrubbedKeys.ID, message: QUESTION_ID, default: CUSTOM, choices: [CUSTOM, ...opts], askAnswered: false, sort: true })
 
   if (answers[ScrubbedKeys.ID] === CUSTOM) {
     answers = await prompt([{ name: ScrubbedKeys.ID, message: QUESTION_ID, askAnswered: true }], answers)
@@ -23,7 +26,6 @@ export async function createScrubbed(answers: Answers = {}) {
 
   let x = 0
   while (answers.More !== 'No') {
-    answers = await askFlexRegion(undefined, undefined, undefined, answers)
     if (!x) {
       x = getLastDisplayOrderInScrubbed(answers)
     }
@@ -49,21 +51,23 @@ export async function createScrubbed(answers: Answers = {}) {
       DisplayOrder: answers.DisplayOrder
     }
 
-    addFlexRegionToCcdObject(obj, answers)
-
     createdItems.push(obj)
   }
 
-  addToInMemoryConfig({
+  const newFields = {
     Scrubbed: createdItems
-  })
+  }
+  addToSession(newFields)
+
+  for (const sheetName in newFields) {
+    upsertFields(sheets[sheetName], newFields[sheetName], COMPOUND_KEYS[sheetName])
+  }
 
   return answers.ID
 }
 
 function getLastDisplayOrderInScrubbed(answers: Answers) {
-  const selectedRegions = getFlexRegionFromAnswers(answers)
-  const existingObjs = getConfigSheetsFromFlexRegion(selectedRegions).Scrubbed.filter(o => o.ID === answers.ID)
+  const existingObjs = sheets.Scrubbed.filter(o => o.ID === answers.ID)
   const descendingSorted = existingObjs.sort((a, b) => a.DisplayOrder > b.DisplayOrder ? -1 : 1)
   return descendingSorted[0]?.DisplayOrder || 0
 }

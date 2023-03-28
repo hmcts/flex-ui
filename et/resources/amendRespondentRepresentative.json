@@ -1,0 +1,100 @@
+{
+  "data": {
+    "repCollection": [
+      {
+        "value": {
+          "dynamic_resp_rep_name": {
+            "value": {
+              "code": "R: Another Person",
+              "label": "Another Person"
+            },
+            "list_items": [
+              {
+                "code": "R: Another Person",
+                "label": "Another Person"
+              }
+            ]
+          },
+          "name_of_representative": "Sally Solicitor",
+          "representative_phone_number": null,
+          "representative_mobile_number": null,
+          "representative_email_address": null,
+          "representative_preference": null,
+          "myHmctsYesNo": "Yes",
+          "name_of_organisation": null,
+          "representative_reference": null,
+          "representative_occupation": null,
+          "representative_occupation_other": null,
+          "resp_rep_name": null,
+          "respondentOrganisation": {
+            "OrganisationID": "79ZRSOU",
+            "OrganisationName": "ET - Organisation 1"
+          },
+          "representative_address": {
+            "AddressLine1": "25 Beverley Road",
+            "AddressLine2": "",
+            "AddressLine3": "Wellesley Avenue",
+            "PostTown": "Hull",
+            "County": "",
+            "Country": "United Kingdom",
+            "PostCode": "HU6 7LN"
+          }
+        },
+        "id": "0b6fd426-e1cb-4476-b22e-f817853600e2"
+      }
+    ]
+  },
+  "event": {
+    "id": "amendRespondentRepresentative",
+    "summary": "",
+    "description": ""
+  },
+  "event_data": {
+    "repCollection": [
+      {
+        "value": {
+          "dynamic_resp_rep_name": {
+            "value": {
+              "code": "R: Another Person",
+              "label": "Another Person"
+            },
+            "list_items": [
+              {
+                "code": "R: Another Person",
+                "label": "Another Person"
+              }
+            ]
+          },
+          "name_of_representative": "Sally Solicitor",
+          "representative_phone_number": null,
+          "representative_mobile_number": null,
+          "representative_email_address": null,
+          "representative_preference": null,
+          "myHmctsYesNo": "Yes",
+          "name_of_organisation": null,
+          "representative_reference": null,
+          "representative_occupation": null,
+          "representative_occupation_other": null,
+          "resp_rep_name": null,
+          "respondentOrganisation": {
+            "OrganisationID": "79ZRSOU",
+            "OrganisationName": "ET - Organisation 1"
+          },
+          "representative_address": {
+            "AddressLine1": "25 Beverley Road",
+            "AddressLine2": "",
+            "AddressLine3": "Wellesley Avenue",
+            "PostTown": "Hull",
+            "County": "",
+            "Country": "United Kingdom",
+            "PostCode": "HU6 7LN"
+          }
+        },
+        "id": "0b6fd426-e1cb-4476-b22e-f817853600e2"
+      }
+    ]
+  },
+  "event_token": "",
+  "ignore_warning": false,
+  "case_reference": "1672830581539249"
+}

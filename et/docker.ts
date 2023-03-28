@@ -262,7 +262,7 @@ export async function ccdComposePull() {
  */
 export async function fixExitedContainers() {
   const down = await getExitedContainers()
-  await Promise.allSettled(down.map(o => execCommand(`docker start ${o}`)))
+  await Promise.allSettled(down.map(async o => await execCommand(`docker start ${o}`)))
 }
 
 export async function getExitedContainers() {

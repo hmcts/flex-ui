@@ -24,6 +24,9 @@ export function ensurePathExists(dir: string) {
  * Recursively reads files in a directory. Returns as an array of files relative to the start dir
  */
 export async function getFiles(dir: string): Promise<string[]> {
+  if (!existsSync(dir)) {
+    return []
+  }
   const dirents = await readdir(dir, { withFileTypes: true })
   const files: unknown[] = await Promise.all(dirents.map((dirent: Dirent) => {
     const res = resolve(dir, dirent.name)
@@ -54,7 +57,7 @@ export function findMissing<T>(list: T[], sublist: T[], keys: Array<keyof (T)>) 
  * Adds or updates objects in the "to" array if they are new or changed in "from" array
  * @param to array to update
  * @param from array to take from
- * @param keys list of keys whose values must be equal on both objects to qualify as unique
+ * @param keys list of keys whose values must be equal on both objects to qualify as the same
  * @param spliceIndexFn function to get the correct index to splice new items in at
  */
 export function upsertFields<T>(to: T[], from: T[], keys: Array<keyof (T)>, spliceIndexFn?: (obj: T, arr: T[]) => number) {
@@ -70,6 +73,21 @@ export function upsertFields<T>(to: T[], from: T[], keys: Array<keyof (T)>, spli
       continue
     }
     to.splice(existingIndex, 1, obj)
+  }
+}
+
+/**
+ * Removes objects from "main" that are specified in "toDelete" if they match by "keys"
+ * @param main array to update
+ * @param toDelete instructions on what to delete
+ * @param keys list of keys whose values must be equal on both objects to qualify as the same
+ */
+export function removeFields<T>(main: T[], toDelete: T[], keys: Array<keyof (T)>) {
+  if (!toDelete) return
+  for (const obj of toDelete) {
+    const existingIndex = main.findIndex(o => matcher(o, obj, keys))
+    if (existingIndex === -1) continue
+    main.splice(existingIndex, 1)
   }
 }
 
@@ -192,11 +210,26 @@ export function groupBy<T>(arr: T[], key?: keyof T) {
   }, {} as Record<any, T[]>)
 }
 
+export function groupByKeys<T>(arr: T[], keys: Array<keyof T>) {
+  return arr.reduce((acc, obj) => {
+    const composite = keys.map(o => obj[o]).join('-')
+    if (!acc[composite]) {
+      acc[composite] = []
+    }
+
+    acc[composite].push(obj)
+    return acc
+  }, {} as Record<any, T[]>)
+}
+
 /** Clears the current terminal line and writes a new message with no ending newline */
-export function temporaryLog(message: string) {
+export function temporaryLog(message: string, showDate = true) {
   clearCurrentLine()
   const msgNoNewLine = message.replace(/\n/g, '').substring(0, process.stdout.columns - 15)
-  process.stdout.write(`${new Date().toLocaleTimeString()} || ${msgNoNewLine}`)
+  if (showDate) {
+    return process.stdout.write(`${new Date().toLocaleTimeString()} || ${msgNoNewLine}`)
+  }
+  return process.stdout.write(msgNoNewLine)
 }
 
 /** Clears the current line by sending a special character command */
@@ -214,4 +247,11 @@ export async function wait(ms: number) { return await new Promise(resolve => set
 export async function isRunningInWsl() {
   const { stdout } = await execCommand('echo $WSL_DISTRO_NAME', undefined, false)
   return stdout.length > 1
+}
+
+export function remove<T>(arr: T[], item: T) {
+  const index = arr.indexOf(item)
+  if (index > -1) {
+    arr.splice(index, 1)
+  }
 }

@@ -36,5 +36,6 @@ export default {
   disabled: true,
   group: 'et-docker',
   text: 'Update IP address in package.json of config repos',
-  fn: setIPToWslHostAddress
+  fn: setIPToWslHostAddress,
+  alias: 'DockerIP'
 } as Journey

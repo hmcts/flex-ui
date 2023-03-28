@@ -1,5 +1,5 @@
 import { prompt } from 'inquirer'
-import { session } from 'app/session'
+import { deleteSession, saveSession, session } from 'app/session'
 import { Journey } from 'types/journey'
 
 const QUESTION_NAME = 'What should we called this session?'
@@ -7,9 +7,15 @@ const QUESTION_NAME = 'What should we called this session?'
 export async function setSessionName() {
   const answers = await prompt([{ name: 'name', message: QUESTION_NAME }])
 
-  if (answers.name) {
-    session.name = answers.name
+  if (!answers.name) {
+    return
   }
+
+  session.name = answers.name
+
+  const oldFile = session.file
+  saveSession(session)
+  await deleteSession(oldFile)
 }
 
 function getText() {
@@ -17,7 +23,8 @@ function getText() {
 }
 
 export default {
-  group: 'et-session',
+  group: 'session',
   text: getText,
-  fn: setSessionName
+  fn: setSessionName,
+  alias: 'SessionName'
 } as Journey

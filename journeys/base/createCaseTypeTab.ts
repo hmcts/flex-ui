@@ -1,13 +1,13 @@
 import { Journey } from 'types/journey'
 import { CaseTypeTab, CaseTypeTabKeys } from 'app/types/ccd'
 import { createNewCaseTypeTab, trimCcdObject } from 'app/ccd'
-import { Answers, addonDuplicateQuestion } from 'app/questions'
-import { addToInMemoryConfig, getKnownETCaseTypeIDs } from 'app/et/configs'
+import { createTemplate, Answers, addonDuplicateQuestion } from 'app/questions'
 import { QUESTION_ANOTHER } from './createSingleField'
-import { addToLastAnswers, saveSession, session } from 'app/session'
+import { addToLastAnswers, addToSession, saveSession, session } from 'app/session'
 import { prompt } from 'inquirer'
-import { YES, YES_OR_NO } from 'app/constants'
-import { createTemplate } from 'app/et/questions'
+import { COMPOUND_KEYS, YES, YES_OR_NO } from 'app/constants'
+import { sheets } from 'app/configs'
+import { upsertFields } from 'app/helpers'
 
 export async function createCaseTypeTab() {
   const answers = await createTemplate<unknown, CaseTypeTab>({}, CaseTypeTabKeys, createNewCaseTypeTab(), 'CaseTypeTab')
@@ -15,14 +15,19 @@ export async function createCaseTypeTab() {
   const createFn = (answers: Answers) => {
     const caseTypeTab = createNewCaseTypeTab(answers)
 
-    addToInMemoryConfig({
+    const newFields = {
       CaseTypeTab: [trimCcdObject(caseTypeTab)]
-    })
+    }
+    addToSession(newFields)
+
+    for (const sheetName in newFields) {
+      upsertFields(sheets[sheetName], newFields[sheetName], COMPOUND_KEYS[sheetName])
+    }
   }
 
   addToLastAnswers(answers)
 
-  await addonDuplicateQuestion(answers, getKnownETCaseTypeIDs(), createFn)
+  await addonDuplicateQuestion(answers, undefined, createFn)
 
   const followup = await prompt([{
     name: 'another',

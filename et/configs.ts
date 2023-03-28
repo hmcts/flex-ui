@@ -1,20 +1,27 @@
 import { readFileSync, writeFileSync } from 'fs'
 import { sep } from 'path'
-import { findLastIndex, format, getUniqueByKey, getUniqueByKeyAsArray, groupBy, upsertFields } from 'app/helpers'
+import { findLastIndex, format, removeFields, upsertFields } from 'app/helpers'
 import { addToSession, session } from 'app/session'
 import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventKeys, CaseEventToField, CaseEventToFieldKeys, CaseField, CaseTypeTab, CaseTypeTabKeys, CCDSheets, CCDTypes, ComplexType, ConfigSheets, createNewConfigSheets, EventToComplexType, EventToComplexTypeKeys, FlexExtensions, Scrubbed, ScrubbedKeys, sheets } from 'types/ccd'
 import { COMPOUND_KEYS } from 'app/constants'
+import { findObject, getCaseEventIDOpts, getKnownCaseFieldIDs, getKnownCaseFieldIDsByEvent, getKnownCaseFieldTypeParameters, getKnownCaseFieldTypes, getKnownCaseTypeIDs, getKnownComplexTypeIDs, getKnownComplexTypeListElementCodes, getKnownScrubbedLists, getNextPageFieldIDForPage } from 'app/configs'
 
 let readTime = 0
 let englandwales: ConfigSheets
 let scotland: ConfigSheets
+
+export interface ETFlexExtensions extends FlexExtensions {
+  flex?: {
+    regions: Region[]
+  }
+}
 
 export enum Region {
   EnglandWales = 'ET_EnglandWales',
   Scotland = 'ET_Scotland',
 }
 
-enum Roles {
+export enum Roles {
   AcasApi = 'et-acas-api',
   CaseworkerEmployment = 'caseworker-employment',
   CaseworkerEmploymentLegalRepSolicitor = 'caseworker-employment-legalrep-solicitor',
@@ -28,9 +35,9 @@ enum Roles {
 }
 
 type RegionPermissions = Record<Region, string>
-type RoleMappings = Record<Roles, Partial<RegionPermissions>>
+export type RoleMappings = Record<Roles, Partial<RegionPermissions>>
 
-const roleMappings: RoleMappings = {
+export const defaultRoleMappings: RoleMappings = {
   [Roles.AcasApi]: { [Region.EnglandWales]: 'R', [Region.Scotland]: 'R' },
   [Roles.CaseworkerEmployment]: { [Region.EnglandWales]: 'R', [Region.Scotland]: 'R' },
   [Roles.CaseworkerEmploymentApi]: { [Region.EnglandWales]: 'CRUD', [Region.Scotland]: 'CRUD' },
@@ -38,7 +45,7 @@ const roleMappings: RoleMappings = {
   [Roles.CaseworkerEmploymentETJudgeEnglandWales]: { [Region.EnglandWales]: 'CRU' },
   [Roles.CaseworkerEmploymentETJudgeScotland]: { [Region.Scotland]: 'CRU' },
   [Roles.CaseworkerEmploymentEnglandWales]: { [Region.EnglandWales]: 'CRU' },
-  [Roles.CaseworkerEmploymentLegalRepSolicitor]: { /* [Region.EnglandWales]: 'CRU', [Region.Scotland]: 'CRU' */ },
+  [Roles.CaseworkerEmploymentLegalRepSolicitor]: { [Region.EnglandWales]: 'D', [Region.Scotland]: 'D' },
   [Roles.CaseworkerEmploymentScotland]: { [Region.Scotland]: 'CRU' },
   [Roles.Citizen]: { [Region.EnglandWales]: 'CRU', [Region.Scotland]: 'CRU' }
 }
@@ -113,31 +120,14 @@ export function getConfigSheetsFromFlexRegion(flexRegion: Region[]) {
   return createNewConfigSheets()
 }
 
-export function findObject<T>(keys: Record<string, any>, sheetName: keyof CCDTypes, region?: Region): T | undefined {
+export function findETObject<T>(keys: Record<string, any>, sheetName: keyof CCDTypes, region?: Region): T | undefined {
   const ccd = region === Region.EnglandWales
     ? getEnglandWales()
     : region === Region.Scotland
       ? getScotland()
       : getCombinedSheets()
 
-  const arr = ccd[sheetName] as Array<Record<string, any>>
-  const keysThatMatter = COMPOUND_KEYS[sheetName] as string[]
-  const found = arr.find(o => {
-    for (const key in keys) {
-      if (!keysThatMatter.includes(key)) {
-        continue
-      }
-
-      if (keys[key] && !Number.isNaN(keys[key]) && o[key] !== keys[key]) {
-        return false
-      }
-    }
-    return true
-  })
-
-  if (found) {
-    return found as T
-  }
+  return findObject<T>(keys, sheetName, ccd)
 }
 
 /**
@@ -159,88 +149,76 @@ export function getRegionFromCaseTypeId(caseTypeID: string) {
 /**
  * Get all defined CaseEvent IDs in englandwales and scotland configs
  */
-export function getCaseEventIDOpts() {
-  return getUniqueByKeyAsArray([...englandwales.CaseEvent, ...scotland.CaseEvent], 'ID')
+export function getETCaseEventIDOpts() {
+  return getCaseEventIDOpts(getCombinedSheets())
 }
 
 /**
  * Get all currently known FieldType IDs in englandwales and scotland configs (FieldTypes that are referenced by at least one CaseField)
  */
-export function getKnownCaseFieldTypes() {
-  const knownFieldTypes = [...englandwales.CaseField, ...scotland.CaseField].map(o => o.FieldType)
-  const knownComplexTypes = [...englandwales.ComplexTypes, ...scotland.ComplexTypes].map(o => o.ID)
-  return Object.keys(groupBy([...knownFieldTypes, ...knownComplexTypes]))
+export function getKnownETCaseFieldTypes() {
+  return getKnownCaseFieldTypes(getCombinedSheets())
 }
 
 /**
- * Gets (most) options for FieldTypeParameters in englandwales and scotland configs by looking at existing CaseField FieldTypeParameters and getting all scrubbed ID options
- * TOOD: When ComplexTypes JSON support is added. Add it here
+ * Gets possible FieldTypeParameters by collecting
+ *  * FieldTypeParameters refereced in other CaseFields
+ *  * Available FixedList IDs
+ *  * Available ComplexType IDs
+ *  * Known CCD Field Types as defined on Confluence
  */
-export function getKnownCaseFieldTypeParameters() {
-  const inUse = getUniqueByKey([...englandwales.CaseField, ...scotland.CaseField], 'FieldTypeParameter')
-  const scrubbed = getUniqueByKey([...englandwales.Scrubbed, ...scotland.Scrubbed], 'ID')
-  return Object.keys({ ...inUse, ...scrubbed })
+export function getKnownETCaseFieldTypeParameters() {
+  return getKnownCaseFieldTypeParameters(getCombinedSheets())
 }
 
 /**
  * Get all defined Scrubbed IDs in englandwales and scotland configs
  */
-export function getKnownScrubbedLists() {
-  return getUniqueByKeyAsArray([...englandwales.Scrubbed, ...scotland.Scrubbed], 'ID')
+export function getKnownETScrubbedLists() {
+  return getKnownScrubbedLists(getCombinedSheets())
 }
 
 /**
  * Get all defined CaseType IDs in englandwales and scotland configs
  */
-export function getKnownCaseTypeIDs() {
-  return getUniqueByKeyAsArray([...englandwales.CaseField, ...scotland.CaseField], 'CaseTypeID')
+export function getKnownETCaseTypeIDs() {
+  return getKnownCaseTypeIDs(getCombinedSheets())
 }
 
 /**
  * Get all defined CaseField IDs in englandwales and scotland configs
  */
-export function getKnownCaseFieldIDs(filter?: (obj: CaseField) => CaseField[]) {
-  const arr = [...englandwales.CaseField, ...scotland.CaseField]
-  return getUniqueByKeyAsArray(filter ? arr.filter(filter) : arr, 'ID')
+export function getKnownETCaseFieldIDs(filter?: (obj: CaseField) => CaseField[]) {
+  return getKnownCaseFieldIDs(getCombinedSheets(), filter)
 }
 
 /**
  * Get all defined CaseField IDs in englandwales and scotland configs on an event
  */
-export function getKnownCaseFieldIDsByEvent(caseEventId: string) {
-  const arr = [...englandwales.CaseField, ...scotland.CaseField]
-
-  const byEventId = (obj: CaseEventToField) => obj.CaseEventID === caseEventId
-
-  const fieldToEvent = [...englandwales.CaseEventToFields.filter(byEventId), ...scotland.CaseEventToFields.filter(byEventId)]
-  const subsetFields = arr.filter(o => fieldToEvent.find(x => x.CaseFieldID === o.ID))
-
-  return getUniqueByKeyAsArray(subsetFields, 'ID')
+export function getKnownETCaseFieldIDsByEvent(caseEventId?: string, regions: Region[] = [Region.EnglandWales, Region.Scotland]) {
+  return getKnownCaseFieldIDsByEvent(caseEventId, getConfigSheetsFromFlexRegion(regions))
 }
 
 /**
  * Get all defined ComplexType IDs in englandwales and scotland configs
  */
-export function getKnownComplexTypeIDs() {
-  return getUniqueByKeyAsArray([...englandwales.ComplexTypes, ...scotland.ComplexTypes], 'ID')
+export function getKnownETComplexTypeIDs() {
+  return getKnownComplexTypeIDs(getCombinedSheets())
 }
 
 /**
  * Get all defined ComplexType IDs in englandwales and scotland configs
  */
-export function getKnownComplexTypeListElementCodes(id: string) {
-  const complexTypesOfID = [...englandwales.ComplexTypes.filter(o => o.ID === id), ...scotland.ComplexTypes.filter(o => o.ID === id)]
-  return getUniqueByKeyAsArray(complexTypesOfID, 'ListElementCode')
+export function getKnownETComplexTypeListElementCodes(id: string) {
+  return getKnownComplexTypeListElementCodes(id, getCombinedSheets())
 }
 
 /**
  * Gets the highest PageFieldDisplayOrder number from fields on a certain page
  */
-export function getNextPageFieldIDForPage(caseTypeID: string, caseEventID: string, pageID: number) {
+export function getNextPageFieldIDForPageET(caseTypeID: string, caseEventID: string, pageID: number) {
   const region = getConfigSheetsForCaseTypeID(caseTypeID)
-  const fieldsOnPage = region.CaseEventToFields.filter(o => o.CaseEventID === caseEventID && o.PageID === pageID)
-  const fieldOrders = fieldsOnPage.map(o => Number(o.PageFieldDisplayOrder))
-  return fieldsOnPage.length ? Math.max(...fieldOrders) + 1 : 1
+  return getNextPageFieldIDForPage(caseTypeID, caseEventID, pageID, region)
 }
 
 export function getConfigSheetName(region: Region, configSheet: keyof (ConfigSheets)) {
@@ -458,6 +436,35 @@ function spliceIndexComplexType(x: ComplexType, arr: ComplexType[]) {
   return firstInComplexTypeIndex
 }
 
+export function deleteFromInMemoryConfig(fields: Partial<ConfigSheets>) {
+  for (const key of sheets) {
+    if (!fields[key]) {
+      fields[key] = []
+    }
+  }
+
+  const deleteOnlyFilter = (o: { CRUD: string }) => o.CRUD.toUpperCase() === "D"
+  const ewCaseTypeIDFilter = (o: { CaseTypeID?: string, CaseTypeId?: string }) => (o.CaseTypeID || o.CaseTypeId).startsWith(Region.EnglandWales)
+
+  const scCaseTypeIDFilter = (o: { CaseTypeID?: string, CaseTypeId?: string }) => (o.CaseTypeID || o.CaseTypeId).startsWith(Region.Scotland)
+
+  const ewAuthorisationCaseFields = fields.AuthorisationCaseField.filter(ewCaseTypeIDFilter).filter(deleteOnlyFilter)
+  const ewAuthorisationCaseEvents = fields.AuthorisationCaseEvent.filter(ewCaseTypeIDFilter).filter(deleteOnlyFilter)
+
+  const scAuthorisationCaseFields = fields.AuthorisationCaseField.filter(scCaseTypeIDFilter).filter(deleteOnlyFilter)
+  const scAuthorisationCaseEvents = fields.AuthorisationCaseEvent.filter(scCaseTypeIDFilter).filter(deleteOnlyFilter)
+
+  deleteFromConfig(englandwales, {
+    AuthorisationCaseEvent: ewAuthorisationCaseEvents,
+    AuthorisationCaseField: ewAuthorisationCaseFields
+  })
+
+  deleteFromConfig(scotland, {
+    AuthorisationCaseEvent: scAuthorisationCaseEvents,
+    AuthorisationCaseField: scAuthorisationCaseFields
+  })
+}
+
 /**
  * Upserts new fields into the in-memory configs and current session. Does NOT touch the original JSON files.
  * See TODOs in body. This is functional but ordering is not necessarily ideal
@@ -470,10 +477,10 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
   }
 
   const ewCaseTypeIDFilter = (o: { CaseTypeID?: string, CaseTypeId?: string }) => (o.CaseTypeID || o.CaseTypeId).startsWith(Region.EnglandWales)
-  const ewRegionFilter = (o: FlexExtensions) => (o.flex.regions as string[]).includes(Region.EnglandWales)
+  const ewRegionFilter = (o: FlexExtensions) => (o.flex?.regions as string[]).includes(Region.EnglandWales)
 
   const scCaseTypeIDFilter = (o: { CaseTypeID?: string, CaseTypeId?: string }) => (o.CaseTypeID || o.CaseTypeId).startsWith(Region.Scotland)
-  const scRegionFilter = (o: FlexExtensions) => (o.flex.regions as string[]).includes(Region.Scotland)
+  const scRegionFilter = (o: FlexExtensions) => (o.flex?.regions as string[]).includes(Region.Scotland)
 
   const ewCaseFields = fields.CaseField.filter(ewCaseTypeIDFilter)
   const ewCaseEventToFields = fields.CaseEventToFields.filter(ewCaseTypeIDFilter)
@@ -497,41 +504,29 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
   const scComplexTypes = fields.ComplexTypes.filter(scRegionFilter)
   const scEventToComplexTypes = fields.EventToComplexTypes.filter(scRegionFilter)
 
-  upsertFields(englandwales.CaseField, ewCaseFields, COMPOUND_KEYS.CaseField, spliceIndexCaseTypeID)
+  addToConfig(englandwales, {
+    AuthorisationCaseEvent: ewAuthorisationCaseEvents,
+    AuthorisationCaseField: ewAuthorisationCaseFields,
+    CaseEvent: ewCaseEvents,
+    CaseEventToFields: ewCaseEventToFields,
+    CaseField: ewCaseFields,
+    CaseTypeTab: ewCaseTypeTabs,
+    ComplexTypes: ewComplexTypes,
+    EventToComplexTypes: ewEventToComplexTypes,
+    Scrubbed: ewScrubbed
+  })
 
-  upsertFields(englandwales.CaseEventToFields, ewCaseEventToFields, COMPOUND_KEYS.CaseEventToFields, spliceIndexCaseEventToField)
-
-  upsertFields(englandwales.AuthorisationCaseEvent, ewAuthorisationCaseEvents, COMPOUND_KEYS.AuthorisationCaseEvent, spliceIndexCaseTypeId)
-
-  upsertFields(englandwales.AuthorisationCaseField, ewAuthorisationCaseFields, COMPOUND_KEYS.AuthorisationCaseField, spliceIndexCaseTypeId)
-
-  upsertFields(englandwales.CaseTypeTab, ewCaseTypeTabs, COMPOUND_KEYS.CaseTypeTab, spliceIndexCaseTypeTab)
-
-  upsertFields(englandwales.EventToComplexTypes, ewEventToComplexTypes, COMPOUND_KEYS.EventToComplexTypes, spliceIndexEventToComplexType)
-
-  upsertFields(englandwales.ComplexTypes, ewComplexTypes, COMPOUND_KEYS.ComplexTypes, spliceIndexComplexType)
-
-  upsertFields(englandwales.Scrubbed, ewScrubbed, COMPOUND_KEYS.Scrubbed, spliceIndexScrubbed)
-
-  upsertFields(englandwales.CaseEvent, ewCaseEvents, COMPOUND_KEYS.CaseEvent, spliceIndexCaseEvent)
-
-  upsertFields(scotland.CaseField, scCaseFields, COMPOUND_KEYS.CaseField, spliceIndexCaseTypeID)
-
-  upsertFields(scotland.CaseEventToFields, scCaseEventToFields, COMPOUND_KEYS.CaseEventToFields, spliceIndexCaseEventToField)
-
-  upsertFields(scotland.AuthorisationCaseEvent, scAuthorisationCaseEvents, COMPOUND_KEYS.AuthorisationCaseEvent, spliceIndexCaseTypeId)
-
-  upsertFields(scotland.AuthorisationCaseField, scAuthorisationCaseFields, COMPOUND_KEYS.AuthorisationCaseField, spliceIndexCaseTypeId)
-
-  upsertFields(scotland.CaseTypeTab, scCaseTypeTabs, COMPOUND_KEYS.CaseTypeTab, spliceIndexCaseTypeTab)
-
-  upsertFields(scotland.EventToComplexTypes, scEventToComplexTypes, COMPOUND_KEYS.EventToComplexTypes, spliceIndexEventToComplexType)
-
-  upsertFields(scotland.ComplexTypes, scComplexTypes, COMPOUND_KEYS.ComplexTypes, spliceIndexComplexType)
-
-  upsertFields(scotland.Scrubbed, scScrubbed, COMPOUND_KEYS.Scrubbed, spliceIndexScrubbed)
-
-  upsertFields(scotland.CaseEvent, scCaseEvents, COMPOUND_KEYS.CaseEvent, spliceIndexCaseEvent)
+  addToConfig(scotland, {
+    AuthorisationCaseEvent: scAuthorisationCaseEvents,
+    AuthorisationCaseField: scAuthorisationCaseFields,
+    CaseEvent: scCaseEvents,
+    CaseEventToFields: scCaseEventToFields,
+    CaseField: scCaseFields,
+    CaseTypeTab: scCaseTypeTabs,
+    ComplexTypes: scComplexTypes,
+    EventToComplexTypes: scEventToComplexTypes,
+    Scrubbed: scScrubbed
+  })
 
   addToSession({
     AuthorisationCaseField: ewAuthorisationCaseFields,
@@ -556,6 +551,39 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
     Scrubbed: scScrubbed,
     CaseEvent: scCaseEvents
   })
+
+  deleteFromInMemoryConfig(fields)
+}
+
+export function deleteFromConfig(main: Partial<ConfigSheets>, toDelete: Partial<ConfigSheets>) {
+  removeFields(main.AuthorisationCaseEvent, toDelete.AuthorisationCaseEvent, COMPOUND_KEYS.AuthorisationCaseEvent)
+
+  removeFields(main.AuthorisationCaseField, toDelete.AuthorisationCaseField, COMPOUND_KEYS.AuthorisationCaseField)
+
+  removeFields(main.CaseField, toDelete.CaseField, COMPOUND_KEYS.CaseField)
+
+  removeFields(main.CaseEventToFields, toDelete.CaseEventToFields, COMPOUND_KEYS.CaseEventToFields)
+  // TODO: Handle other types
+}
+
+export function addToConfig(to: Partial<ConfigSheets>, from: Partial<ConfigSheets>) {
+  upsertFields(to.CaseField, from.CaseField, COMPOUND_KEYS.CaseField, spliceIndexCaseTypeID)
+
+  upsertFields(to.CaseEventToFields, from.CaseEventToFields, COMPOUND_KEYS.CaseEventToFields, spliceIndexCaseEventToField)
+
+  upsertFields(to.AuthorisationCaseEvent, from.AuthorisationCaseEvent, COMPOUND_KEYS.AuthorisationCaseEvent, spliceIndexCaseTypeId)
+
+  upsertFields(to.AuthorisationCaseField, from.AuthorisationCaseField, COMPOUND_KEYS.AuthorisationCaseField, spliceIndexCaseTypeId)
+
+  upsertFields(to.CaseTypeTab, from.CaseTypeTab, COMPOUND_KEYS.CaseTypeTab, spliceIndexCaseTypeTab)
+
+  upsertFields(to.EventToComplexTypes, from.EventToComplexTypes, COMPOUND_KEYS.EventToComplexTypes, spliceIndexEventToComplexType)
+
+  upsertFields(to.ComplexTypes, from.ComplexTypes, COMPOUND_KEYS.ComplexTypes, spliceIndexComplexType)
+
+  upsertFields(to.Scrubbed, from.Scrubbed, COMPOUND_KEYS.Scrubbed, spliceIndexScrubbed)
+
+  upsertFields(to.CaseEvent, from.CaseEvent, COMPOUND_KEYS.CaseEvent, spliceIndexCaseEvent)
 }
 
 export function pushEventToComplexTypeFieldDisplayOrders(arr: EventToComplexType[], eventID: string, fieldID: string, start: number) {
@@ -644,7 +672,7 @@ function createAuthorisations<T>(mappings: RoleMappings, caseTypeID: string, fn:
 /**
  * Creates an array of AuthorisationCaseEvent objects
  */
-export function createCaseEventAuthorisations(caseTypeID: string = Region.EnglandWales, eventID: string) {
+export function createCaseEventAuthorisations(caseTypeID: string = Region.EnglandWales, eventID: string, roleMappings: RoleMappings = defaultRoleMappings) {
   return createAuthorisations<AuthorisationCaseEvent>(roleMappings, caseTypeID, (role, crud) => {
     return { CaseTypeId: caseTypeID, CaseEventID: eventID, UserRole: role, CRUD: crud }
   })
@@ -653,7 +681,7 @@ export function createCaseEventAuthorisations(caseTypeID: string = Region.Englan
 /**
  * Creates an array of AuthorisationCaseEvent objects
  */
-export function createCaseFieldAuthorisations(caseTypeID: string = Region.EnglandWales, fieldID: string) {
+export function createCaseFieldAuthorisations(caseTypeID: string = Region.EnglandWales, fieldID: string, roleMappings: RoleMappings = defaultRoleMappings) {
   return createAuthorisations<AuthorisationCaseField>(roleMappings, caseTypeID, (role, crud) => {
     return { CaseTypeId: caseTypeID, CaseFieldID: fieldID, UserRole: role, CRUD: crud }
   })

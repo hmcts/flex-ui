@@ -7,6 +7,7 @@ declare global {
       ET_CCD_CALLBACKS_DIR: string
       DEMO_ADMIN_USER: string
       DEMO_ADMIN_PASS: string
+      TEAM: string
     }
   }
 }

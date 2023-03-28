@@ -167,5 +167,6 @@ async function waitForDmStore() {
 export default {
   group: 'et-docker',
   text: 'Docker / ECM Setup',
-  fn: configsJourney
+  fn: configsJourney,
+  alias: 'DockerCommon'
 } as Journey

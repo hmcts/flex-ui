@@ -2,20 +2,33 @@ import { prompt } from 'inquirer'
 import { Journey } from 'types/journey'
 import { addonDuplicateQuestion, Answers, askCaseEvent, askCaseTypeID } from 'app/questions'
 import { createNewCaseEvent } from 'app/ccd'
-import { addToInMemoryConfig, createCaseEventAuthorisations, findETObject, getETCaseEventIDOpts, getKnownETCaseTypeIDs, getRegionFromCaseTypeId } from 'app/et/configs'
-import { NEW, NO, YES, YES_OR_NO, Y_OR_N } from 'app/constants'
+import { COMPOUND_KEYS, NEW, Y_OR_N } from 'app/constants'
 import { CaseEvent, CaseEventKeys } from 'app/types/ccd'
-import { QUESTION_CALLBACK_URL_ABOUT_TO_START_EVENT, QUESTION_CALLBACK_URL_ABOUT_TO_SUBMIT_EVENT, QUESTION_CALLBACK_URL_SUBMITTED_EVENT, QUESTION_DESCRIPTION, QUESTION_DISPLAY_ORDER, QUESTION_EVENT_ENABLING_CONDITION, QUESTION_NAME, QUESTION_POST_CONDITION_STATE, QUESTION_PRECONDITION_STATES, QUESTION_SHOW_EVENT_NOTES, QUESTION_SHOW_SUMMARY } from '../base/createEvent'
+import { findObject, getCaseEventIDOpts, sheets } from 'app/configs'
+import { addToSession } from 'app/session'
+import { upsertFields } from 'app/helpers'
+
+export const QUESTION_NAME = 'Give the new event a name (shows in the event dropdown)'
+export const QUESTION_DESCRIPTION = 'Give the new event a description'
+export const QUESTION_DISPLAY_ORDER = 'Where should this event appear in the caseEvent dropdown (DisplayOrder)?'
+export const QUESTION_PRECONDITION_STATES = 'What state should the case be in to see this page? (PreConditionState(s))'
+export const QUESTION_POST_CONDITION_STATE = 'What state should the case be set to after completing this journey? (PostConditionState)'
+export const QUESTION_EVENT_ENABLING_CONDITION = 'Enter a condition for showing this event in the "Next step" dropdown? (EventEnablingCondition) (optional)'
+export const QUESTION_SHOW_EVENT_NOTES = 'Provide a value for ShowEventNotes'
+export const QUESTION_SHOW_SUMMARY = 'Should there be a Check Your Answers page at the end of this event?'
+export const QUESTION_CALLBACK_URL_ABOUT_TO_START_EVENT = 'Do we need a callback before we start? (optional)'
+export const QUESTION_CALLBACK_URL_ABOUT_TO_SUBMIT_EVENT = 'Do we need a callback before we submit? (optional)'
+export const QUESTION_CALLBACK_URL_SUBMITTED_EVENT = 'Do we need a callback after we submit? (optional)'
 
 export async function createEvent(answers: Answers = {}) {
-  answers = await askCaseTypeID(answers, { choices: getKnownETCaseTypeIDs() })
-  answers = await askCaseEvent(answers, { name: CaseEventKeys.ID, message: "What's the ID of the new/existing Event?", choices: [NEW, ...getETCaseEventIDOpts()] })
+  answers = await askCaseTypeID(answers)
+  answers = await askCaseEvent(answers, { name: CaseEventKeys.ID, message: "What's the ID of the new/existing Event?", choices: [NEW, ...getCaseEventIDOpts()] })
 
   if (answers.ID === NEW) {
     answers = await prompt([{ name: CaseEventKeys.ID, message: 'What\'s the ID of the new Event?', askAnswered: true, validate: (input: string) => input.length > 0 }], answers)
   }
 
-  const existing: CaseEvent | undefined = findETObject(answers, 'CaseEvent', getRegionFromCaseTypeId(answers[CaseEventKeys.CaseTypeID]))
+  const existing: CaseEvent | undefined = findObject(answers, 'CaseEvent')
 
   answers = await prompt(
     [
@@ -32,20 +45,22 @@ export async function createEvent(answers: Answers = {}) {
       { name: 'CallBackURLSubmittedEvent', message: QUESTION_CALLBACK_URL_SUBMITTED_EVENT, type: 'input', default: existing?.CallBackURLSubmittedEvent }
     ], answers)
 
-  if (existing) {
-    answers = await prompt([{ name: 'authorisations', message: 'Do you want to create authorisations for this existing event?', type: 'list', choices: YES_OR_NO, default: NO }], answers)
-  } else {
-    answers.authorisations = YES
-  }
-
-  await addonDuplicateQuestion(answers, getKnownETCaseTypeIDs(), (answers: Answers) => {
+  await addonDuplicateQuestion(answers, undefined, (answers: Answers) => {
     const caseEvent = createNewCaseEvent(answers)
-    const authorisations = answers.authorisations === YES ? createCaseEventAuthorisations(answers.CaseTypeID, answers.ID) : []
 
-    addToInMemoryConfig({
+    // ET creates authorisations here - this is highly specific code so teams implementing this will
+    // need to provide their own journey for this. See journeys/et/createSingleField for an example.
+    const authorisations = []
+
+    const newFields = {
       AuthorisationCaseEvent: authorisations,
       CaseEvent: [caseEvent]
-    })
+    }
+    addToSession(newFields)
+
+    for (const sheetName in newFields) {
+      upsertFields(sheets[sheetName], newFields[sheetName], COMPOUND_KEYS[sheetName])
+    }
   })
 
   return answers[CaseEventKeys.ID]

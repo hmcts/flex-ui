@@ -8,6 +8,8 @@ export const NO = 'No'
 export const YES_OR_NO = [YES, NO]
 export const Y_OR_N = ['Y', 'N']
 export const NO_DUPLICATE = 'Don\'t duplicate'
+export const MULTI = '<multi-select>'
+export const NEW = '<new>'
 
 export const JOURNEY_DIR = 'journeys'
 export const DIST_JOURNEY_DIR = `dist${sep}${JOURNEY_DIR}`
@@ -30,6 +32,54 @@ export const FIELD_TYPES_EXCLUDE_MIN_MAX = [
   'Document',
   'DynamicList',
   'DynamicRadioList'
+]
+
+/** Pulled from https://tools.hmcts.net/confluence/display/RCCD/CCD+Supported+Field+Types */
+export const CCD_FIELD_TYPES = [
+  'Address',
+  'AddressUK',
+  'AddressGlobal',
+  'AddressGlobalUK',
+  'BaseLocation',
+  'CaseHistoryViewer',
+  'CaseLink',
+  'CaseLocation',
+  'CasePaymentHistoryViewer',
+  'ChangeOrganisationRequest',
+  'Collection',
+  'ComponentLauncher',
+  'Date',
+  'DateTime',
+  'Document',
+  'DynamicList',
+  'DynamicRadioList',
+  'DynamicMultiSelectList',
+  'Email',
+  'FixedList',
+  'FixedRadioList',
+  'Flags',
+  'FlagsDetail',
+  'FlagLauncher',
+  'JudicialUser',
+  'Label',
+  'LinkReason',
+  'MoneyGBP',
+  'MultiSelectList',
+  'Number',
+  'OrderSummary',
+  'Organisation',
+  'OrganisationPolicy',
+  'PhoneUK',
+  'Postcode',
+  'PreviousOrganisation',
+  'Region',
+  'SearchCriteria',
+  'SearchParty',
+  'Text',
+  'TextArea',
+  'TTL',
+  'WaysToPay',
+  'YesOrNo'
 ]
 
 /**

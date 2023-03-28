@@ -32,6 +32,8 @@ module.exports = {
     // Results in false positives
     "@typescript-eslint/no-base-to-string": 0,
     // Perference, This rule can be useful for logic flow, but in cases of Promise.allSettled it results in superfluous code
-    "@typescript-eslint/promise-function-async": 1
+    "@typescript-eslint/promise-function-async": 1,
+    // Labels are useful
+    "no-labels": 0
   }
 }

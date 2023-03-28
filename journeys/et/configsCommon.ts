@@ -189,5 +189,6 @@ async function verifyUpload(cookie: string) {
 export default {
   group: 'et-configs',
   text: 'Config (JSON/XLSX) Manipulation',
-  fn: configsJourney
+  fn: configsJourney,
+  alias: 'ConfigCommon'
 } as Journey

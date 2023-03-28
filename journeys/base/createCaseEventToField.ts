@@ -1,19 +1,26 @@
 import { Journey } from 'types/journey'
 import { CaseEventToField, CaseEventToFieldKeys } from 'app/types/ccd'
 import { createNewCaseEventToField, trimCaseEventToField } from 'app/ccd'
-import { Answers, addonDuplicateQuestion } from 'app/questions'
-import { addToInMemoryConfig, getKnownETCaseTypeIDs } from 'app/et/configs'
-import { createTemplate } from 'app/et/questions'
+import { createTemplate, Answers, addonDuplicateQuestion } from 'app/questions'
+import { addToSession } from 'app/session'
+import { sheets } from 'app/configs'
+import { upsertFields } from 'app/helpers'
+import { COMPOUND_KEYS } from 'app/constants'
 
 export async function createCaseEventToFieldJourney() {
   const answers = await createTemplate<unknown, CaseEventToField>({}, CaseEventToFieldKeys, createNewCaseEventToField(), 'CaseEventToFields')
 
-  await addonDuplicateQuestion(answers, getKnownETCaseTypeIDs(), (answers: Answers) => {
+  await addonDuplicateQuestion(answers, undefined, (answers: Answers) => {
     const caseEventToField = createNewCaseEventToField(answers)
 
-    addToInMemoryConfig({
+    const newFields = {
       CaseEventToFields: [trimCaseEventToField(caseEventToField)]
-    })
+    }
+    addToSession(newFields)
+
+    for (const sheetName in newFields) {
+      upsertFields(sheets[sheetName], newFields[sheetName], COMPOUND_KEYS[sheetName])
+    }
   })
 }
 

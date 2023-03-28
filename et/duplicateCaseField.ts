@@ -1,5 +1,7 @@
+import { COMPOUND_KEYS } from 'app/constants'
 import { getRegionFromCaseTypeId, regionRoles } from 'app/et/configs'
-import { CaseField, ConfigSheets } from 'app/types/ccd'
+import { upsertFields } from 'app/helpers'
+import { CaseField, ComplexType, ConfigSheets } from 'app/types/ccd'
 
 function getEquivalentRole(caseTypeID: string, role: string) {
   const region = getRegionFromCaseTypeId(caseTypeID)
@@ -33,6 +35,20 @@ function isFieldReferencedInField(caseField: CaseField, caseFieldID: string) {
   return caseField.Label?.includes(`{${caseFieldID}}`) || caseField.HintText?.includes(`{${caseFieldID}}`)
 }
 
+function getComplexTypeReferencedComplexTypes(config: ConfigSheets, complexType: ComplexType) {
+  const queue = [complexType]
+  const needed = []
+
+  while (queue.length) {
+    const type = queue.splice(0, 1)[0]
+    needed.push(type)
+    const referenced = config.ComplexTypes.filter(o => o.ID === type.FieldType || o.ID === type.FieldTypeParameter)
+    referenced.forEach(o => queue.push(o))
+  }
+
+  return needed
+}
+
 /**
  * Gets ALL objects needed to support an array of CaseFields (checks all currently supported JSONs)
  */
@@ -44,8 +60,15 @@ export function getObjectsReferencedByCaseFields(config: ConfigSheets, caseField
   const refScrubbed = config.Scrubbed.filter(o => refCaseFields.find(x => x.FieldTypeParameter === o.ID))
   const refAuthCaseField = config.AuthorisationCaseField.filter(o => refCaseFields.find(x => x.ID === o.CaseFieldID))
   const refAuthCaseEvent = config.AuthorisationCaseEvent.filter(o => refCaseEvents.find(x => x.ID === o.CaseEventID))
-  const refComplexType = config.ComplexTypes.filter(o => refCaseFields.find(x => x.FieldTypeParameter === o.ID || x.FieldType === o.ID))
+  const initialComplexType = config.ComplexTypes.filter(o => refCaseFields.find(x => x.FieldTypeParameter === o.ID || x.FieldType === o.ID))
   const refCaseTypeTab = config.CaseTypeTab.filter(o => refCaseFields.find(x => x.ID === o.CaseFieldID))
+
+  const refComplexType = []
+
+  initialComplexType.forEach(o => {
+    const moreComplexTypes = getComplexTypeReferencedComplexTypes(config, o)
+    upsertFields(refComplexType, moreComplexTypes, COMPOUND_KEYS.ComplexTypes)
+  })
 
   return {
     AuthorisationCaseEvent: refAuthCaseEvent,

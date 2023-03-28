@@ -2,13 +2,13 @@ import { prompt } from 'inquirer'
 import { CaseFieldKeys, ComplexType, ComplexTypeKeys } from 'types/ccd'
 import { QUESTION_ANOTHER, QUESTION_HINT_TEXT } from './createSingleField'
 import { createNewComplexType, trimCcdObject } from 'app/ccd'
-import { addToInMemoryConfig, findObject, getKnownComplexTypeIDs, Region } from 'app/et/configs'
-import { Answers, askBasicFreeEntry, askForRegularExpression, askMinAndMax, askRetainHiddenValue, fuzzySearch } from 'app/questions'
+import { addToInMemoryConfig, findETObject, getKnownETCaseFieldTypeParameters, getKnownETCaseFieldTypes, getKnownETComplexTypeIDs, getKnownETComplexTypeListElementCodes, Region } from 'app/et/configs'
+import { Answers, askBasicFreeEntry, askComplexTypeListElementCode, askFieldType, askFieldTypeParameter, askForRegularExpression, askMinAndMax, fuzzySearch } from 'app/questions'
 import { CUSTOM, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, isFieldTypeInExclusionList, YES, YES_OR_NO } from 'app/constants'
-import { addToLastAnswers, session } from 'app/session'
+import { addToLastAnswers, saveSession, session } from 'app/session'
 import { Journey } from 'types/journey'
 import { getIdealSizeForInquirer, matcher } from 'app/helpers'
-import { addFlexRegionToCcdObject, askComplexTypeListElementCode, askFieldType, askFieldTypeParameter, askFlexRegion, FLEX_REGION_ANSWERS_KEY, REGION_OPTS } from 'app/et/questions'
+import { addFlexRegionToCcdObject, askFlexRegion, FLEX_REGION_ANSWERS_KEY, REGION_OPTS } from 'app/et/questions'
 
 const QUESTION_ID = "What's the ID of this ComplexType?"
 const QUESTION_ELEMENT_LABEL = 'What\'s the custom label for this control?'
@@ -36,7 +36,7 @@ export async function createComplexType(answers: Answers = {}) {
   answers = await askFlexRegion(undefined, undefined, undefined, answers)
   answers = await askForID(answers, undefined, undefined, session.lastAnswers[ComplexTypeKeys.ID])
 
-  answers = await askComplexTypeListElementCode(answers)
+  answers = await askComplexTypeListElementCode(answers, { choices: getKnownETComplexTypeListElementCodes(answers.ID) })
 
   const existing = await prepopulateAnswersWithExistingValues(answers)
 
@@ -48,18 +48,19 @@ export async function createComplexType(answers: Answers = {}) {
     { name: ComplexTypeKeys.HintText, message: QUESTION_HINT_TEXT, type: 'input', default: existing?.HintText }
   ], answers)
 
-  if (answers[ComplexTypeKeys.FieldShowCondition]) {
-    answers = await askRetainHiddenValue(answers, undefined, undefined, existing?.RetainHiddenValue)
-  }
+  // TODO: Verify that this is not needed
+  // if (answers[ComplexTypeKeys.FieldShowCondition]) {
+  //   answers = await askRetainHiddenValue(answers, undefined, undefined, existing?.RetainHiddenValue)
+  // }
 
-  answers = await askFieldType(answers, undefined, undefined, existing?.FieldType)
+  answers = await askFieldType(answers, { default: existing?.FieldType, choices: getKnownETCaseFieldTypes() })
 
   if (!isFieldTypeInExclusionList(answers[CaseFieldKeys.FieldType], FIELD_TYPES_EXCLUDE_PARAMETER)) {
-    answers = await askFieldTypeParameter(answers, undefined, undefined, existing?.FieldTypeParameter)
+    answers = await askFieldTypeParameter(answers, { default: existing?.FieldTypeParameter, choices: getKnownETCaseFieldTypeParameters() })
   }
 
   if (answers[ComplexTypeKeys.FieldType] === 'Text') {
-    answers = await askForRegularExpression(answers, undefined, undefined, existing?.RegularExpression)
+    answers = await askForRegularExpression(answers, { default: existing?.RegularExpression })
   }
 
   if (!isFieldTypeInExclusionList(answers[CaseFieldKeys.FieldType], FIELD_TYPES_EXCLUDE_MIN_MAX)) {
@@ -84,6 +85,7 @@ export async function createComplexType(answers: Answers = {}) {
   }])
 
   if (followup.another === YES) {
+    saveSession(session)
     return createComplexType()
   }
 
@@ -95,11 +97,11 @@ async function prepopulateAnswersWithExistingValues(answers: Answers) {
   let scExisting: ComplexType | null = null
 
   if ((answers[FLEX_REGION_ANSWERS_KEY] as string[]).includes(Region.EnglandWales)) {
-    ewExisting = findObject(answers, 'ComplexTypes', Region.EnglandWales)
+    ewExisting = findETObject(answers, 'ComplexTypes', Region.EnglandWales)
   }
 
   if ((answers[FLEX_REGION_ANSWERS_KEY] as string[]).includes(Region.Scotland)) {
-    scExisting = findObject(answers, 'ComplexTypes', Region.Scotland)
+    scExisting = findETObject(answers, 'ComplexTypes', Region.Scotland)
   }
 
   if (!ewExisting || !scExisting) {
@@ -119,8 +121,9 @@ async function prepopulateAnswersWithExistingValues(answers: Answers) {
   return obj.region === Region.EnglandWales ? ewExisting : scExisting
 }
 
+// TODO: Update this to take in Question parameter
 async function askForID(answers: Answers = {}, key?: string, message?: string, defaultValue?: string) {
-  const opts = getKnownComplexTypeIDs()
+  const opts = getKnownETComplexTypeIDs()
   key = key || ComplexTypeKeys.ID
 
   answers = await prompt([
@@ -135,7 +138,7 @@ async function askForID(answers: Answers = {}, key?: string, message?: string, d
   ], answers)
 
   if (answers[key] === CUSTOM) {
-    const newEventTypeAnswers = await askBasicFreeEntry({}, key, 'Enter a custom value for ID')
+    const newEventTypeAnswers = await askBasicFreeEntry({}, { name: key, message: 'Enter a custom value for ID' })
     answers[key] = newEventTypeAnswers[key]
   }
 
@@ -144,7 +147,8 @@ async function askForID(answers: Answers = {}, key?: string, message?: string, d
 
 export default {
   disabled: true,
-  group: 'et-create',
+  group: 'create',
   text: 'Create/Modify a ComplexType',
-  fn: createComplexType
+  fn: createComplexType,
+  alias: 'UpsertComplexTyoe'
 } as Journey
