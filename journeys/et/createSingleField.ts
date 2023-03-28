@@ -3,12 +3,12 @@ import { addToLastAnswers, saveSession, session } from 'app/session'
 import { CaseEventToField, CaseEventToFieldKeys, CaseField, CaseFieldKeys } from 'types/ccd'
 import { addonDuplicateQuestion, Answers, askAutoComplete, askCaseEvent, askCaseTypeID, askFieldType, askFieldTypeParameter, askForPageFieldDisplayOrder, askForPageID, askForRegularExpression, askMinAndMax, askRetainHiddenValue } from 'app/questions'
 import { CUSTOM, DISPLAY_CONTEXT_OPTIONS, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, isFieldTypeInExclusionList, NO, NONE, YES, YES_OR_NO, Y_OR_N } from 'app/constants'
-import { addToInMemoryConfig, createCaseFieldAuthorisations, getCombinedSheets, getETCaseEventIDOpts, getKnownETCaseFieldIDsByEvent, getKnownETCaseFieldTypeParameters, getKnownETCaseFieldTypes, getKnownETCaseTypeIDs } from 'app/et/configs'
+import { addToInMemoryConfig, createCaseFieldAuthorisations, getCombinedSheets, getETCaseEventIDOpts, getKnownETCaseFieldIDsByEvent, getKnownETCaseFieldTypeParameters, getKnownETCaseFieldTypes, getKnownETCaseTypeIDs, getNextPageFieldIDForPageET } from 'app/et/configs'
 import { createNewCaseEventToField, createNewCaseField, trimCaseEventToField, trimCaseField } from 'app/ccd'
 import { Journey } from 'types/journey'
 import { createEvent } from './createEvent'
 import { createScrubbed } from './createScrubbed'
-import { findObject, getNextPageFieldIDForPage } from 'app/configs'
+import { findObject } from 'app/configs'
 
 export const QUESTION_ID = 'What\'s the ID for this field?'
 export const QUESTION_ANOTHER = 'Do you want to upsert another?'
@@ -127,7 +127,7 @@ function getDefaultForPageFieldDisplayOrder(answers: Answers = {}) {
   const pageID = CaseEventToFieldKeys.PageID
   const pageFieldDisplayOrder = CaseEventToFieldKeys.PageFieldDisplayOrder
   if (answers[pageID] && answers[CaseEventToFieldKeys.CaseEventID] && answers[CaseEventToFieldKeys.CaseTypeID]) {
-    return getNextPageFieldIDForPage(
+    return getNextPageFieldIDForPageET(
       answers[CaseEventToFieldKeys.CaseTypeID],
       answers[CaseEventToFieldKeys.CaseEventID],
       answers[pageID]

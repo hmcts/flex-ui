@@ -5,18 +5,7 @@ import { createNewCaseEvent } from 'app/ccd'
 import { addToInMemoryConfig, createCaseEventAuthorisations, findETObject, getETCaseEventIDOpts, getKnownETCaseTypeIDs, getRegionFromCaseTypeId } from 'app/et/configs'
 import { NEW, NO, YES, YES_OR_NO, Y_OR_N } from 'app/constants'
 import { CaseEvent, CaseEventKeys } from 'app/types/ccd'
-
-const QUESTION_NAME = 'Give the new event a name (shows in the event dropdown)'
-const QUESTION_DESCRIPTION = 'Give the new event a description'
-const QUESTION_DISPLAY_ORDER = 'Where should this event appear in the caseEvent dropdown (DisplayOrder)?'
-const QUESTION_PRECONDITION_STATES = 'What state should the case be in to see this page? (PreConditionState(s))'
-const QUESTION_POST_CONDITION_STATE = 'What state should the case be set to after completing this journey? (PostConditionState)'
-const QUESTION_EVENT_ENABLING_CONDITION = 'Enter a condition for showing this event in the "Next step" dropdown? (EventEnablingCondition) (optional)'
-const QUESTION_SHOW_EVENT_NOTES = 'Provide a value for ShowEventNotes'
-const QUESTION_SHOW_SUMMARY = 'Should there be a Check Your Answers page at the end of this event?'
-const QUESTION_CALLBACK_URL_ABOUT_TO_START_EVENT = 'Do we need a callback before we start? (optional)'
-const QUESTION_CALLBACK_URL_ABOUT_TO_SUBMIT_EVENT = 'Do we need a callback before we submit? (optional)'
-const QUESTION_CALLBACK_URL_SUBMITTED_EVENT = 'Do we need a callback after we submit? (optional)'
+import { QUESTION_CALLBACK_URL_ABOUT_TO_START_EVENT, QUESTION_CALLBACK_URL_ABOUT_TO_SUBMIT_EVENT, QUESTION_CALLBACK_URL_SUBMITTED_EVENT, QUESTION_DESCRIPTION, QUESTION_DISPLAY_ORDER, QUESTION_EVENT_ENABLING_CONDITION, QUESTION_NAME, QUESTION_POST_CONDITION_STATE, QUESTION_PRECONDITION_STATES, QUESTION_SHOW_EVENT_NOTES, QUESTION_SHOW_SUMMARY } from '../base/createEvent'
 
 export async function createEvent(answers: Answers = {}) {
   answers = await askCaseTypeID(answers, { choices: getKnownETCaseTypeIDs() })

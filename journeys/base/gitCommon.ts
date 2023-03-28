@@ -81,7 +81,7 @@ export async function gitJourney() {
           followup = await prompt([{ name: 'branch', message: QUESTION_BRANCH, askAnswered: true }], followup)
         }
 
-        await Promise.allSettled(repos.map(async o => await switchBranch(REPOS[o], followup.branch, /(.+?) \(/.exec(o)?.[1])))
+        await Promise.allSettled(repos.map(async o => await switchBranch(REPOS[o], followup.branch, /(.+) - /.exec(o)?.[1])))
         break
       case TASK_CHOICES.COMMIT:
         followup = await askBasicFreeEntry(followup, { name: 'message', message: QUESTION_MESSAGE_COMMIT })

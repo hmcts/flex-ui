@@ -1,8 +1,9 @@
 import { Journey } from 'types/journey'
 import { CaseEventToField, CaseEventToFieldKeys } from 'app/types/ccd'
 import { createNewCaseEventToField, trimCaseEventToField } from 'app/ccd'
-import { createTemplate, Answers, addonDuplicateQuestion } from 'app/questions'
+import { Answers, addonDuplicateQuestion } from 'app/questions'
 import { addToInMemoryConfig, getKnownETCaseTypeIDs } from 'app/et/configs'
+import { createTemplate } from 'app/et/questions'
 
 export async function createCaseEventToFieldJourney() {
   const answers = await createTemplate<unknown, CaseEventToField>({}, CaseEventToFieldKeys, createNewCaseEventToField(), 'CaseEventToFields')

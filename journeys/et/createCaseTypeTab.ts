@@ -1,12 +1,13 @@
 import { Journey } from 'types/journey'
 import { CaseTypeTab, CaseTypeTabKeys } from 'app/types/ccd'
 import { createNewCaseTypeTab, trimCcdObject } from 'app/ccd'
-import { createTemplate, Answers, addonDuplicateQuestion } from 'app/questions'
+import { Answers, addonDuplicateQuestion } from 'app/questions'
 import { addToInMemoryConfig, getKnownETCaseTypeIDs } from 'app/et/configs'
 import { QUESTION_ANOTHER } from './createSingleField'
 import { addToLastAnswers, saveSession, session } from 'app/session'
 import { prompt } from 'inquirer'
 import { YES, YES_OR_NO } from 'app/constants'
+import { createTemplate } from 'app/et/questions'
 
 export async function createCaseTypeTab() {
   const answers = await createTemplate<unknown, CaseTypeTab>({}, CaseTypeTabKeys, createNewCaseTypeTab(), 'CaseTypeTab')

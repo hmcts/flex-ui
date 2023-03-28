@@ -390,7 +390,7 @@ async function postGeneric(jsonResourcePath: string, caseId: string, cookieJar: 
   const json = await res.json()
 
   if (res.status === 422) {
-    return json.details.field_errors.map(o => `${o.id} - ${o.message}`)
+    return json.details?.field_errors.map(o => `${o.id} - ${o.message}`)
   }
 
   return res.status
