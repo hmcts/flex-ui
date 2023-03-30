@@ -62,10 +62,12 @@ export async function openPRJourney(answers: any = {}) {
     .replace('%NO%', answers.breaking === 'No' ? 'x' : '')
 
   await Promise.allSettled(answers.repos.map(async o => {
-    const currentBranchName = await getCurrentBranchName(REPOS[o])
+    const repoName = /(.+) - .+/.exec(o)?.[1]
+    const repoDir = REPOS[repoName]
+    const currentBranchName = await getCurrentBranchName(repoDir)
     const command = `gh pr create --title "RET-${answers.ticket}: ${answers.title}" --head ${currentBranchName} --base ${answers.base} --body '${content}'`
     console.log(command)
-    await openPRFor(command, REPOS[o])
+    await openPRFor(command, repoDir)
   }))
 }
 
