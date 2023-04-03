@@ -1,40 +1,42 @@
 {
   "data": {
     "tseAdminSelectApplication": {
-      "value": {
-        "code": "1",
-        "label": "1 Change personal details"
-      },
-      "selectedLabel": "1 Change personal details",
-      "selectedCode": "1",
       "list_items": [
         {
           "code": "1",
-          "label": "1 Change personal details"
+          "label": "1 - Change personal details"
         }
-      ]
+      ],
+      "selectedCode": "1",
+      "selectedLabel": "1 - Change personal details",
+      "value": {
+        "code": "1",
+        "label": "1 - Change personal details"
+      }
     },
-    "tseAdmReplyTableMarkUp": null,
-    "tseAdmReplyEnterResponseTitle": "title of the response",
-    "tseAdmReplyAdditionalInformation": "this response was populated by flexui",
-    "tseAdmReplyAddDocumentMandatory": {
-      "document_url": "http://dm-store:8080/documents/<FLEX_DOC_UUID>",
+    "tseAdmReplyAddDocument": {
       "document_binary_url": "http://dm-store:8080/documents/<FLEX_DOC_UUID>/binary",
-      "document_filename": "HMCTS.png"
+      "document_filename": "HMCTS.png",
+      "document_url": "http://dm-store:8080/documents/<FLEX_DOC_UUID>"
     },
-    "tseAdmReplyAddDocumentOptional": null,
+    "tseAdmReplyAdditionalInformation": "b",
+    "tseAdmReplyCmoEnterFullName": "a",
+    "tseAdmReplyCmoIsResponseRequired": "Yes",
+    "tseAdmReplyCmoMadeBy": "Judge",
+    "tseAdmReplyCmoSelectPartyRespond": "Both parties",
+    "tseAdmReplyEnterResponseTitle": "a",
     "tseAdmReplyIsCmoOrRequest": "Case management order",
-    "tseAdmReplyCmoMadeBy": "Legal officer",
+    "tseAdmReplyRequestEnterFullName": null,
+    "tseAdmReplyRequestIsResponseRequired": null,
     "tseAdmReplyRequestMadeBy": null,
-    "tseAdmReplyEnterFullName": "Flex UI",
-    "tseAdmReplyIsResponseRequired": "Yes",
-    "tseAdmReplySelectPartyRespond": "Both parties",
-    "tseAdmReplySelectPartyNotify": "Both parties"
+    "tseAdmReplyRequestSelectPartyRespond": null,
+    "tseAdmReplySelectPartyNotify": "Both parties",
+    "tseAdmReplyTableMarkUp": null
   },
   "event": {
+    "description": "",
     "id": "tseAdmReply",
-    "summary": "",
-    "description": ""
+    "summary": ""
   },
   "event_token": "",
   "ignore_warning": false
