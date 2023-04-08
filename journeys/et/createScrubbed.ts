@@ -2,8 +2,9 @@ import { CUSTOM, YES_OR_NO } from 'app/constants'
 import { addToInMemoryConfig, getConfigSheetsFromFlexRegion, getKnownETScrubbedLists, Region } from 'app/et/configs'
 import { addFlexRegionAndClone, askFlexRegion, FLEX_REGION_ANSWERS_KEY, getFlexRegionFromAnswers } from 'app/et/questions'
 import { Answers, askAutoComplete } from 'app/questions'
+import { saveSession, session } from 'app/session'
 import { prompt } from 'inquirer'
-import { Scrubbed, ScrubbedKeys } from 'types/ccd'
+import { ScrubbedKeys } from 'types/ccd'
 import { Journey } from 'types/journey'
 
 const QUESTION_ID = "What's the name of the Scrubbed list?"
@@ -19,27 +20,17 @@ export async function createScrubbed(answers: Answers = {}) {
     answers = await prompt([{ name: ScrubbedKeys.ID, message: QUESTION_ID, askAnswered: true }], answers)
   }
 
-  const createdItems: Scrubbed[] = []
-
-  let x = 0
   while (answers.More !== 'No') {
     answers = await askFlexRegion(answers)
-    if (!x) {
-      x = getLastDisplayOrderInScrubbed(answers)
-    }
     answers = await prompt([
       { name: 'ListElement', message: QUESTION_LIST_ELEMENT, askAnswered: true },
       { name: 'ListElementCode', message: QUESTION_LIST_ELEMENT_CODE, default: (answers: Answers) => answers.ListElement, askAnswered: true },
-      { name: 'DisplayOrder', type: 'number', message: QUESTION_DISPLAY_ORDER, default: ++x, askAnswered: true },
+      { name: 'DisplayOrder', type: 'number', message: QUESTION_DISPLAY_ORDER, default: getLastDisplayOrderInScrubbed(answers) + 1, askAnswered: true },
       { name: 'More', message: QUESTION_ADD_ANOTHER, type: 'list', choices: YES_OR_NO, askAnswered: true }
     ], answers)
 
     if (!answers.ListElementCode) {
       answers.ListElementCode = answers.ListElement
-    }
-
-    if (!answers.DisplayOrder) {
-      answers.DisplayOrder = x
     }
 
     const obj: any = {
@@ -50,12 +41,13 @@ export async function createScrubbed(answers: Answers = {}) {
     }
 
     const created = addFlexRegionAndClone(answers[FLEX_REGION_ANSWERS_KEY] as Region[], obj)
-    created.forEach(o => createdItems.push(o))
-  }
 
-  addToInMemoryConfig({
-    Scrubbed: createdItems
-  })
+    addToInMemoryConfig({
+      Scrubbed: created
+    })
+
+    saveSession(session)
+  }
 
   return answers.ID
 }

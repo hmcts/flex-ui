@@ -3,7 +3,7 @@ import { getIdealSizeForInquirer } from 'app/helpers'
 import { Answers, askBasicFreeEntry, askCaseEvent, askCaseFieldID, askCaseTypeID, fuzzySearch, Question, QUESTION_LIST_ELEMENT_CODE } from 'app/questions'
 import { CCDSheets, CCDTypes, EventToComplexTypeKeys } from 'app/types/ccd'
 import { prompt } from 'inquirer'
-import { ETFlexExtensions, findETObject, getEnglandWales, getETCaseEventIDOpts, getKnownETCaseFieldIDsByEvent, getKnownETCaseTypeIDs, getKnownETComplexTypeListElementCodes, getScotland, Region } from 'app/et/configs'
+import { ETFlexExtensions, findETObject, getConfigSheetsFromFlexRegion, getETCaseEventIDOpts, getKnownETCaseFieldIDsByEvent, getKnownETCaseTypeIDs, getKnownETComplexTypeListElementCodes, Region } from 'app/et/configs'
 import { session } from 'app/session'
 
 const QUESTION_REGION = 'Which region(s) should this entry be added to?'
@@ -21,64 +21,32 @@ async function askEventToComplexTypeListElementCodeFallback(answers: Answers = {
   return answers
 }
 
-export async function askEventToComplexTypeListElementCode(answers: Answers = {}, key?: string, message?: string) {
+// TODO: Revisit this
+export async function askEventToComplexTypeListElementCode(answers: Answers = {}, question: Question = {}) {
+  question.name ||= EventToComplexTypeKeys.ListElementCode
+  question.message ||= QUESTION_LIST_ELEMENT_CODE
+
   // This is a BIG WIP right now, we're just going to use englandwales for look ups
-  const caseField = getEnglandWales().CaseField.find(o => o.ID === answers[EventToComplexTypeKeys.CaseFieldID])
+  const caseField = getConfigSheetsFromFlexRegion(answers[FLEX_REGION_ANSWERS_KEY] as Region[]).CaseField.find(o => o.ID === answers[EventToComplexTypeKeys.CaseFieldID])
 
   if (!caseField) {
-    return await askEventToComplexTypeListElementCodeFallback(answers, key)
+    return await askEventToComplexTypeListElementCodeFallback(answers, question.name)
   }
 
-  const opts = getKnownETComplexTypeListElementCodes(caseField.FieldType === "Collection" ? caseField.FieldTypeParameter : caseField.FieldType)
-  key = key || EventToComplexTypeKeys.ListElementCode
+  const opts = getKnownETComplexTypeListElementCodes(caseField.FieldType === 'Collection' ? caseField.FieldTypeParameter : caseField.FieldType, answers[FLEX_REGION_ANSWERS_KEY] as Region[])
 
   answers = await prompt([
     {
-      name: key,
-      message: message || QUESTION_LIST_ELEMENT_CODE,
+      ...question,
       type: 'autocomplete',
       source: (_answers: unknown, input: string) => fuzzySearch([CUSTOM, ...opts], input),
       pageSize: getIdealSizeForInquirer()
     }
   ], answers)
 
-  if (answers[key] === CUSTOM) {
-    return await askEventToComplexTypeListElementCodeFallback(answers, key)
+  if (answers[question.name] === CUSTOM) {
+    return await askEventToComplexTypeListElementCodeFallback(answers, question.name)
   }
-
-  // User selected a complex type, but it might have properties on it.
-  // If their selected ListElementCode IS a complex type, ask this again until they select "none"
-
-  // For example: They selected "Judgement_costs", now enumerate all ListElementCodes on the complex type "JudgmentCosts"
-  const temp = [...getEnglandWales().ComplexTypes, ...getScotland().ComplexTypes]
-  const selected = temp.filter(o => o.ListElementCode === answers[key])
-
-  // Can have a result for EW and SC, thats fine, but the FieldType should be the same, if not, just ask them to manually type in the name
-  if (selected.length === 2 && selected[0].FieldType !== selected[1].FieldType) {
-    const customNameAnswers = await askBasicFreeEntry({}, { name: key, message: QUESTION_LIST_ELEMENT_CODE })
-    answers[key] = customNameAnswers[key]
-  }
-
-  // This needs to be recursive/iterative, but for now just test with one sub level
-
-  const obj = getKnownETComplexTypeListElementCodes(selected[0].FieldType)
-
-  if (!obj.length) {
-    return answers
-  }
-
-  const SUBLEVEL_KEY = 'sublevel'
-  answers = await prompt([
-    {
-      name: SUBLEVEL_KEY,
-      message: message || `${QUESTION_LIST_ELEMENT_CODE} (${answers[key]}.?)`,
-      type: 'autocomplete',
-      source: (_answers: unknown, input: string) => fuzzySearch([CUSTOM, ...obj], input),
-      pageSize: getIdealSizeForInquirer()
-    }
-  ], answers)
-
-  answers[key] = `${answers[key]}.${answers[SUBLEVEL_KEY]}`
 
   return answers
 }

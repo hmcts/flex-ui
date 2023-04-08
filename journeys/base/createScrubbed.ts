@@ -4,7 +4,7 @@ import { upsertFields } from 'app/helpers'
 import { Answers, askAutoComplete } from 'app/questions'
 import { addToSession } from 'app/session'
 import { prompt } from 'inquirer'
-import { Scrubbed, ScrubbedKeys } from 'types/ccd'
+import { ScrubbedKeys } from 'types/ccd'
 import { Journey } from 'types/journey'
 
 const QUESTION_ID = "What's the name of the Scrubbed list?"
@@ -22,26 +22,16 @@ export async function createScrubbed(answers: Answers = {}) {
     answers = await prompt([{ name: ScrubbedKeys.ID, message: QUESTION_ID, askAnswered: true }], answers)
   }
 
-  const createdItems: Scrubbed[] = []
-
-  let x = 0
   while (answers.More !== 'No') {
-    if (!x) {
-      x = getLastDisplayOrderInScrubbed(answers)
-    }
     answers = await prompt([
       { name: 'ListElement', message: QUESTION_LIST_ELEMENT, askAnswered: true },
       { name: 'ListElementCode', message: QUESTION_LIST_ELEMENT_CODE, default: (answers: Answers) => answers.ListElement, askAnswered: true },
-      { name: 'DisplayOrder', type: 'number', message: QUESTION_DISPLAY_ORDER, default: ++x, askAnswered: true },
+      { name: 'DisplayOrder', type: 'number', message: QUESTION_DISPLAY_ORDER, default: getLastDisplayOrderInScrubbed(answers) + 1, askAnswered: true },
       { name: 'More', message: QUESTION_ADD_ANOTHER, type: 'list', choices: YES_OR_NO, askAnswered: true }
     ], answers)
 
     if (!answers.ListElementCode) {
       answers.ListElementCode = answers.ListElement
-    }
-
-    if (!answers.DisplayOrder) {
-      answers.DisplayOrder = x
     }
 
     const obj: any = {
@@ -51,16 +41,15 @@ export async function createScrubbed(answers: Answers = {}) {
       DisplayOrder: answers.DisplayOrder
     }
 
-    createdItems.push(obj)
-  }
+    const newFields = {
+      Scrubbed: [obj]
+    }
 
-  const newFields = {
-    Scrubbed: createdItems
-  }
-  addToSession(newFields)
+    addToSession(newFields)
 
-  for (const sheetName in newFields) {
-    upsertFields(sheets[sheetName], newFields[sheetName], COMPOUND_KEYS[sheetName])
+    for (const sheetName in newFields) {
+      upsertFields(sheets[sheetName], newFields[sheetName], COMPOUND_KEYS[sheetName])
+    }
   }
 
   return answers.ID

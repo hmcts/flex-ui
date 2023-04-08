@@ -36,7 +36,7 @@ export async function createComplexType(answers: Answers = {}) {
   answers = await askFlexRegion(answers)
   answers = await askForID(answers, undefined, undefined, session.lastAnswers[ComplexTypeKeys.ID])
 
-  answers = await askComplexTypeListElementCode(answers, { choices: getKnownETComplexTypeListElementCodes(answers.ID) })
+  answers = await askComplexTypeListElementCode(answers, { choices: getKnownETComplexTypeListElementCodes(answers.ID, answers[FLEX_REGION_ANSWERS_KEY] as Region[]) })
 
   const existing = await prepopulateAnswersWithExistingValues(answers)
 
@@ -97,11 +97,11 @@ async function prepopulateAnswersWithExistingValues(answers: Answers) {
   let scExisting: ComplexType | null = null
 
   if ((answers[FLEX_REGION_ANSWERS_KEY] as string[]).includes(Region.EnglandWales)) {
-    ewExisting = findETObject(answers, 'ComplexTypes', Region.EnglandWales)
+    ewExisting = findETObject({ ...answers, flexRegion: Region.EnglandWales }, 'ComplexTypes', Region.EnglandWales)
   }
 
   if ((answers[FLEX_REGION_ANSWERS_KEY] as string[]).includes(Region.Scotland)) {
-    scExisting = findETObject(answers, 'ComplexTypes', Region.Scotland)
+    scExisting = findETObject({ ...answers, flexRegion: Region.Scotland }, 'ComplexTypes', Region.Scotland)
   }
 
   if (!ewExisting || !scExisting) {
@@ -109,7 +109,7 @@ async function prepopulateAnswersWithExistingValues(answers: Answers) {
   }
 
   // We have both objects - we need to check that they are the same, else it'll be hard to know which to bring back
-  if (matcher(ewExisting, scExisting, Object.keys(ewExisting) as Array<keyof (ComplexType)>)) {
+  if (matcher(ewExisting, scExisting, Object.keys(ComplexTypeKeys) as Array<keyof (ComplexType)>)) {
     return ewExisting
   }
 

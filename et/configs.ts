@@ -2,13 +2,11 @@ import { readFileSync, writeFileSync } from 'fs'
 import { sep } from 'path'
 import { findLastIndex, format, removeFields, upsertFields } from 'app/helpers'
 import { addToSession, session } from 'app/session'
-import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventKeys, CaseEventToField, CaseEventToFieldKeys, CaseField, CaseTypeTab, CaseTypeTabKeys, CCDSheets, CCDTypes, ComplexType, ConfigSheets, createNewConfigSheets, EventToComplexType, EventToComplexTypeKeys, FlexExtensions, Scrubbed, ScrubbedKeys, sheets } from 'types/ccd'
+import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventKeys, CaseEventToField, CaseEventToFieldKeys, CaseField, CaseTypeTab, CaseTypeTabKeys, CCDTypes, ComplexType, ConfigSheets, createNewConfigSheets, EventToComplexType, EventToComplexTypeKeys, FlexExtensions, Scrubbed, ScrubbedKeys, sheets } from 'types/ccd'
 import { COMPOUND_KEYS } from 'app/constants'
-import { findObject, getCaseEventIDOpts, getKnownCaseFieldIDs, getKnownCaseFieldIDsByEvent, getKnownCaseFieldTypeParameters, getKnownCaseFieldTypes, getKnownCaseTypeIDs, getKnownComplexTypeIDs, getKnownComplexTypeListElementCodes, getKnownScrubbedLists, getNextPageFieldIDForPage } from 'app/configs'
+import { clearConfigs, findObject, getCaseEventIDOpts, getKnownCaseFieldIDs, getKnownCaseFieldIDsByEvent, getKnownCaseFieldTypeParameters, getKnownCaseFieldTypes, getKnownCaseTypeIDs, getKnownComplexTypeIDs, getKnownComplexTypeListElementCodes, getKnownScrubbedLists, getNextPageFieldIDForPage, sheets as globalConfigs } from 'app/configs'
 
 let readTime = 0
-let englandwales: ConfigSheets
-let scotland: ConfigSheets
 
 export interface ETFlexExtensions extends FlexExtensions {
   flex?: {
@@ -70,6 +68,19 @@ export const regionRoles: RoleMappings = {
   [Roles.AcasApi]: {}
 }
 
+/** Gets the time the configs were last read in */
+export function getReadTime() {
+  return readTime
+}
+
+export function getEnglandWales() {
+  return splitGlobalIntoRegional(Region.EnglandWales)
+}
+
+export function getScotland() {
+  return splitGlobalIntoRegional(Region.Scotland)
+}
+
 /**
  * Gets the parsed JSON file contents
  * @param regionDir repo folder that contains definitions (ie, et-ccd-definitions-scotland)
@@ -84,27 +95,8 @@ function getJson(regionDir: string, name: string) {
   }
 }
 
-/** Getter for readTime */
-export function getReadTime() {
-  return readTime
-}
-
-/** Getter for englandwales */
-export function getEnglandWales() {
-  return englandwales
-}
-
-/** Getter for scotland */
-export function getScotland() {
-  return scotland
-}
-
 export function getCombinedSheets() {
-  return sheets.reduce((acc, sheet) => {
-    // @ts-expect-error TS doesn't know that ConfigSheets can be merged with ConfigSheets (bug bounty: fix this)
-    acc[sheet] = [...englandwales[sheet], ...scotland[sheet]]
-    return acc
-  }, {} as CCDSheets<CCDTypes>)
+  return globalConfigs // lol
 }
 
 /**
@@ -215,8 +207,8 @@ export function getKnownETComplexTypeIDs() {
 /**
  * Get all defined ComplexType IDs in englandwales and scotland configs
  */
-export function getKnownETComplexTypeListElementCodes(id: string) {
-  return getKnownComplexTypeListElementCodes(id, getCombinedSheets())
+export function getKnownETComplexTypeListElementCodes(id: string, regions: Region[]) {
+  return getKnownComplexTypeListElementCodes(id, getConfigSheetsFromFlexRegion(regions))
 }
 
 /**
@@ -247,11 +239,17 @@ export function readInCurrentConfig() {
     const needRegions = [...configSheets.ComplexTypes, ...configSheets.EventToComplexTypes, ...configSheets.Scrubbed]
     needRegions.forEach((o: CCDTypeWithRegion) => { o.flexRegion = region })
 
-    return configSheets
+    // TODO: Upserting is the better option as it sanitizes input - but theres a known duplicate issue that needs raising with the ET team
+    // upsertConfigs(configSheets)
+    Object.keys(configSheets).forEach(key => {
+      globalConfigs[key] = globalConfigs[key].concat(...configSheets[key])
+    })
   }
 
-  englandwales = builder(process.env.ENGWALES_DEF_DIR, Region.EnglandWales)
-  scotland = builder(process.env.SCOTLAND_DEF_DIR, Region.Scotland)
+  clearConfigs()
+
+  builder(process.env.ENGWALES_DEF_DIR, Region.EnglandWales)
+  builder(process.env.SCOTLAND_DEF_DIR, Region.Scotland)
 
   readTime = Date.now()
 }
@@ -368,8 +366,8 @@ function spliceIndexCaseTypeTab(x: CaseTypeTab, arr: CaseTypeTab[]) {
   return index
 }
 
-function spliceIndexEventToComplexType(x: EventToComplexType, arr: EventToComplexType[]) {
-  let index = findLastIndex(arr, o => o.CaseFieldID === x.CaseFieldID) + 1
+function spliceIndexEventToComplexType(x: EventToComplexType & CCDTypeWithRegion, arr: Array<EventToComplexType & CCDTypeWithRegion>) {
+  let index = findLastIndex(arr, o => o.CaseFieldID === x.CaseFieldID && o.flexRegion === x.flexRegion) + 1
 
   if (index === -1) {
     index = arr.length
@@ -384,13 +382,13 @@ function spliceIndexEventToComplexType(x: EventToComplexType, arr: EventToComple
     index = indexOfPrevious === -1 ? findLastIndex(arr, o => o.CaseFieldID === x.CaseFieldID) + 1 : indexOfPrevious + 1
   }
 
-  pushEventToComplexTypeFieldDisplayOrders(arr, x.CaseEventID, x.CaseFieldID, x.FieldDisplayOrder)
+  pushEventToComplexTypeFieldDisplayOrders(arr, x.flexRegion, x.CaseEventID, x.CaseFieldID, x.FieldDisplayOrder)
 
   return index
 }
 
-function spliceIndexScrubbed(x: Scrubbed, arr: Scrubbed[]) {
-  let index = findLastIndex(arr, o => o.ID === x.ID) + 1
+function spliceIndexScrubbed(x: Scrubbed & CCDTypeWithRegion, arr: Array<Scrubbed & CCDTypeWithRegion>) {
+  let index = findLastIndex(arr, o => o.ID === x.ID && o.flexRegion === x.flexRegion) + 1
 
   if (index === -1) {
     index = arr.length
@@ -407,7 +405,7 @@ function spliceIndexScrubbed(x: Scrubbed, arr: Scrubbed[]) {
     }
   }
 
-  pushScrubbedDisplayOrder(arr, x.ID, x.DisplayOrder)
+  pushScrubbedDisplayOrder(arr, x.ID, x.flexRegion, x.DisplayOrder)
 
   return index
 }
@@ -431,18 +429,18 @@ function spliceIndexCaseEvent(x: CaseEvent, arr: CaseEvent[]) {
   return index
 }
 
-function spliceIndexComplexType(x: ComplexType, arr: ComplexType[]) {
+function spliceIndexComplexType(x: ComplexType & CCDTypeWithRegion, arr: Array<ComplexType & CCDTypeWithRegion>) {
   // If this ID is referenced by any other ComplexTypes, put it above them
-  const firstRefIndex = arr.findIndex(o => o.FieldType === x.ID || o.FieldTypeParameter === x.ID)
+  const firstRefIndex = arr.findIndex(o => x.flexRegion === o.flexRegion && (o.FieldType === x.ID || o.FieldTypeParameter === x.ID))
 
   if (firstRefIndex === -1) {
     // Fallback - just place it with the others with the same ID
-    return findLastIndex(arr, o => o.ID === x.ID) + 1
+    return findLastIndex(arr, o => x.flexRegion === o.flexRegion && o.ID === x.ID) + 1
   }
 
   // Grab the first index of the first instance of the refering ComplexType
   const complexTypeID = arr[firstRefIndex].ID
-  const firstInComplexTypeIndex = arr.findIndex(o => o.ID === complexTypeID)
+  const firstInComplexTypeIndex = arr.findIndex(o => x.flexRegion === o.flexRegion && o.ID === complexTypeID)
 
   return firstInComplexTypeIndex
 }
@@ -465,12 +463,12 @@ export function deleteFromInMemoryConfig(fields: Partial<ConfigSheets>) {
   const scAuthorisationCaseFields = fields.AuthorisationCaseField.filter(scCaseTypeIDFilter).filter(deleteOnlyFilter)
   const scAuthorisationCaseEvents = fields.AuthorisationCaseEvent.filter(scCaseTypeIDFilter).filter(deleteOnlyFilter)
 
-  deleteFromConfig(englandwales, {
+  deleteFromConfig(globalConfigs, {
     AuthorisationCaseEvent: ewAuthorisationCaseEvents,
     AuthorisationCaseField: ewAuthorisationCaseFields
   })
 
-  deleteFromConfig(scotland, {
+  deleteFromConfig(globalConfigs, {
     AuthorisationCaseEvent: scAuthorisationCaseEvents,
     AuthorisationCaseField: scAuthorisationCaseFields
   })
@@ -487,78 +485,9 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
     }
   }
 
-  const getRegionFilter = (region: Region) => (o: CCDTypeWithRegion) => (o.CaseTypeID || o.CaseTypeId || o.flexRegion).startsWith(region)
+  addToConfig(globalConfigs, fields as ConfigSheets)
 
-  const ewFilter = getRegionFilter(Region.EnglandWales)
-  const scFilter = getRegionFilter(Region.Scotland)
-
-  const ewCaseFields = fields.CaseField.filter(ewFilter)
-  const ewCaseEventToFields = fields.CaseEventToFields.filter(ewFilter)
-  const ewAuthorisationCaseFields = fields.AuthorisationCaseField.filter(ewFilter)
-  const ewAuthorisationCaseEvents = fields.AuthorisationCaseEvent.filter(ewFilter)
-  const ewCaseTypeTabs = fields.CaseTypeTab.filter(ewFilter)
-  const ewCaseEvents = fields.CaseEvent.filter(ewFilter)
-  const ewScrubbed = fields.Scrubbed.filter(ewFilter)
-  const ewComplexTypes = fields.ComplexTypes.filter(ewFilter)
-  const ewEventToComplexTypes = fields.EventToComplexTypes.filter(ewFilter)
-
-  const scCaseFields = fields.CaseField.filter(scFilter)
-  const scCaseEventToFields = fields.CaseEventToFields.filter(scFilter)
-  const scAuthorisationCaseFields = fields.AuthorisationCaseField.filter(scFilter)
-  const scAuthorisationCaseEvents = fields.AuthorisationCaseEvent.filter(scFilter)
-  const scCaseTypeTabs = fields.CaseTypeTab.filter(scFilter)
-  const scCaseEvents = fields.CaseEvent.filter(scFilter)
-  const scScrubbed = fields.Scrubbed.filter(scFilter)
-  const scComplexTypes = fields.ComplexTypes.filter(scFilter)
-  const scEventToComplexTypes = fields.EventToComplexTypes.filter(scFilter)
-
-  addToConfig(englandwales, {
-    AuthorisationCaseEvent: ewAuthorisationCaseEvents,
-    AuthorisationCaseField: ewAuthorisationCaseFields,
-    CaseEvent: ewCaseEvents,
-    CaseEventToFields: ewCaseEventToFields,
-    CaseField: ewCaseFields,
-    CaseTypeTab: ewCaseTypeTabs,
-    ComplexTypes: ewComplexTypes,
-    EventToComplexTypes: ewEventToComplexTypes,
-    Scrubbed: ewScrubbed
-  })
-
-  addToConfig(scotland, {
-    AuthorisationCaseEvent: scAuthorisationCaseEvents,
-    AuthorisationCaseField: scAuthorisationCaseFields,
-    CaseEvent: scCaseEvents,
-    CaseEventToFields: scCaseEventToFields,
-    CaseField: scCaseFields,
-    CaseTypeTab: scCaseTypeTabs,
-    ComplexTypes: scComplexTypes,
-    EventToComplexTypes: scEventToComplexTypes,
-    Scrubbed: scScrubbed
-  })
-
-  addToSession({
-    AuthorisationCaseField: ewAuthorisationCaseFields,
-    CaseField: ewCaseFields,
-    CaseEventToFields: ewCaseEventToFields,
-    AuthorisationCaseEvent: ewAuthorisationCaseEvents,
-    EventToComplexTypes: fields.EventToComplexTypes,
-    ComplexTypes: fields.ComplexTypes,
-    CaseTypeTab: ewCaseTypeTabs,
-    Scrubbed: ewScrubbed,
-    CaseEvent: ewCaseEvents
-  })
-
-  addToSession({
-    AuthorisationCaseField: scAuthorisationCaseFields,
-    CaseField: scCaseFields,
-    CaseEventToFields: scCaseEventToFields,
-    AuthorisationCaseEvent: scAuthorisationCaseEvents,
-    EventToComplexTypes: fields.EventToComplexTypes,
-    ComplexTypes: fields.ComplexTypes,
-    CaseTypeTab: scCaseTypeTabs,
-    Scrubbed: scScrubbed,
-    CaseEvent: scCaseEvents
-  })
+  addToSession(fields)
 
   deleteFromInMemoryConfig(fields)
 }
@@ -585,17 +514,17 @@ export function addToConfig(to: Partial<ConfigSheets>, from: Partial<ConfigSheet
 
   upsertFields(to.CaseTypeTab, from.CaseTypeTab, COMPOUND_KEYS.CaseTypeTab, spliceIndexCaseTypeTab)
 
-  upsertFields<EventToComplexType & CCDTypeWithRegion>(to.EventToComplexTypes, from.EventToComplexTypes, COMPOUND_KEYS.EventToComplexTypes, spliceIndexEventToComplexType)
+  upsertFields(to.EventToComplexTypes, from.EventToComplexTypes, COMPOUND_KEYS.EventToComplexTypes, spliceIndexEventToComplexType)
 
-  upsertFields<ComplexType & CCDTypeWithRegion>(to.ComplexTypes, from.ComplexTypes, COMPOUND_KEYS.ComplexTypes, spliceIndexComplexType)
+  upsertFields(to.ComplexTypes, from.ComplexTypes, COMPOUND_KEYS.ComplexTypes, spliceIndexComplexType)
 
-  upsertFields<Scrubbed & CCDTypeWithRegion>(to.Scrubbed, from.Scrubbed, COMPOUND_KEYS.Scrubbed, spliceIndexScrubbed)
+  upsertFields(to.Scrubbed, from.Scrubbed, COMPOUND_KEYS.Scrubbed, spliceIndexScrubbed)
 
   upsertFields(to.CaseEvent, from.CaseEvent, COMPOUND_KEYS.CaseEvent, spliceIndexCaseEvent)
 }
 
-export function pushEventToComplexTypeFieldDisplayOrders(arr: EventToComplexType[], eventID: string, fieldID: string, start: number) {
-  const matching = arr.filter(o => o.CaseEventID === eventID && o.CaseFieldID === fieldID && o.FieldDisplayOrder >= start)
+export function pushEventToComplexTypeFieldDisplayOrders(arr: Array<EventToComplexType & CCDTypeWithRegion>, region: Region, eventID: string, fieldID: string, start: number) {
+  const matching = arr.filter(o => o.flexRegion === region && o.CaseEventID === eventID && o.CaseFieldID === fieldID && o.FieldDisplayOrder >= start)
   pushByDisplayOrderField(matching, start, EventToComplexTypeKeys.FieldDisplayOrder)
 }
 
@@ -609,8 +538,8 @@ export function pushCaseEventToFieldsPageFieldDisplayOrder(arr: CaseEventToField
   pushByDisplayOrderField(matching, start, CaseEventToFieldKeys.PageFieldDisplayOrder)
 }
 
-export function pushScrubbedDisplayOrder(arr: Scrubbed[], id: string, start: number) {
-  const matching = arr.filter(o => o.ID === id && o.DisplayOrder >= start)
+export function pushScrubbedDisplayOrder(arr: Array<Scrubbed & CCDTypeWithRegion>, id: string, region: Region, start: number) {
+  const matching = arr.filter(o => o.ID === id && o.flexRegion === region && o.DisplayOrder >= start)
   pushByDisplayOrderField(matching, start, ScrubbedKeys.DisplayOrder)
 }
 
@@ -644,19 +573,31 @@ function removeFlexKeys(ccd: CCDTypeWithRegion) {
   return clone
 }
 
+function splitGlobalIntoRegional(region: Region) {
+  const getRegionFilter = (region: Region) => (o: CCDTypeWithRegion) => (o.CaseTypeID || o.CaseTypeId || o.flexRegion).startsWith(region)
+
+  return Object.keys(globalConfigs).reduce((acc, key) => {
+    acc[key] = globalConfigs[key].filter(getRegionFilter(region))
+    return acc
+  }, createNewConfigSheets())
+}
+
 /**
  * Save the in-memory configs back to their JSON files
  */
 export async function saveBackToProject() {
   const templatePath = `{0}${sep}definitions${sep}json${sep}{1}.json`
 
+  const ewConfigs = splitGlobalIntoRegional(Region.EnglandWales)
+  const scConfigs = splitGlobalIntoRegional(Region.Scotland)
+
   for (const sheet of sheets) {
     const eng = format(templatePath, process.env.ENGWALES_DEF_DIR, getConfigSheetName(Region.EnglandWales, sheet))
-    const jsonEng = JSON.stringify(englandwales[sheet].map(o => removeFlexKeys(o)), null, 2)
+    const jsonEng = JSON.stringify(ewConfigs[sheet].map(o => removeFlexKeys(o)), null, 2)
     writeFileSync(eng, `${jsonEng}${getFileTerminatingCharacter(eng)}`)
 
     const scot = format(templatePath, process.env.SCOTLAND_DEF_DIR, getConfigSheetName(Region.Scotland, sheet))
-    const jsonScot = JSON.stringify(scotland[sheet].map(o => removeFlexKeys(o)), null, 2)
+    const jsonScot = JSON.stringify(scConfigs[sheet].map(o => removeFlexKeys(o)), null, 2)
     writeFileSync(scot, `${jsonScot}${getFileTerminatingCharacter(scot)}`)
   }
 }

@@ -1,8 +1,20 @@
 import { CCD_FIELD_TYPES, COMPOUND_KEYS, NONE } from "./constants"
-import { getUniqueByKey, getUniqueByKeyAsArray, groupBy } from "./helpers"
+import { getUniqueByKey, getUniqueByKeyAsArray, groupBy, upsertFields } from "./helpers"
 import { CaseEventToField, CaseField, CCDTypes, ConfigSheets, createNewConfigSheets } from "./types/ccd"
 
 export const sheets: ConfigSheets = createNewConfigSheets()
+
+/** Clear everything on the currently loaded sheets */
+export function clearConfigs() {
+  Object.keys(sheets).forEach(key => { sheets[key] = [] })
+}
+
+/** Upsert into currently loaded sheets */
+export function upsertConfigs(configSheets: ConfigSheets) {
+  Object.keys(configSheets).forEach(key => {
+    upsertFields(sheets[key], configSheets[key], COMPOUND_KEYS[key])
+  })
+}
 
 export function findObject<T>(keys: Record<string, any>, sheetName: keyof CCDTypes, configSheets: ConfigSheets = sheets): T | undefined {
   const arr = configSheets[sheetName] as Array<Record<string, any>>

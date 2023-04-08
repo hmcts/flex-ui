@@ -16,6 +16,8 @@ function migrateAddFlexRegionString() {
   // For a region array - we can flatten and dupe (if required)
 
   const reducer = (acc, obj) => {
+    if (obj.flexRegion) return acc.concat(obj) // ie, do nothing
+
     const created = addFlexRegionAndClone(obj.flex?.regions || [Region.EnglandWales, Region.Scotland], obj)
     created.forEach(o => {
       if (!o.flex?.regions) return
