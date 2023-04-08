@@ -1,9 +1,9 @@
 import { COMPOUND_KEYS, CUSTOM, NONE } from 'app/constants'
 import { getIdealSizeForInquirer } from 'app/helpers'
-import { Answers, askBasicFreeEntry, askCaseEvent, askCaseFieldID, askCaseTypeID, fuzzySearch, QUESTION_LIST_ELEMENT_CODE } from 'app/questions'
-import { CCDSheets, CCDTypes, EventToComplexTypeKeys, FlexExtensions } from 'app/types/ccd'
+import { Answers, askBasicFreeEntry, askCaseEvent, askCaseFieldID, askCaseTypeID, fuzzySearch, Question, QUESTION_LIST_ELEMENT_CODE } from 'app/questions'
+import { CCDSheets, CCDTypes, EventToComplexTypeKeys } from 'app/types/ccd'
 import { prompt } from 'inquirer'
-import { findETObject, getEnglandWales, getETCaseEventIDOpts, getKnownETCaseFieldIDsByEvent, getKnownETCaseTypeIDs, getKnownETComplexTypeListElementCodes, getScotland, Region } from 'app/et/configs'
+import { ETFlexExtensions, findETObject, getEnglandWales, getETCaseEventIDOpts, getKnownETCaseFieldIDsByEvent, getKnownETCaseTypeIDs, getKnownETComplexTypeListElementCodes, getScotland, Region } from 'app/et/configs'
 import { session } from 'app/session'
 
 const QUESTION_REGION = 'Which region(s) should this entry be added to?'
@@ -84,29 +84,38 @@ export async function askEventToComplexTypeListElementCode(answers: Answers = {}
 }
 
 // TODO: Update this to take in a Question object as a parameter
-export async function askFlexRegion(key?: string, message?: string, defaultValue?: string[], answers?: Answers) {
+export async function askFlexRegion(answers?: Answers, question: Question = {}) {
+  question.name ||= FLEX_REGION_ANSWERS_KEY
+  question.message ||= QUESTION_REGION
+  question.choices ||= REGION_OPTS
+  question.default ||= answers?.[FLEX_REGION_ANSWERS_KEY] || session.lastAnswers?.[FLEX_REGION_ANSWERS_KEY] || REGION_OPTS
+
   return await prompt([
     {
-      name: key || FLEX_REGION_ANSWERS_KEY,
-      message: message || QUESTION_REGION,
+      ...question,
       type: 'checkbox',
-      choices: REGION_OPTS,
-      default: defaultValue || answers?.[FLEX_REGION_ANSWERS_KEY] || REGION_OPTS,
       askAnswered: true,
       pageSize: getIdealSizeForInquirer()
     }
   ], answers || {})
 }
 
-export function addFlexRegionToCcdObject(obj: FlexExtensions, answers: Answers, key?: string) {
-  if (!obj.flex) {
-    obj.flex = {}
-  }
-  obj.flex.regions = answers[key || FLEX_REGION_ANSWERS_KEY]
-}
-
 export function getFlexRegionFromAnswers(answers: Answers) {
   return answers[FLEX_REGION_ANSWERS_KEY] as Region[]
+}
+
+/** Adds flexRegion to the ccd object and clones to the other region if required. Returns an array of 1 or 2 objects */
+export function addFlexRegionAndClone<T extends ETFlexExtensions>(flexRegions: Region[], ccdType: T) {
+  ccdType.flexRegion = flexRegions[0] || Region.EnglandWales
+
+  if (flexRegions.length < 2) {
+    return [ccdType]
+  }
+
+  const clone = JSON.parse(JSON.stringify(ccdType))
+  ccdType.flexRegion = flexRegions[1]
+
+  return [ccdType, clone]
 }
 
 /**

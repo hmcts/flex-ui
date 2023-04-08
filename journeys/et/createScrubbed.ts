@@ -1,6 +1,6 @@
 import { CUSTOM, YES_OR_NO } from 'app/constants'
-import { addToInMemoryConfig, getConfigSheetsFromFlexRegion, getKnownETScrubbedLists } from 'app/et/configs'
-import { addFlexRegionToCcdObject, askFlexRegion, getFlexRegionFromAnswers } from 'app/et/questions'
+import { addToInMemoryConfig, getConfigSheetsFromFlexRegion, getKnownETScrubbedLists, Region } from 'app/et/configs'
+import { addFlexRegionAndClone, askFlexRegion, FLEX_REGION_ANSWERS_KEY, getFlexRegionFromAnswers } from 'app/et/questions'
 import { Answers, askAutoComplete } from 'app/questions'
 import { prompt } from 'inquirer'
 import { Scrubbed, ScrubbedKeys } from 'types/ccd'
@@ -23,7 +23,7 @@ export async function createScrubbed(answers: Answers = {}) {
 
   let x = 0
   while (answers.More !== 'No') {
-    answers = await askFlexRegion(undefined, undefined, undefined, answers)
+    answers = await askFlexRegion(answers)
     if (!x) {
       x = getLastDisplayOrderInScrubbed(answers)
     }
@@ -49,9 +49,8 @@ export async function createScrubbed(answers: Answers = {}) {
       DisplayOrder: answers.DisplayOrder
     }
 
-    addFlexRegionToCcdObject(obj, answers)
-
-    createdItems.push(obj)
+    const created = addFlexRegionAndClone(answers[FLEX_REGION_ANSWERS_KEY] as Region[], obj)
+    created.forEach(o => createdItems.push(o))
   }
 
   addToInMemoryConfig({

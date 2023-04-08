@@ -12,8 +12,14 @@ let scotland: ConfigSheets
 
 export interface ETFlexExtensions extends FlexExtensions {
   flex?: {
-    regions: Region[]
+    regions?: Region[]
   }
+  flexRegion?: Region
+}
+
+export interface CCDTypeWithRegion extends ETFlexExtensions {
+  CaseTypeID?: string
+  CaseTypeId?: string
 }
 
 export enum Region {
@@ -233,10 +239,15 @@ export function getConfigSheetName(region: Region, configSheet: keyof (ConfigShe
  */
 export function readInCurrentConfig() {
   const builder = (envVar: string, region: Region) => {
-    return sheets.reduce<Partial<ConfigSheets>>((acc, sheetName) => {
+    const configSheets = sheets.reduce<Partial<ConfigSheets>>((acc, sheetName) => {
       acc[sheetName] = getJson(envVar, getConfigSheetName(region, sheetName))
       return acc
     }, {}) as ConfigSheets
+
+    const needRegions = [...configSheets.ComplexTypes, ...configSheets.EventToComplexTypes, ...configSheets.Scrubbed]
+    needRegions.forEach((o: CCDTypeWithRegion) => { o.flexRegion = region })
+
+    return configSheets
   }
 
   englandwales = builder(process.env.ENGWALES_DEF_DIR, Region.EnglandWales)
@@ -476,33 +487,30 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
     }
   }
 
-  const ewCaseTypeIDFilter = (o: { CaseTypeID?: string, CaseTypeId?: string }) => (o.CaseTypeID || o.CaseTypeId).startsWith(Region.EnglandWales)
-  const ewRegionFilter = (o: FlexExtensions) => (o.flex?.regions as string[]).includes(Region.EnglandWales)
+  const getRegionFilter = (region: Region) => (o: CCDTypeWithRegion) => (o.CaseTypeID || o.CaseTypeId || o.flexRegion).startsWith(region)
 
-  const scCaseTypeIDFilter = (o: { CaseTypeID?: string, CaseTypeId?: string }) => (o.CaseTypeID || o.CaseTypeId).startsWith(Region.Scotland)
-  const scRegionFilter = (o: FlexExtensions) => (o.flex?.regions as string[]).includes(Region.Scotland)
+  const ewFilter = getRegionFilter(Region.EnglandWales)
+  const scFilter = getRegionFilter(Region.Scotland)
 
-  const ewCaseFields = fields.CaseField.filter(ewCaseTypeIDFilter)
-  const ewCaseEventToFields = fields.CaseEventToFields.filter(ewCaseTypeIDFilter)
-  const ewAuthorisationCaseFields = fields.AuthorisationCaseField.filter(ewCaseTypeIDFilter)
-  const ewAuthorisationCaseEvents = fields.AuthorisationCaseEvent.filter(ewCaseTypeIDFilter)
-  const ewCaseTypeTabs = fields.CaseTypeTab.filter(ewCaseTypeIDFilter)
-  const ewCaseEvents = fields.CaseEvent.filter(ewCaseTypeIDFilter)
+  const ewCaseFields = fields.CaseField.filter(ewFilter)
+  const ewCaseEventToFields = fields.CaseEventToFields.filter(ewFilter)
+  const ewAuthorisationCaseFields = fields.AuthorisationCaseField.filter(ewFilter)
+  const ewAuthorisationCaseEvents = fields.AuthorisationCaseEvent.filter(ewFilter)
+  const ewCaseTypeTabs = fields.CaseTypeTab.filter(ewFilter)
+  const ewCaseEvents = fields.CaseEvent.filter(ewFilter)
+  const ewScrubbed = fields.Scrubbed.filter(ewFilter)
+  const ewComplexTypes = fields.ComplexTypes.filter(ewFilter)
+  const ewEventToComplexTypes = fields.EventToComplexTypes.filter(ewFilter)
 
-  const ewScrubbed = fields.Scrubbed.filter(ewRegionFilter)
-  const ewComplexTypes = fields.ComplexTypes.filter(ewRegionFilter)
-  const ewEventToComplexTypes = fields.EventToComplexTypes.filter(ewRegionFilter)
-
-  const scCaseFields = fields.CaseField.filter(scCaseTypeIDFilter)
-  const scCaseEventToFields = fields.CaseEventToFields.filter(scCaseTypeIDFilter)
-  const scAuthorisationCaseFields = fields.AuthorisationCaseField.filter(scCaseTypeIDFilter)
-  const scAuthorisationCaseEvents = fields.AuthorisationCaseEvent.filter(scCaseTypeIDFilter)
-  const scCaseTypeTabs = fields.CaseTypeTab.filter(scCaseTypeIDFilter)
-  const scCaseEvents = fields.CaseEvent.filter(scCaseTypeIDFilter)
-
-  const scScrubbed = fields.Scrubbed.filter(scRegionFilter)
-  const scComplexTypes = fields.ComplexTypes.filter(scRegionFilter)
-  const scEventToComplexTypes = fields.EventToComplexTypes.filter(scRegionFilter)
+  const scCaseFields = fields.CaseField.filter(scFilter)
+  const scCaseEventToFields = fields.CaseEventToFields.filter(scFilter)
+  const scAuthorisationCaseFields = fields.AuthorisationCaseField.filter(scFilter)
+  const scAuthorisationCaseEvents = fields.AuthorisationCaseEvent.filter(scFilter)
+  const scCaseTypeTabs = fields.CaseTypeTab.filter(scFilter)
+  const scCaseEvents = fields.CaseEvent.filter(scFilter)
+  const scScrubbed = fields.Scrubbed.filter(scFilter)
+  const scComplexTypes = fields.ComplexTypes.filter(scFilter)
+  const scEventToComplexTypes = fields.EventToComplexTypes.filter(scFilter)
 
   addToConfig(englandwales, {
     AuthorisationCaseEvent: ewAuthorisationCaseEvents,
@@ -577,11 +585,11 @@ export function addToConfig(to: Partial<ConfigSheets>, from: Partial<ConfigSheet
 
   upsertFields(to.CaseTypeTab, from.CaseTypeTab, COMPOUND_KEYS.CaseTypeTab, spliceIndexCaseTypeTab)
 
-  upsertFields(to.EventToComplexTypes, from.EventToComplexTypes, COMPOUND_KEYS.EventToComplexTypes, spliceIndexEventToComplexType)
+  upsertFields<EventToComplexType & CCDTypeWithRegion>(to.EventToComplexTypes, from.EventToComplexTypes, COMPOUND_KEYS.EventToComplexTypes, spliceIndexEventToComplexType)
 
-  upsertFields(to.ComplexTypes, from.ComplexTypes, COMPOUND_KEYS.ComplexTypes, spliceIndexComplexType)
+  upsertFields<ComplexType & CCDTypeWithRegion>(to.ComplexTypes, from.ComplexTypes, COMPOUND_KEYS.ComplexTypes, spliceIndexComplexType)
 
-  upsertFields(to.Scrubbed, from.Scrubbed, COMPOUND_KEYS.Scrubbed, spliceIndexScrubbed)
+  upsertFields<Scrubbed & CCDTypeWithRegion>(to.Scrubbed, from.Scrubbed, COMPOUND_KEYS.Scrubbed, spliceIndexScrubbed)
 
   upsertFields(to.CaseEvent, from.CaseEvent, COMPOUND_KEYS.CaseEvent, spliceIndexCaseEvent)
 }
@@ -627,6 +635,15 @@ function pushByDisplayOrderField(arr: any[], start: number, displayOrderKey: str
   while (changesMade)
 }
 
+function removeFlexKeys(ccd: CCDTypeWithRegion) {
+  const clone = JSON.parse(JSON.stringify(ccd))
+  Object.keys(clone).forEach(key => {
+    if (!key.startsWith("flex")) return
+    clone[key] = undefined
+  })
+  return clone
+}
+
 /**
  * Save the in-memory configs back to their JSON files
  */
@@ -635,11 +652,11 @@ export async function saveBackToProject() {
 
   for (const sheet of sheets) {
     const eng = format(templatePath, process.env.ENGWALES_DEF_DIR, getConfigSheetName(Region.EnglandWales, sheet))
-    const jsonEng = JSON.stringify(englandwales[sheet].map(o => { return { ...o, flex: undefined } }), null, 2)
+    const jsonEng = JSON.stringify(englandwales[sheet].map(o => removeFlexKeys(o)), null, 2)
     writeFileSync(eng, `${jsonEng}${getFileTerminatingCharacter(eng)}`)
 
     const scot = format(templatePath, process.env.SCOTLAND_DEF_DIR, getConfigSheetName(Region.Scotland, sheet))
-    const jsonScot = JSON.stringify(scotland[sheet].map(o => { return { ...o, flex: undefined } }), null, 2)
+    const jsonScot = JSON.stringify(scotland[sheet].map(o => removeFlexKeys(o)), null, 2)
     writeFileSync(scot, `${jsonScot}${getFileTerminatingCharacter(scot)}`)
   }
 }

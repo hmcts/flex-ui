@@ -4,7 +4,7 @@ import { sheets, CCDTypes, CCDSheets } from 'app/types/ccd'
 import { groupBy, groupByKeys, matcher } from 'app/helpers'
 import { addToInMemoryConfig, getEnglandWales, getScotland, Region } from 'app/et/configs'
 import { COMPOUND_KEYS, NO, YES_OR_NO } from 'app/constants'
-import { addFlexRegionToCcdObject, FLEX_REGION_ANSWERS_KEY, REGION_OPTS } from 'app/et/questions'
+import { REGION_OPTS } from 'app/et/questions'
 import { sayWarning } from 'app/questions'
 
 export async function fn() {
@@ -29,12 +29,7 @@ export async function deduplicateTypeForRegion(type: keyof CCDTypes, sheets: CCD
 
     dedupeArray(dupeList)
 
-    // TODO: Scuffed code for adding on flex regions because addToInMemoryConfig requires it
-    dupeList.forEach(o => {
-      if (!o.flex?.regions) {
-        addFlexRegionToCcdObject(o, { [FLEX_REGION_ANSWERS_KEY]: [Region.EnglandWales] })
-      }
-    })
+    // TODO: Consider Flex Regions here
 
     if (dupeList.length === 1) {
       // We can resolve this automatically, no need for user intervention

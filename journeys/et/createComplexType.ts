@@ -8,7 +8,7 @@ import { CUSTOM, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, isF
 import { addToLastAnswers, saveSession, session } from 'app/session'
 import { Journey } from 'types/journey'
 import { getIdealSizeForInquirer, matcher } from 'app/helpers'
-import { addFlexRegionToCcdObject, askFlexRegion, FLEX_REGION_ANSWERS_KEY, REGION_OPTS } from 'app/et/questions'
+import { addFlexRegionAndClone, askFlexRegion, FLEX_REGION_ANSWERS_KEY, REGION_OPTS } from 'app/et/questions'
 
 const QUESTION_ID = "What's the ID of this ComplexType?"
 const QUESTION_ELEMENT_LABEL = 'What\'s the custom label for this control?'
@@ -33,7 +33,7 @@ function getDefaultValueForFieldDisplayOrder(existing?: ComplexType) {
 }
 
 export async function createComplexType(answers: Answers = {}) {
-  answers = await askFlexRegion(undefined, undefined, undefined, answers)
+  answers = await askFlexRegion(answers)
   answers = await askForID(answers, undefined, undefined, session.lastAnswers[ComplexTypeKeys.ID])
 
   answers = await askComplexTypeListElementCode(answers, { choices: getKnownETComplexTypeListElementCodes(answers.ID) })
@@ -68,10 +68,10 @@ export async function createComplexType(answers: Answers = {}) {
   }
 
   const complexType = createNewComplexType(answers)
-  addFlexRegionToCcdObject(complexType, answers)
+  const created = addFlexRegionAndClone(answers[FLEX_REGION_ANSWERS_KEY] as Region[], complexType)
 
   addToInMemoryConfig({
-    ComplexTypes: [trimCcdObject(complexType)]
+    ComplexTypes: created.map(o => trimCcdObject(o))
   })
 
   addToLastAnswers(answers)
