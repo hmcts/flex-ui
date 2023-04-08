@@ -17,7 +17,10 @@ function migrateAddFlexRegionString() {
 
   const reducer = (acc, obj) => {
     const created = addFlexRegionAndClone(obj.flex?.regions || [Region.EnglandWales, Region.Scotland], obj)
-    created.forEach(o => { o.flex.regions = undefined })
+    created.forEach(o => {
+      if (!o.flex?.regions) return
+      o.flex.regions = undefined
+    })
     return acc.concat(...created)
   }
 
