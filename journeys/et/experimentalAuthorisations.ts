@@ -83,9 +83,13 @@ async function changeAuthorisationsForCaseEvent(caseTypeID: string, caseEventID:
 
     const auths = createCaseEventAuthorisations(answers[CaseFieldKeys.CaseTypeID], caseEventID, newMapping)
 
-    addToInMemoryConfig({
+    const created = {
       AuthorisationCaseEvent: auths
-    })
+    }
+
+    addToInMemoryConfig(created)
+
+    return created
   })
 
   saveSession(session)
@@ -105,9 +109,13 @@ async function changeAuthorisationsForCaseField(caseTypeID: string, region: Regi
     const auths = fieldIDs.reduce((acc, fieldID) =>
       acc.concat(createCaseFieldAuthorisations(answers[CaseFieldKeys.CaseTypeID], fieldID, newMapping)), [])
 
-    addToInMemoryConfig({
+    const created = {
       AuthorisationCaseField: auths
-    })
+    }
+
+    addToInMemoryConfig(created)
+
+    return created
   })
 
   saveSession(session)

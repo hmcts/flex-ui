@@ -1,14 +1,11 @@
 import { prompt } from 'inquirer'
-import { addToLastAnswers, addToSession, saveSession, session } from 'app/session'
+import { addToLastAnswers, addToSession, session } from 'app/session'
 import { CaseEventToField, CaseEventToFieldKeys, CaseField, CaseFieldKeys } from 'types/ccd'
-import { addonDuplicateQuestion, Answers, askAutoComplete, askCaseEvent, askCaseTypeID, askFieldType, askFieldTypeParameter, askForPageFieldDisplayOrder, askForPageID, askForRegularExpression, askMinAndMax, askRetainHiddenValue } from 'app/questions'
-import { COMPOUND_KEYS, CUSTOM, DISPLAY_CONTEXT_OPTIONS, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, isFieldTypeInExclusionList, NONE, YES, YES_OR_NO, Y_OR_N } from 'app/constants'
+import { addonDuplicateQuestion, Answers, askAutoComplete, askCaseEvent, askCaseTypeID, askFieldType, askFieldTypeParameter, askFirstOnPageQuestions, askForPageFieldDisplayOrder, askForPageID, askForRegularExpression, askMinAndMax, askRetainHiddenValue } from 'app/questions'
+import { CUSTOM, DISPLAY_CONTEXT_OPTIONS, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, isFieldTypeInExclusionList, NONE, Y_OR_N } from 'app/constants'
 import { createNewCaseEventToField, createNewCaseField, trimCaseEventToField, trimCaseField } from 'app/ccd'
 import { Journey } from 'types/journey'
-import { findObject, getCaseEventIDOpts, getKnownCaseFieldIDsByEvent, getNextPageFieldIDForPage, sheets } from 'app/configs'
-import { upsertFields } from 'app/helpers'
-import { createEvent } from './createEvent'
-import { createScrubbed } from './createScrubbed'
+import { findObject, getCaseEventIDOpts, getKnownCaseFieldIDsByEvent, getNextPageFieldIDForPage, upsertConfigs } from 'app/configs'
 
 export const QUESTION_ID = 'What\'s the ID for this field?'
 export const QUESTION_ANOTHER = 'Do you want to upsert another?'
@@ -19,9 +16,12 @@ const QUESTION_LABEL = 'What text (Label) should this field have?'
 const QUESTION_CASE_EVENT_ID = 'What event does this new field belong to?'
 const QUESTION_DISPLAY_CONTEXT = 'Is this field READONLY, OPTIONAL, MANDATORY or COMPLEX?'
 const QUESTION_SHOW_SUMMARY_CHANGE_OPTION = 'Should this field appear on the CYA page?'
-const QUESTION_PAGE_LABEL = 'Does this page have a custom title? (optional)'
-const QUESTION_PAGE_SHOW_CONDITION = 'Enter a page show condition string (optional)'
-const QUESTION_CALLBACK_URL_MID_EVENT = 'Enter the callback url to hit before loading the next page (optional)'
+
+async function journey() {
+  const created = await createSingleField()
+  addToSession(created)
+  upsertConfigs(created)
+}
 
 function shouldAskEventQuestions(answers: Answers) {
   return answers[CaseEventToFieldKeys.CaseEventID] !== NONE
@@ -29,7 +29,7 @@ function shouldAskEventQuestions(answers: Answers) {
 
 export async function createSingleField(answers: Answers = {}) {
   answers = await askCaseTypeID(answers)
-  answers = await askCaseEvent(answers, { message: QUESTION_CASE_EVENT_ID, choices: [NONE, ...getCaseEventIDOpts()] }, createEvent)
+  answers = await askCaseEvent(answers, { message: QUESTION_CASE_EVENT_ID, choices: [NONE, ...getCaseEventIDOpts()] })
 
   const idOpts = getKnownCaseFieldIDsByEvent(answers[CaseEventToFieldKeys.CaseEventID])
 
@@ -59,7 +59,7 @@ export async function createSingleField(answers: Answers = {}) {
   answers = await askFieldType(answers, { default: existingField?.FieldType })
 
   if (!isFieldTypeInExclusionList(answers[CaseFieldKeys.FieldType], FIELD_TYPES_EXCLUDE_PARAMETER)) {
-    answers = await askFieldTypeParameter(answers, { default: existingField?.FieldTypeParameter }, createScrubbed)
+    answers = await askFieldTypeParameter(answers, { default: existingField?.FieldTypeParameter })
   }
 
   if (answers[CaseFieldKeys.FieldType] !== 'Label') {
@@ -88,7 +88,7 @@ export async function createSingleField(answers: Answers = {}) {
 
   addToLastAnswers(answers)
 
-  const createFn = (answers: Answers) => {
+  return await addonDuplicateQuestion(answers, undefined, (answers: Answers) => {
     const caseField = createNewCaseField(answers)
     const caseEventToField = askEvent ? createNewCaseEventToField(answers) : undefined
 
@@ -96,32 +96,12 @@ export async function createSingleField(answers: Answers = {}) {
     // need to provide their own journey for this. See journeys/et/createSingleField for an example.
     const authorisations = []
 
-    const newFields = {
+    return {
       AuthorisationCaseField: authorisations,
       CaseField: [trimCaseField(caseField)],
       CaseEventToFields: askEvent ? [trimCaseEventToField(caseEventToField)] : []
     }
-    addToSession(newFields)
-
-    for (const sheetName in newFields) {
-      upsertFields(sheets[sheetName], newFields[sheetName], COMPOUND_KEYS[sheetName])
-    }
-  }
-
-  await addonDuplicateQuestion(answers, undefined, createFn)
-
-  const followup = await prompt([{
-    name: 'another',
-    message: QUESTION_ANOTHER,
-    type: 'list',
-    choices: YES_OR_NO,
-    default: YES
-  }])
-
-  if (followup.another === YES) {
-    saveSession(session)
-    return createSingleField()
-  }
+  })
 }
 
 function getDefaultForPageFieldDisplayOrder(answers: Answers = {}) {
@@ -140,18 +120,10 @@ function getDefaultForPageFieldDisplayOrder(answers: Answers = {}) {
   return 1
 }
 
-export async function askFirstOnPageQuestions(answers: Answers = {}, existingCaseEventToField?: CaseEventToField) {
-  return await prompt([
-    { name: CaseEventToFieldKeys.PageLabel, message: QUESTION_PAGE_LABEL, type: 'input', default: existingCaseEventToField?.PageLabel },
-    { name: CaseEventToFieldKeys.PageShowCondition, message: QUESTION_PAGE_SHOW_CONDITION, type: 'input', default: existingCaseEventToField?.PageShowCondition },
-    { name: CaseEventToFieldKeys.CallBackURLMidEvent, message: QUESTION_CALLBACK_URL_MID_EVENT, type: 'input', default: existingCaseEventToField?.CallBackURLMidEvent }
-  ], answers)
-}
-
 export default {
   disabled: true,
   group: 'create',
   text: 'Create/Modify a single field',
-  fn: createSingleField,
+  fn: journey,
   alias: 'UpsertCaseField'
 } as Journey

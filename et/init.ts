@@ -1,10 +1,14 @@
 import { COMPOUND_KEYS } from 'app/constants'
 import { readInCurrentConfig } from 'app/et/configs'
+import createEvent from 'app/journeys/et/createEvent'
+import createScrubbed from 'app/journeys/et/createScrubbed'
+import { createJourneys } from 'app/questions'
 import { ComplexType, EventToComplexType, Scrubbed } from 'app/types/ccd'
 
 async function init() {
   checkEnvVars()
   updateCompoundKeys()
+  updateCreateJourneys()
   readInCurrentConfig()
 }
 
@@ -24,6 +28,12 @@ function updateCompoundKeys() {
   COMPOUND_KEYS.ComplexTypes = ['ID', 'ListElementCode', 'flexRegion'] as Array<(keyof ComplexType)>
   COMPOUND_KEYS.EventToComplexTypes = ['ID', 'ListElementCode', 'flexRegion'] as Array<(keyof EventToComplexType)>
   COMPOUND_KEYS.Scrubbed = ['ID', 'ListElementCode', 'flexRegion'] as Array<(keyof Scrubbed)>
+}
+
+/** Add ET's custom create journeys */
+function updateCreateJourneys() {
+  createJourneys.createEvent = createEvent.fn
+  createJourneys.createScrubbed = createScrubbed.fn
 }
 
 export default init

@@ -1,13 +1,11 @@
 import { prompt } from 'inquirer'
 import { EventToComplexTypeKeys } from 'types/ccd'
-import { QUESTION_ANOTHER, QUESTION_HINT_TEXT } from './createSingleField'
+import { QUESTION_HINT_TEXT } from './createSingleField'
 import { createNewEventToComplexType, trimCcdObject } from 'app/ccd'
 import { Answers, askCaseEvent, askCaseFieldID, askRetainHiddenValue } from 'app/questions'
-import { addToLastAnswers, addToSession, saveSession, session } from 'app/session'
+import { addToLastAnswers, addToSession, session } from 'app/session'
 import { Journey } from 'types/journey'
-import { COMPOUND_KEYS, YES, YES_OR_NO } from 'app/constants'
-import { sheets } from 'app/configs'
-import { upsertFields } from 'app/helpers'
+import { upsertConfigs } from 'app/configs'
 
 const QUESTION_CASE_EVENT_ID = 'What event does this belong to?'
 const QUESTION_ID = "What's the ID of this EventToComplexType?"
@@ -17,6 +15,12 @@ const QUESTION_DISPLAY_CONTEXT = 'Should this field be READONLY, OPTIONAL or MAN
 const QUESTION_FIELD_SHOW_CONDITION = 'Enter a FieldShowCondition (optional)'
 const DISPLAY_CONTEXT_OPTIONS = ['READONLY', 'OPTIONAL', 'MANDATORY']
 const QUESTION_LIST_ELEMENT_CODE = 'What\'s the ListElementCode that this references?'
+
+async function journey() {
+  const created = await createEventToComplexType()
+  addToSession(created)
+  upsertConfigs(created)
+}
 
 /**
  * Gets the default value for FieldDisplayOrder question
@@ -47,30 +51,12 @@ export async function createEventToComplexType(answers: Answers = {}) {
 
   answers = await askRetainHiddenValue(answers)
 
-  const eventToComplexType = createNewEventToComplexType(answers)
-
-  const newFields = {
-    EventToComplexTypes: [trimCcdObject(eventToComplexType)]
-  }
-  addToSession(newFields)
-
-  for (const sheetName in newFields) {
-    upsertFields(sheets[sheetName], newFields[sheetName], COMPOUND_KEYS[sheetName])
-  }
-
   addToLastAnswers(answers)
 
-  const followup = await prompt([{
-    name: 'another',
-    message: QUESTION_ANOTHER,
-    type: 'list',
-    choices: YES_OR_NO,
-    default: YES
-  }])
+  const eventToComplexType = createNewEventToComplexType(answers)
 
-  if (followup.another === YES) {
-    saveSession(session)
-    return createEventToComplexType()
+  return {
+    EventToComplexTypes: [trimCcdObject(eventToComplexType)]
   }
 }
 
@@ -78,6 +64,6 @@ export default {
   disabled: true,
   group: 'create',
   text: 'Create/Modify an EventToComplexType',
-  fn: createEventToComplexType,
+  fn: journey,
   alias: 'UpsertEventToComplexType'
 } as Journey

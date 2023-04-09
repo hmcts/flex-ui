@@ -9,10 +9,10 @@ export function clearConfigs() {
   Object.keys(sheets).forEach(key => { sheets[key] = [] })
 }
 
-/** Upsert into currently loaded sheets */
-export function upsertConfigs(configSheets: ConfigSheets) {
-  Object.keys(configSheets).forEach(key => {
-    upsertFields(sheets[key], configSheets[key], COMPOUND_KEYS[key])
+/** Upsert/combine two sets of ConfigSheets together */
+export function upsertConfigs(from: Partial<ConfigSheets>, to: Partial<ConfigSheets> = sheets) {
+  Object.keys(from).forEach(key => {
+    upsertFields(to[key], from[key], COMPOUND_KEYS[key])
   })
 }
 

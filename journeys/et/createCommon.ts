@@ -1,17 +1,17 @@
 import { Journey } from 'types/journey'
 import { askAutoComplete } from 'app/questions'
-import { createCaseTypeTab } from './createCaseTypeTab'
-import { createComplexType } from './createComplexType'
-import { createEvent } from './createEvent'
-import { createEventToComplexType } from './createEventToComplexType'
-import { createSingleField } from './createSingleField'
-import { createCallbackPopulatedLabel } from './createCallbackPopulatedLabel'
-import { createScrubbed } from './createScrubbed'
-import { createCaseEventToFieldJourney } from './createCaseEventToField'
+import createComplexType from './createComplexType'
+import createScrubbed from './createScrubbed'
 import { isCurrentSessionEmpty, saveSession, session } from 'app/session'
 import { setSessionName } from '../base/sessionSetName'
 import { prompt } from 'inquirer'
 import { YES, YES_OR_NO } from 'app/constants'
+import createCaseEventToFieldJourney from './createCaseEventToField'
+import createCallbackPopulatedLabel from './createCallbackPopulatedLabel'
+import createCaseTypeTab from './createCaseTypeTab'
+import createEvent from './createEvent'
+import createSingleField from './createSingleField'
+import createEventToComplexType from './createEventToComplexType'
 
 const QUESTION_TASK = 'What task do you want to perform?'
 
@@ -35,28 +35,28 @@ export async function createJourney() {
       case TASK_CHOICES.BACK:
         return
       case TASK_CHOICES.CASE_EVENT_TO_FIELD:
-        await createCaseEventToFieldJourney()
+        await createCaseEventToFieldJourney.fn()
         break
       case TASK_CHOICES.CALLBACK_LABEL:
-        await createCallbackPopulatedLabel()
+        await createCallbackPopulatedLabel.fn()
         break
       case TASK_CHOICES.CASE_TYPE_TAB:
-        await createCaseTypeTab()
+        await createCaseTypeTab.fn()
         break
       case TASK_CHOICES.COMPLEX_TYPE:
-        await createComplexType()
+        await createComplexType.fn()
         break
       case TASK_CHOICES.EVENT:
-        await createEvent()
+        await createEvent.fn()
         break
       case TASK_CHOICES.EVENT_TO_COMPLEX_TYPE:
-        await createEventToComplexType()
+        await createEventToComplexType.fn()
         break
       case TASK_CHOICES.FIELD:
-        await createSingleField()
+        await createSingleField.fn()
         break
       case TASK_CHOICES.SCRUBBED:
-        await createScrubbed()
+        await createScrubbed.fn()
         break
     }
 
