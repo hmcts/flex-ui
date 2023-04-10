@@ -15,8 +15,15 @@ const QUESTION_EXISTING_REGION_DIFFERENT = 'The ComplexType object in both regio
 async function journey(answers: Answers = {}) {
   answers = await askFlexRegion(answers)
 
+  // We only need to ask these questions ourselves to cover the scenario of two objects existing in both EW and SC but them being different (ie, EventElementLabel is different)
+  // If we were okay with bringing back defaults for one region regardless - we could rely just on the base journey
   answers = await prompt([
-    ...addAutoCompleteQuestion({ name: ComplexTypeKeys.ID, message: QUESTION_ID, choices: [CUSTOM, ...getKnownComplexTypeIDs()], default: session.lastAnswers[ComplexTypeKeys.ID] }),
+    ...addAutoCompleteQuestion({
+      name: ComplexTypeKeys.ID,
+      message: QUESTION_ID,
+      choices: [CUSTOM, ...getKnownComplexTypeIDs()],
+      default: session.lastAnswers[ComplexTypeKeys.ID]
+    }),
     ...addComplexTypeListElementCodeQuestion()
   ], answers)
 

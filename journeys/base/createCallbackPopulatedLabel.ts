@@ -7,8 +7,8 @@ import { QUESTION_FIELD_SHOW_CONDITION, QUESTION_ID } from './createSingleField'
 import { addToLastAnswers, addToSession } from 'app/session'
 import { upsertConfigs } from 'app/configs'
 
-async function journey() {
-  const created = await createCallbackPopulatedLabel()
+async function journey(answers: Answers = {}) {
+  const created = await createCallbackPopulatedLabel(answers)
 
   addToSession(created)
   upsertConfigs(created)

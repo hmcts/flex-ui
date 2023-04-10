@@ -17,8 +17,8 @@ const QUESTION_LABEL = 'What text (Label) should this field have?'
 const QUESTION_DISPLAY_CONTEXT = 'Is this field READONLY, OPTIONAL, MANDATORY or COMPLEX?'
 const QUESTION_SHOW_SUMMARY_CHANGE_OPTION = 'Should this field appear on the CYA page?'
 
-async function journey() {
-  const created = await createSingleField()
+async function journey(answers: Answers = {}) {
+  const created = await createSingleField(answers)
   addToSession(created)
   upsertConfigs(created)
 }
@@ -40,7 +40,7 @@ function addSingleFieldQuestions(existingFn: (answers: Answers) => CaseField & C
     }
   }
 
-  const questions: Question[] = [
+  return [
     ...addCaseTypeIDQuestion(),
     ...addCaseEvent(),
     ...addAutoCompleteQuestion(
@@ -70,8 +70,6 @@ function addSingleFieldQuestions(existingFn: (answers: Answers) => CaseField & C
     ...addMaxQuestion({ default: defaultFn('Max') }),
     ...addRetainHiddenValueQuestion({ default: defaultFn('RetainHiddenValue') })
   ]
-
-  return questions
 }
 
 function shouldAskEventQuestions(answers: Answers) {

@@ -1,5 +1,6 @@
 import { COMPOUND_KEYS } from 'app/constants'
 import { readInCurrentConfig } from 'app/et/configs'
+import createSingleField from 'app/journeys/base/createSingleField'
 import createEvent from 'app/journeys/et/createEvent'
 import createScrubbed from 'app/journeys/et/createScrubbed'
 import { createJourneys } from 'app/questions'
@@ -26,7 +27,7 @@ export function checkEnvVars() {
 /** Add ET's custom flexRegion as part of COMPOUND_KEYS */
 function updateCompoundKeys() {
   COMPOUND_KEYS.ComplexTypes = ['ID', 'ListElementCode', 'flexRegion'] as Array<(keyof ComplexType)>
-  COMPOUND_KEYS.EventToComplexTypes = ['ID', 'ListElementCode', 'flexRegion'] as Array<(keyof EventToComplexType)>
+  COMPOUND_KEYS.EventToComplexTypes = ['ID', 'CaseEventID', 'CaseFieldID', 'ListElementCode', 'flexRegion'] as Array<(keyof EventToComplexType)>
   COMPOUND_KEYS.Scrubbed = ['ID', 'ListElementCode', 'flexRegion'] as Array<(keyof Scrubbed)>
 }
 
@@ -34,6 +35,7 @@ function updateCompoundKeys() {
 function updateCreateJourneys() {
   createJourneys.createEvent = createEvent.fn
   createJourneys.createScrubbed = createScrubbed.fn
+  createJourneys.createField = createSingleField.fn
 }
 
 export default init

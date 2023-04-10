@@ -7,6 +7,7 @@ import { format, getIdealSizeForInquirer, remove } from 'app/helpers'
 import { findObject, getCaseEventIDOpts, getKnownCaseFieldIDs, getKnownCaseFieldTypeParameters, getKnownCaseFieldTypes, getKnownCaseTypeIDs, getKnownComplexTypeListElementCodes, upsertConfigs } from './configs'
 import { createEvent } from './journeys/base/createEvent'
 import { createScrubbedList } from './journeys/base/createScrubbed'
+import { createSingleField } from './journeys/base/createSingleField'
 
 export const QUESTION_REGULAR_EXPRESSION = 'Do we need a RegularExpression for the field?'
 export const QUESTION_RETAIN_HIDDEN_VALUE = 'Should the field retain its value when hidden?'
@@ -37,10 +38,16 @@ export const FIELD_TYPE_PARAMETERS_CUSTOM_OPTS = {
 
 export type Answers = AllCCDKeys & Record<string, unknown>
 export type Question = inquirer.Question & { name?: string, choices?: string[], sort?: boolean, index?: number, before?: string, after?: string, fallbackDefault?: string | ((answers: Answers) => string) }
+type CreateJourneyFn = (answers: Answers) => Promise<Partial<ConfigSheets>>
 
-export const createJourneys: Record<string, (answers: Answers) => Promise<Partial<ConfigSheets>>> = {
+export const createJourneys: {
+  createEvent: CreateJourneyFn
+  createScrubbed: CreateJourneyFn
+  createField: CreateJourneyFn
+} = {
   createEvent,
-  createScrubbed: createScrubbedList
+  createScrubbed: createScrubbedList,
+  createField: createSingleField
 }
 
 /**
@@ -635,6 +642,28 @@ export function addCaseEvent(question: Question = {}, allowCreate = true) {
       when: (answers: Answers) => allowCreate && answers[question.name] !== NONE && !findObject({ CaseTypeID: answers.CaseTypeID, ID: answers.CaseEventID }, 'CaseEvent'),
       name: 'createEvent',
       message: 'This CaseEvent does not exist, would you like to create it after this?',
+      type: 'list',
+      choices: YES_OR_NO,
+      default: YES
+    }
+  ]
+}
+
+export function addCaseFieldID(question: Question = {}, allowCreate = true) {
+  question.name ||= EventToComplexTypeKeys.CaseFieldID
+  question.message ||= QUESTION_CASE_FIELD_ID
+  question.default ||= session.lastAnswers[question.name]
+  question.choices ||= getKnownCaseFieldIDs()
+
+  remove(question.choices, CUSTOM)
+  question.choices.splice(0, 0, CUSTOM)
+
+  return [
+    ...addAutoCompleteQuestion(question),
+    {
+      when: (answers: Answers) => allowCreate && answers[question.name] !== NONE && !findObject({ ID: answers.CaseFieldID }, 'CaseField'),
+      name: 'createField',
+      message: 'This Field does not exist, would you like to create it after this?',
       type: 'list',
       choices: YES_OR_NO,
       default: YES

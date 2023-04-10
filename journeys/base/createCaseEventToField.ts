@@ -5,14 +5,14 @@ import { createTemplate, Answers, addonDuplicateQuestion } from 'app/questions'
 import { addToSession } from 'app/session'
 import { upsertConfigs } from 'app/configs'
 
-async function journey() {
-  const created = await createCaseEventToFieldJourney()
+async function journey(answers: Answers = {}) {
+  const created = await createCaseEventToFieldJourney(answers)
   addToSession(created)
   upsertConfigs(created)
 }
 
-export async function createCaseEventToFieldJourney() {
-  const answers = await createTemplate<unknown, CaseEventToField>({}, CaseEventToFieldKeys, createNewCaseEventToField(), 'CaseEventToFields')
+export async function createCaseEventToFieldJourney(answers: Answers = {}) {
+  answers = await createTemplate<unknown, CaseEventToField>({}, CaseEventToFieldKeys, createNewCaseEventToField(), 'CaseEventToFields')
 
   return await addonDuplicateQuestion(answers, undefined, (answers: Answers) => {
     const caseEventToField = createNewCaseEventToField(answers)

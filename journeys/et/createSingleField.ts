@@ -7,8 +7,8 @@ import { Journey } from 'types/journey'
 import { sheets } from 'app/configs'
 import { createSingleField } from '../base/createSingleField'
 
-async function journey() {
-  const created = await createSingleField()
+async function journey(answers: Answers = {}) {
+  const created = await createSingleField(answers)
   created.AuthorisationCaseField = await createAuthorisations(created)
   addToInMemoryConfig(created)
 }

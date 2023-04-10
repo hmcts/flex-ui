@@ -2,9 +2,10 @@ import { ConfigSheets } from 'types/ccd'
 import { Journey } from 'types/journey'
 import { addToInMemoryConfig, createCaseFieldAuthorisations } from 'app/et/configs'
 import { createCallbackPopulatedLabel } from '../base/createCallbackPopulatedLabel'
+import { Answers } from 'app/questions'
 
-async function journey() {
-  const created = await createCallbackPopulatedLabel()
+async function journey(answers: Answers = {}) {
+  const created = await createCallbackPopulatedLabel(answers)
   const authorisations = createAuthorisations(created)
   addToInMemoryConfig({ ...created, AuthorisationCaseField: authorisations })
 }

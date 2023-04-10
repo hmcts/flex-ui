@@ -129,3 +129,12 @@ export async function createTemplate<T, P>(answers: Answers = {}, keys: T, obj: 
 
   return answers
 }
+
+export function addFlexRegion(question: Question = {}) {
+  question.name ||= FLEX_REGION_ANSWERS_KEY
+  question.message ||= QUESTION_REGION
+  question.choices ||= REGION_OPTS
+  question.default ||= (answers: Answers) => answers?.[FLEX_REGION_ANSWERS_KEY] || session.lastAnswers?.[FLEX_REGION_ANSWERS_KEY] || REGION_OPTS
+
+  return [{ type: 'checkbox', askAnswered: true, pageSize: getIdealSizeForInquirer(), ...question }]
+}

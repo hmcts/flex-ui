@@ -39,7 +39,7 @@ export function addEventQuestions(existingFn: (answers: Answers) => CaseEvent = 
     }
   }
 
-  const questions: Question[] = [
+  return [
     ...addCaseTypeIDQuestion(),
     ...addCaseEvent({ name: CaseEventKeys.ID, message: QUESTION_ID }, false),
     { name: 'Name', message: (answers: Answers) => format(QUESTION_NAME, answers.ID), default: defaultFn('Name', (answers: Answers) => answers.ID) },
@@ -53,9 +53,7 @@ export function addEventQuestions(existingFn: (answers: Answers) => CaseEvent = 
     { name: 'CallBackURLAboutToStartEvent', message: QUESTION_CALLBACK_URL_ABOUT_TO_START_EVENT, default: defaultFn('CallBackURLAboutToStartEvent') },
     { name: 'CallBackURLAboutToSubmitEvent', message: QUESTION_CALLBACK_URL_ABOUT_TO_SUBMIT_EVENT, default: defaultFn('CallBackURLAboutToSubmitEvent') },
     { name: 'CallBackURLSubmittedEvent', message: QUESTION_CALLBACK_URL_SUBMITTED_EVENT, default: defaultFn('CallBackURLSubmittedEvent') }
-  ]
-
-  return questions
+  ] as Question[]
 }
 
 export async function createEvent(answers: Answers = {}, questions: Question[] = []) {

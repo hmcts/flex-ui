@@ -21,36 +21,41 @@ async function journey(answers: Answers = {}) {
   upsertConfigs(created)
 }
 
-export function addComplexTypeQuestions(existing?: ComplexType) {
-  const questions: Question[] = [
-    { name: ComplexTypeKeys.ElementLabel, message: QUESTION_ELEMENT_LABEL, default: existing?.ElementLabel, validate: (input: string) => input.length > 0 },
-    { name: ComplexTypeKeys.FieldShowCondition, message: QUESTION_FIELD_SHOW_CONDITION },
-    { name: ComplexTypeKeys.DisplayOrder, message: QUESTION_DISPLAY_ORDER, type: 'number' },
-    { name: ComplexTypeKeys.DisplayContextParameter, message: QUESTION_DISPLAY_CONTEXT_PARAMETER },
-    { name: ComplexTypeKeys.HintText, message: QUESTION_HINT_TEXT },
-    ...addFieldTypeQuestion(),
-    ...addFieldTypeParameterQuestion(),
-    ...addRegularExpressionQuestion(),
-    ...addMinQuestion(),
-    ...addMaxQuestion()
-  ]
+function findExisting(answers: Answers) {
+  return findObject<ComplexType>(answers, 'ComplexTypes')
+}
 
-  questions.forEach(o => {
-    o.default = existing?.[o.name]
-  })
+export function addComplexTypeQuestions(existingFn: (answers: Answers) => ComplexType = findExisting) {
+  const defaultFn = (key: keyof (Answers), or?: string | number | ((answers: Answers) => string | number)) => {
+    return (answers: Answers) => {
+      const orResult = typeof (or) === 'function' ? (or as any)(answers) : or
+      return existingFn(answers)?.[key] || orResult
+    }
+  }
 
-  return questions
+  return [
+    ...addAutoCompleteQuestion({
+      name: ComplexTypeKeys.ID,
+      message: QUESTION_ID,
+      choices: [CUSTOM, ...getKnownComplexTypeIDs()],
+      default: session.lastAnswers[ComplexTypeKeys.ID]
+    }),
+    ...addComplexTypeListElementCodeQuestion(),
+    { name: ComplexTypeKeys.ElementLabel, message: QUESTION_ELEMENT_LABEL, validate: (input: string) => input.length > 0, default: defaultFn('ElementLabel', ' ') },
+    { name: ComplexTypeKeys.FieldShowCondition, message: QUESTION_FIELD_SHOW_CONDITION, default: defaultFn('FieldShowCondition') },
+    { name: ComplexTypeKeys.DisplayOrder, message: QUESTION_DISPLAY_ORDER, type: 'number', default: defaultFn('DisplayOrder') },
+    { name: ComplexTypeKeys.DisplayContextParameter, message: QUESTION_DISPLAY_CONTEXT_PARAMETER, default: defaultFn('DisplayContextParameter') },
+    { name: ComplexTypeKeys.HintText, message: QUESTION_HINT_TEXT, default: defaultFn('HintText') },
+    ...addFieldTypeQuestion({ default: defaultFn('FieldType') }),
+    ...addFieldTypeParameterQuestion({ default: defaultFn('FieldTypeParameter') }),
+    ...addRegularExpressionQuestion({ default: defaultFn('RegularExpression') }),
+    ...addMinQuestion({ default: defaultFn('Min') }),
+    ...addMaxQuestion({ default: defaultFn('Max') })
+  ] as Question[]
 }
 
 export async function createComplexType(answers: Answers = {}, questions: Question[] = []) {
-  answers = await prompt([
-    ...addAutoCompleteQuestion({ name: ComplexTypeKeys.ID, message: QUESTION_ID, choices: [CUSTOM, ...getKnownComplexTypeIDs()], default: session.lastAnswers[ComplexTypeKeys.ID] }),
-    ...addComplexTypeListElementCodeQuestion()
-  ], answers)
-
-  const existing = findObject<ComplexType>(answers, 'ComplexTypes')
-
-  const ask = addComplexTypeQuestions(existing)
+  const ask = addComplexTypeQuestions()
   upsertFields(ask, questions, ['name'], spliceCustomQuestionIndex)
 
   answers = await prompt(ask, answers)

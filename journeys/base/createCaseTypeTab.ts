@@ -5,14 +5,14 @@ import { createTemplate, Answers, addonDuplicateQuestion } from 'app/questions'
 import { addToSession } from 'app/session'
 import { upsertConfigs } from 'app/configs'
 
-async function journey() {
-  const created = await createCaseTypeTab()
+async function journey(answers: Answers = {}) {
+  const created = await createCaseTypeTab(answers)
   addToSession(created)
   upsertConfigs(created)
 }
 
-export async function createCaseTypeTab() {
-  const answers = await createTemplate<unknown, CaseTypeTab>({}, CaseTypeTabKeys, createNewCaseTypeTab(), 'CaseTypeTab')
+export async function createCaseTypeTab(answers: Answers = {}) {
+  answers = await createTemplate<unknown, CaseTypeTab>({}, CaseTypeTabKeys, createNewCaseTypeTab(), 'CaseTypeTab')
 
   return await addonDuplicateQuestion(answers, undefined, (answers: Answers) => {
     const caseTypeTab = createNewCaseTypeTab(answers)
