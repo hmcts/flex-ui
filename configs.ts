@@ -124,3 +124,9 @@ export function getNextPageFieldIDForPage(caseTypeID: string, caseEventID: strin
   const fieldOrders = fieldsOnPage.map(o => Number(o.PageFieldDisplayOrder))
   return fieldsOnPage.length ? Math.max(...fieldOrders) + 1 : 1
 }
+
+/** Gets the highest PageID from all CaseEventToFields belonging to an event */
+export function getLastPageInEvent(caseTypeID: string, caseEventID: string, configSheets: ConfigSheets = sheets) {
+  const fields = configSheets.CaseEventToFields.filter(o => o.CaseTypeID === caseTypeID && o.CaseEventID === caseEventID)
+  return Math.max(...fields.map(o => o.PageID))
+}

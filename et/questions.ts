@@ -1,9 +1,7 @@
-import { COMPOUND_KEYS, CUSTOM, NONE } from 'app/constants'
 import { getIdealSizeForInquirer } from 'app/helpers'
-import { Answers, askBasicFreeEntry, askCaseEvent, askCaseFieldID, askCaseTypeID, fuzzySearch, Question, QUESTION_LIST_ELEMENT_CODE } from 'app/questions'
-import { CCDSheets, CCDTypes, EventToComplexTypeKeys } from 'app/types/ccd'
+import { Answers, Question } from 'app/questions'
 import { prompt } from 'inquirer'
-import { ETFlexExtensions, findETObject, getConfigSheetsFromFlexRegion, getETCaseEventIDOpts, getKnownETCaseFieldIDsByEvent, getKnownETCaseTypeIDs, getKnownETComplexTypeListElementCodes, Region } from 'app/et/configs'
+import { ETFlexExtensions, Region } from 'app/et/configs'
 import { session } from 'app/session'
 
 const QUESTION_REGION = 'Which region(s) should this entry be added to?'
@@ -15,57 +13,8 @@ export const REGION_OPTS = [
   Region.Scotland
 ]
 
-async function askEventToComplexTypeListElementCodeFallback(answers: Answers = {}, key?: string) {
-  const customNameAnswers = await askBasicFreeEntry({}, { name: key, message: QUESTION_LIST_ELEMENT_CODE })
-  answers[key] = customNameAnswers[key]
-  return answers
-}
-
-// TODO: Revisit this
-export async function askEventToComplexTypeListElementCode(answers: Answers = {}, question: Question = {}) {
-  question.name ||= EventToComplexTypeKeys.ListElementCode
-  question.message ||= QUESTION_LIST_ELEMENT_CODE
-
-  // This is a BIG WIP right now, we're just going to use englandwales for look ups
-  const caseField = getConfigSheetsFromFlexRegion(answers[FLEX_REGION_ANSWERS_KEY] as Region[]).CaseField.find(o => o.ID === answers[EventToComplexTypeKeys.CaseFieldID])
-
-  if (!caseField) {
-    return await askEventToComplexTypeListElementCodeFallback(answers, question.name)
-  }
-
-  const opts = getKnownETComplexTypeListElementCodes(caseField.FieldType === 'Collection' ? caseField.FieldTypeParameter : caseField.FieldType, answers[FLEX_REGION_ANSWERS_KEY] as Region[])
-
-  answers = await prompt([
-    {
-      ...question,
-      type: 'autocomplete',
-      source: (_answers: unknown, input: string) => fuzzySearch([CUSTOM, ...opts], input),
-      pageSize: getIdealSizeForInquirer()
-    }
-  ], answers)
-
-  if (answers[question.name] === CUSTOM) {
-    return await askEventToComplexTypeListElementCodeFallback(answers, question.name)
-  }
-
-  return answers
-}
-
-// TODO: Update this to take in a Question object as a parameter
 export async function askFlexRegion(answers?: Answers, question: Question = {}) {
-  question.name ||= FLEX_REGION_ANSWERS_KEY
-  question.message ||= QUESTION_REGION
-  question.choices ||= REGION_OPTS
-  question.default ||= answers?.[FLEX_REGION_ANSWERS_KEY] || session.lastAnswers?.[FLEX_REGION_ANSWERS_KEY] || REGION_OPTS
-
-  return await prompt([
-    {
-      ...question,
-      type: 'checkbox',
-      askAnswered: true,
-      pageSize: getIdealSizeForInquirer()
-    }
-  ], answers || {})
+  return await prompt(addFlexRegion(question), answers || {})
 }
 
 export function getFlexRegionFromAnswers(answers: Answers) {
@@ -84,50 +33,6 @@ export function addFlexRegionAndClone<T extends ETFlexExtensions>(flexRegions: R
   ccdType.flexRegion = flexRegions[1]
 
   return [ccdType, clone]
-}
-
-/**
- * Asks questions based on the keys contained in the target object type
- * (convenience method for not creating a custom method for asking questions)
- * @param answers An existing answers object that may have answers already filled
- * @param keys An enum representing the keys on the target object (ie, CaseFieldKeys)
- * @param obj A blank/default object of the target type (ie, createNewCaseField)
- * @returns An answers object with answers to questions automatically asked based on the passed in object
- */
-export async function createTemplate<T, P>(answers: Answers = {}, keys: T, obj: P, sheet: keyof CCDSheets<CCDTypes>) {
-  const fields = Object.keys(keys)
-  const compoundKeys = COMPOUND_KEYS[sheet]
-
-  const tasks: Array<() => Promise<void>> = []
-  let existing: T | undefined
-
-  for (const field of fields) {
-    if (!compoundKeys.some(o => !answers[o])) {
-      existing = findETObject(answers, sheet)
-    }
-
-    const question = { name: field, message: `Give a value for ${field}`, default: existing?.[field] || session.lastAnswers[field], type: 'input' }
-
-    if (typeof (obj[field]) === 'number') {
-      question.type = 'number'
-    }
-
-    if (field === 'CaseEventID') {
-      answers = await askCaseEvent(answers, { choices: [NONE, ...getETCaseEventIDOpts()] })
-    } else if (field === 'CaseTypeID') {
-      answers = await askCaseTypeID(answers, { choices: getKnownETCaseTypeIDs() })
-    } else if (field === 'CaseFieldID') {
-      answers = await askCaseFieldID(answers, { choices: getKnownETCaseFieldIDsByEvent() })
-    } else {
-      answers = await prompt([question], answers)
-    }
-  }
-
-  for (const task of tasks) {
-    await task()
-  }
-
-  return answers
 }
 
 export function addFlexRegion(question: Question = {}) {

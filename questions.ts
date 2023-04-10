@@ -2,9 +2,9 @@ import inquirer, { prompt } from 'inquirer'
 import { COMPOUND_KEYS, CUSTOM, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, isFieldTypeInExclusionList, NO, NONE, NO_DUPLICATE, YES, YES_OR_NO } from 'app/constants'
 import { session } from 'app/session'
 import fuzzy from 'fuzzy'
-import { AllCCDKeys, CaseEventKeys, CaseEventToField, CaseEventToFieldKeys, CaseField, CaseFieldKeys, CCDSheets, CCDTypes, ComplexType, ComplexTypeKeys, ConfigSheets, EventToComplexTypeKeys, ScrubbedKeys } from 'types/ccd'
+import { AllCCDKeys, CaseEventKeys, CaseEventToField, CaseEventToFieldKeys, CaseFieldKeys, CCDSheets, CCDTypes, ComplexTypeKeys, ConfigSheets, EventToComplexTypeKeys } from 'types/ccd'
 import { format, getIdealSizeForInquirer, remove } from 'app/helpers'
-import { findObject, getCaseEventIDOpts, getKnownCaseFieldIDs, getKnownCaseFieldTypeParameters, getKnownCaseFieldTypes, getKnownCaseTypeIDs, getKnownComplexTypeListElementCodes, upsertConfigs } from './configs'
+import { findObject, getCaseEventIDOpts, getKnownCaseFieldIDs, getKnownCaseFieldTypeParameters, getKnownCaseFieldTypes, getKnownCaseTypeIDs, getKnownComplexTypeListElementCodes, getLastPageInEvent, getNextPageFieldIDForPage, upsertConfigs } from './configs'
 import { createEvent } from './journeys/base/createEvent'
 import { createScrubbedList } from './journeys/base/createScrubbed'
 import { createSingleField } from './journeys/base/createSingleField'
@@ -105,51 +105,8 @@ export function fuzzySearch(choices: string[], input = '', sortChoices = true) {
   return fuzzy.filter(input, choices).map((el) => el.original)
 }
 
-export async function askForRegularExpression(answers: Answers = {}, question: Question = {}) {
-  question.name ||= CaseFieldKeys.RegularExpression
-  question.message ||= QUESTION_REGULAR_EXPRESSION
-
-  return await prompt([{ ...question }], answers)
-}
-
-export async function askRetainHiddenValue(answers: Answers = {}, question: Question = {}) {
-  question.name ||= CaseEventToFieldKeys.RetainHiddenValue
-  question.message ||= QUESTION_RETAIN_HIDDEN_VALUE
-
-  return await prompt([{ type: 'list', choices: YES_OR_NO, ...question }], answers)
-}
-
-export async function askMinAndMax(answers: Answers = {}, existingCaseField?: CaseField | ComplexType) {
-  return await prompt([
-    { name: CaseFieldKeys.Min, message: QUESTION_MIN, default: existingCaseField?.Min },
-    { name: CaseFieldKeys.Max, message: QUESTION_MAX, default: existingCaseField?.Max }
-  ], answers)
-}
-
-export async function askForPageID(answers: Answers = {}, question: Question = {}) {
-  question.name ||= CaseEventToFieldKeys.PageID
-  question.message ||= QUESTION_PAGE_ID
-  question.default ||= session.lastAnswers[CaseEventToFieldKeys.PageID] || 1
-
-  return await prompt([{ type: 'number', ...question }], answers)
-}
-
-export async function askForPageFieldDisplayOrder(answers: Answers = {}, question: Question = {}) {
-  question.name ||= CaseEventToFieldKeys.PageFieldDisplayOrder
-  question.message ||= QUESTION_PAGE_FIELD_DISPLAY_ORDER
-
-  return await prompt([{ type: 'number', ...question }], answers)
-}
-
 export async function askAutoComplete(answers: Answers = {}, question: Question = {}) {
-  return await prompt([
-    {
-      type: 'autocomplete',
-      source: (_answers: unknown, input: string) => fuzzySearch(question.choices, input, question.sort),
-      pageSize: getIdealSizeForInquirer(),
-      ...question
-    }
-  ], answers)
+  return await prompt(addAutoCompleteQuestion(question), answers)
 }
 
 export async function sayWarning(journeyFn: () => Promise<void>) {
@@ -235,34 +192,6 @@ export async function askCaseEvent(answers: Answers = {}, question: Question = {
   return answers
 }
 
-export async function askFieldType(answers: Answers = {}, question: Question = {}) {
-  question.name ||= CaseFieldKeys.FieldType
-  question.message ||= QUESTION_FIELD_TYPE
-  question.default ||= 'Label'
-  question.choices ||= getKnownCaseFieldTypes()
-
-  remove(question.choices, CUSTOM)
-  question.choices.splice(0, 0, CUSTOM)
-
-  answers = await prompt([
-    {
-      type: 'autocomplete',
-      source: (_answers: unknown, input: string) => fuzzySearch(question.choices, input),
-      pageSize: getIdealSizeForInquirer(),
-      ...question
-    }
-  ], answers)
-
-  const key = question.name
-
-  if (answers[key] === CUSTOM) {
-    const customFieldType = await askBasicFreeEntry({}, { name: key, message: QUESTION_FIELD_TYPE_FREE })
-    answers[key] = customFieldType[key]
-  }
-
-  return answers
-}
-
 export async function askCaseFieldID(answers: Answers = {}, question: Question = {}, createSingleFieldFn?: (answers: Answers) => Promise<string>) {
   question.name ||= EventToComplexTypeKeys.CaseFieldID
   question.message ||= QUESTION_CASE_FIELD_ID
@@ -309,75 +238,6 @@ export async function askCaseFieldID(answers: Answers = {}, question: Question =
 export async function askDuplicate(answers: Answers, opts = getKnownCaseTypeIDs()) {
   opts = opts.includes(NO_DUPLICATE) ? opts : [NO_DUPLICATE, ...opts]
   return await listOrFreeType(answers, { name: 'duplicate', message: QUESTION_DUPLICATE_ADDON, choices: opts, askAnswered: true })
-}
-
-export async function askComplexTypeListElementCode(answers: Answers = {}, question: Question = {}) {
-  question.name ||= ComplexTypeKeys.ListElementCode
-  question.message ||= QUESTION_LIST_ELEMENT_CODE
-  question.default ||= session.lastAnswers[question.name] || CUSTOM
-  question.choices ||= getKnownComplexTypeListElementCodes(answers[ComplexTypeKeys.ID])
-
-  remove(question.choices, CUSTOM)
-  question.choices.splice(0, 0, CUSTOM)
-
-  answers = await prompt([
-    {
-      type: 'autocomplete',
-      source: (_answers: unknown, input: string) => fuzzySearch(question.choices, input),
-      pageSize: getIdealSizeForInquirer(),
-      ...question
-    }
-  ], answers)
-
-  const key = question.name
-
-  if (answers[key] === CUSTOM) {
-    const customFieldType = await askBasicFreeEntry({}, { name: key, message: QUESTION_LIST_ELEMENT_CODE })
-    answers[key] = customFieldType[key]
-  }
-
-  return answers
-}
-
-export async function askFieldTypeParameter(answers: Answers = {}, question: Question = {}) {
-  question.name ||= CaseFieldKeys.FieldTypeParameter
-  question.message ||= format(QUESTION_FIELD_TYPE_PARAMETER, answers[CaseFieldKeys.FieldType])
-  question.default ||= NONE
-  question.choices ||= getKnownCaseFieldTypeParameters()
-
-  remove(question.choices, CUSTOM)
-  question.choices.splice(0, 0, CUSTOM)
-  remove(question.choices, NONE)
-  question.choices.splice(1, 0, NONE)
-
-  answers = await prompt([
-    {
-      type: 'autocomplete',
-      source: (_answers: unknown, input: string) => fuzzySearch(question.choices, input),
-      pageSize: getIdealSizeForInquirer(),
-      ...question
-    }
-  ], answers)
-
-  const key = question.name
-
-  if (answers[key] === NONE) {
-    answers[key] = ''
-    return answers
-  }
-
-  if (answers[key] !== CUSTOM) {
-    return answers
-  }
-
-  const followup = await prompt([{ name: 'journey', message: QUESTION_FIELD_TYPE_PARAMETER_CUSTOM, choices: Object.values(FIELD_TYPE_PARAMETERS_CUSTOM_OPTS), type: 'list' }])
-  if (createJourneys.createScrubbed && followup.journey === FIELD_TYPE_PARAMETERS_CUSTOM_OPTS.ScrubbedList) {
-    const created = await createJourneys.createScrubbed({ [ScrubbedKeys.ID]: CUSTOM })
-    answers[key] = created.Scrubbed[0].ID
-    return answers
-  }
-
-  return await askBasicFreeEntry(answers, { name: key, message: QUESTION_FIELD_TYPE_PARAMETER_FREE })
 }
 
 /**
@@ -451,9 +311,7 @@ export async function askFirstOnPageQuestions(answers: Answers = {}, existingCas
 export async function askYesOrNo(answers: Answers = {}, question: Question = {}) {
   question.name ||= 'yesOrNo'
 
-  return await prompt([
-    { type: 'list', choices: YES_OR_NO, askAnswered: true, ...question }
-  ], answers)
+  return await prompt([{ type: 'list', choices: YES_OR_NO, askAnswered: true, ...question }], answers)
 }
 
 export function addComplexTypeListElementCodeQuestion(answers: Answers = {}, question: Question = {}) {
@@ -530,20 +388,6 @@ export function addFieldTypeParameterQuestion(question: Question = {}) {
       askAnswered: true
     }
   ]
-
-  // const key = question.name
-
-  // if (answers[key] !== CUSTOM) {
-  //   return answers
-  // }
-
-  // const followup = await prompt([{ name: 'journey', message: QUESTION_FIELD_TYPE_PARAMETER_CUSTOM, choices: Object.values(FIELD_TYPE_PARAMETERS_CUSTOM_OPTS), type: 'list' }])
-  // if (followup.journey === FIELD_TYPE_PARAMETERS_CUSTOM_OPTS.ScrubbedList) {
-  //   answers[key] = await createFixedListFn({ [ScrubbedKeys.ID]: CUSTOM })
-  //   return answers
-  // }
-
-  // return await askBasicFreeEntry(answers, { name: key, message: QUESTION_FIELD_TYPE_PARAMETER_FREE })
 }
 
 export function addAutoCompleteQuestion(question: Question = {}) {
@@ -596,7 +440,7 @@ export function addMaxQuestion(question: Question = {}) {
 export function addPageIDQuestion(question: Question = {}) {
   question.name ||= CaseEventToFieldKeys.PageID
   question.message ||= QUESTION_PAGE_ID
-  question.default ||= session.lastAnswers[CaseEventToFieldKeys.PageID] || 1
+  question.default ||= (answers: Answers) => session.lastAnswers[CaseEventToFieldKeys.PageID] || getLastPageInEvent(answers.CaseTypeID, answers.CaseEventID) || 1
 
   return [{ type: 'number', ...question }]
 }
@@ -604,6 +448,7 @@ export function addPageIDQuestion(question: Question = {}) {
 export function addPageFieldDisplayOrderQuestion(question: Question = {}) {
   question.name ||= CaseEventToFieldKeys.PageFieldDisplayOrder
   question.message ||= QUESTION_PAGE_FIELD_DISPLAY_ORDER
+  question.default ||= (answers: Answers) => getNextPageFieldIDForPage(answers.CaseTypeID, answers.CaseEventID, answers.PageID)
 
   return [{ type: 'number', ...question }]
 }

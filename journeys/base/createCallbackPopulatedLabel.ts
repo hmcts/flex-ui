@@ -1,11 +1,13 @@
 import { prompt } from 'inquirer'
 import { CaseEventToFieldKeys, CaseFieldKeys } from 'types/ccd'
 import { Journey } from 'types/journey'
-import { addonDuplicateQuestion, Answers, askCaseEvent, askCaseTypeID, askFirstOnPageQuestions, askForPageFieldDisplayOrder, askForPageID } from 'app/questions'
+import { addCaseEvent, addCaseTypeIDQuestion, addonDuplicateQuestion, addPageFieldDisplayOrderQuestion, addPageIDQuestion, Answers, createJourneys, Question, QUESTION_CALLBACK_URL_MID_EVENT, QUESTION_PAGE_LABEL, QUESTION_PAGE_SHOW_CONDITION, spliceCustomQuestionIndex } from 'app/questions'
 import { createNewCaseEventToField, createNewCaseField, trimCaseEventToField, trimCaseField } from 'app/ccd'
 import { QUESTION_FIELD_SHOW_CONDITION, QUESTION_ID } from './createSingleField'
 import { addToLastAnswers, addToSession } from 'app/session'
 import { upsertConfigs } from 'app/configs'
+import { upsertFields } from 'app/helpers'
+import { YES } from 'app/constants'
 
 async function journey(answers: Answers = {}) {
   const created = await createCallbackPopulatedLabel(answers)
@@ -14,22 +16,30 @@ async function journey(answers: Answers = {}) {
   upsertConfigs(created)
 }
 
-export async function createCallbackPopulatedLabel(answers: Answers = {}) {
-  answers = await askCaseTypeID(answers)
-  answers = await askCaseEvent(answers, undefined, true)
+function addCallbackPopulatedQuestions() {
+  const whenFirstOnPage = (answers: Answers) => answers[CaseEventToFieldKeys.PageFieldDisplayOrder] === 1
 
-  answers = await prompt(
-    [
-      { name: CaseFieldKeys.ID, message: QUESTION_ID, default: 'id' },
-      { name: CaseEventToFieldKeys.FieldShowCondition, message: QUESTION_FIELD_SHOW_CONDITION }
-    ], answers
-  )
+  return [
+    ...addCaseTypeIDQuestion(),
+    ...addCaseEvent(),
+    { name: CaseFieldKeys.ID, message: QUESTION_ID, default: 'id' },
+    { name: CaseEventToFieldKeys.FieldShowCondition, message: QUESTION_FIELD_SHOW_CONDITION },
+    ...addPageIDQuestion(),
+    ...addPageFieldDisplayOrderQuestion(),
+    { name: CaseEventToFieldKeys.PageLabel, message: QUESTION_PAGE_LABEL, when: whenFirstOnPage },
+    { name: CaseEventToFieldKeys.PageShowCondition, message: QUESTION_PAGE_SHOW_CONDITION, when: whenFirstOnPage },
+    { name: CaseEventToFieldKeys.CallBackURLMidEvent, message: QUESTION_CALLBACK_URL_MID_EVENT, when: whenFirstOnPage }
+  ] as Question[]
+}
 
-  answers = await askForPageID(answers)
-  answers = await askForPageFieldDisplayOrder(answers)
+export async function createCallbackPopulatedLabel(answers: Answers = {}, questions: Question[] = []) {
+  const ask = addCallbackPopulatedQuestions()
+  upsertFields(ask, questions, ['name'], spliceCustomQuestionIndex)
 
-  if (answers[CaseEventToFieldKeys.PageFieldDisplayOrder] === 1) {
-    answers = await askFirstOnPageQuestions(answers)
+  answers = await prompt(ask, answers)
+
+  if (answers.createEvent === YES) {
+    await createJourneys.createEvent({ ID: answers.CaseEventID, CaseTypeID: answers.CaseTypeID })
   }
 
   addToLastAnswers(answers)
