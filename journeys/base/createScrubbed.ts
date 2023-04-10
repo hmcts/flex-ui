@@ -13,8 +13,8 @@ const QUESTION_LIST_ELEMENT_CODE = 'Give a ListElementCode for this item'
 const QUESTION_DISPLAY_ORDER = 'Whats the DisplayOrder for this item?'
 export const QUESTION_ADD_ANOTHER = 'Add another?'
 
-export async function createScrubbedList() {
-  let answers = { yesOrNo: YES }
+export async function createScrubbedList(answers: Answers = {}) {
+  answers = { ...answers, yesOrNo: YES }
   const created: Partial<ConfigSheets> = { Scrubbed: [] }
 
   answers = await prompt(addAutoCompleteQuestion({
@@ -28,9 +28,11 @@ export async function createScrubbedList() {
 
   while (answers.yesOrNo !== NO) {
     const item = await createSingleScrubbedEntry(answers)
-    upsertFields(created.Scrubbed, [item], COMPOUND_KEYS.Scrubbed)
-    addToSession(created)
-    upsertConfigs(created)
+    if (item.ListElement) {
+      upsertFields(created.Scrubbed, [item], COMPOUND_KEYS.Scrubbed)
+      addToSession(created)
+      upsertConfigs(created)
+    }
     answers = await askYesOrNo(answers, { message: QUESTION_ADD_ANOTHER })
   }
 

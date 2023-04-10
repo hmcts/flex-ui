@@ -20,8 +20,8 @@ export async function createCallbackPopulatedLabel(answers: Answers = {}) {
 
   answers = await prompt(
     [
-      { name: CaseFieldKeys.ID, message: QUESTION_ID, type: 'input', default: 'id' },
-      { name: CaseEventToFieldKeys.FieldShowCondition, message: QUESTION_FIELD_SHOW_CONDITION, type: 'input' }
+      { name: CaseFieldKeys.ID, message: QUESTION_ID, default: 'id' },
+      { name: CaseEventToFieldKeys.FieldShowCondition, message: QUESTION_FIELD_SHOW_CONDITION }
     ], answers
   )
 

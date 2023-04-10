@@ -36,17 +36,17 @@ function getDefaultValueForFieldDisplayOrder() {
 export async function createEventToComplexType(answers: Answers = {}) {
   answers = await askCaseEvent(answers, { message: QUESTION_CASE_EVENT_ID })
 
-  answers = await prompt([{ name: EventToComplexTypeKeys.ID, message: QUESTION_ID, type: 'input', default: session.lastAnswers.ID }], answers)
+  answers = await prompt([{ name: EventToComplexTypeKeys.ID, message: QUESTION_ID, default: session.lastAnswers.ID }], answers)
 
   answers = await askCaseFieldID(answers)
 
   answers = await prompt([
     { name: EventToComplexTypeKeys.ListElementCode, message: QUESTION_LIST_ELEMENT_CODE },
-    { name: EventToComplexTypeKeys.EventElementLabel, message: QUESTION_EVENT_ELEMENT_LABEL, type: 'input', default: session.lastAnswers.EventElementLabel },
+    { name: EventToComplexTypeKeys.EventElementLabel, message: QUESTION_EVENT_ELEMENT_LABEL, default: session.lastAnswers.EventElementLabel },
     { name: EventToComplexTypeKeys.FieldDisplayOrder, message: QUESTION_FIELD_DISPLAY_ORDER, type: 'number', default: getDefaultValueForFieldDisplayOrder },
     { name: EventToComplexTypeKeys.DisplayContext, message: QUESTION_DISPLAY_CONTEXT, type: 'list', choices: DISPLAY_CONTEXT_OPTIONS, default: session.lastAnswers.DisplayContext },
-    { name: EventToComplexTypeKeys.FieldShowCondition, message: QUESTION_FIELD_SHOW_CONDITION, type: 'input', default: session.lastAnswers.FieldShowCondition },
-    { name: EventToComplexTypeKeys.EventHintText, message: QUESTION_HINT_TEXT, type: 'input' }
+    { name: EventToComplexTypeKeys.FieldShowCondition, message: QUESTION_FIELD_SHOW_CONDITION, default: session.lastAnswers.FieldShowCondition },
+    { name: EventToComplexTypeKeys.EventHintText, message: QUESTION_HINT_TEXT }
   ], answers)
 
   answers = await askRetainHiddenValue(answers)

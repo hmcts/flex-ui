@@ -106,7 +106,7 @@ export async function createTemplate<T, P>(answers: Answers = {}, keys: T, obj: 
       existing = findETObject(answers, sheet)
     }
 
-    const question = { name: field, message: `Give a value for ${field}`, type: 'input', default: existing?.[field] || session.lastAnswers[field] }
+    const question = { name: field, message: `Give a value for ${field}`, default: existing?.[field] || session.lastAnswers[field], type: 'input' }
 
     if (typeof (obj[field]) === 'number') {
       question.type = 'number'

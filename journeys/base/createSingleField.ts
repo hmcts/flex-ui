@@ -1,11 +1,12 @@
 import { prompt } from 'inquirer'
 import { addToLastAnswers, addToSession, session } from 'app/session'
-import { CaseEventToField, CaseEventToFieldKeys, CaseField, CaseFieldKeys } from 'types/ccd'
-import { addonDuplicateQuestion, Answers, askAutoComplete, askCaseEvent, askCaseTypeID, askFieldType, askFieldTypeParameter, askFirstOnPageQuestions, askForPageFieldDisplayOrder, askForPageID, askForRegularExpression, askMinAndMax, askRetainHiddenValue } from 'app/questions'
-import { CUSTOM, DISPLAY_CONTEXT_OPTIONS, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, isFieldTypeInExclusionList, NONE, Y_OR_N } from 'app/constants'
+import { CaseEventToField, CaseEventToFieldKeys, CaseField, CaseFieldKeys, ScrubbedKeys } from 'types/ccd'
+import { addAutoCompleteQuestion, addCaseEvent, addCaseTypeIDQuestion, addFieldTypeParameterQuestion, addFieldTypeQuestion, addMaxQuestion, addMinQuestion, addonDuplicateQuestion, addPageFieldDisplayOrderQuestion, addPageIDQuestion, addRegularExpressionQuestion, addRetainHiddenValueQuestion, Answers, createJourneys, FIELD_TYPE_PARAMETERS_CUSTOM_OPTS, Question, QUESTION_CALLBACK_URL_MID_EVENT, QUESTION_PAGE_LABEL, QUESTION_PAGE_SHOW_CONDITION, spliceCustomQuestionIndex } from 'app/questions'
+import { CUSTOM, DISPLAY_CONTEXT_OPTIONS, NONE, YES, Y_OR_N } from 'app/constants'
 import { createNewCaseEventToField, createNewCaseField, trimCaseEventToField, trimCaseField } from 'app/ccd'
 import { Journey } from 'types/journey'
-import { findObject, getCaseEventIDOpts, getKnownCaseFieldIDsByEvent, getNextPageFieldIDForPage, upsertConfigs } from 'app/configs'
+import { findObject, getKnownCaseFieldIDsByEvent, getNextPageFieldIDForPage, upsertConfigs } from 'app/configs'
+import { upsertFields } from 'app/helpers'
 
 export const QUESTION_ID = 'What\'s the ID for this field?'
 export const QUESTION_ANOTHER = 'Do you want to upsert another?'
@@ -13,7 +14,6 @@ export const QUESTION_FIELD_SHOW_CONDITION = 'Enter a field show condition strin
 export const QUESTION_HINT_TEXT = 'What HintText should this field have? (optional)'
 
 const QUESTION_LABEL = 'What text (Label) should this field have?'
-const QUESTION_CASE_EVENT_ID = 'What event does this new field belong to?'
 const QUESTION_DISPLAY_CONTEXT = 'Is this field READONLY, OPTIONAL, MANDATORY or COMPLEX?'
 const QUESTION_SHOW_SUMMARY_CHANGE_OPTION = 'Should this field appear on the CYA page?'
 
@@ -23,72 +23,79 @@ async function journey() {
   upsertConfigs(created)
 }
 
+function findExistingFields(answers: Answers) {
+  const existingField: CaseField | undefined = findObject<CaseField>(answers, 'CaseField')
+  const existingCaseEventToField: CaseEventToField | undefined = findObject<CaseEventToField>({ ...answers, CaseFieldID: answers.ID }, 'CaseEventToFields')
+
+  return { ...existingField, ...existingCaseEventToField }
+}
+
+function addSingleFieldQuestions(existingFn: (answers: Answers) => CaseField & CaseEventToField = findExistingFields) {
+  const whenFirstOnPage = (answers: Answers) => answers[CaseEventToFieldKeys.CaseEventID] !== NONE && answers[CaseEventToFieldKeys.PageFieldDisplayOrder] === 1
+
+  const defaultFn = (key: keyof (Answers), or?: string | number | ((answers: Answers) => string | number)) => {
+    return (answers: Answers) => {
+      const orResult = typeof (or) === 'function' ? (or as any)(answers) : or
+      return existingFn(answers)?.[key] || orResult
+    }
+  }
+
+  const questions: Question[] = [
+    ...addCaseTypeIDQuestion(),
+    ...addCaseEvent(),
+    ...addAutoCompleteQuestion(
+      {
+        name: CaseFieldKeys.ID,
+        message: QUESTION_ID,
+        default: CUSTOM,
+        choices: ((answers: Answers) => [CUSTOM, ...getKnownCaseFieldIDsByEvent(answers[CaseEventToFieldKeys.CaseEventID])]) as any,
+        askAnswered: false,
+        sort: true
+      }
+    ),
+    ...addPageIDQuestion({ default: defaultFn('PageID', 1) }),
+    ...addPageFieldDisplayOrderQuestion({ default: defaultFn('PageFieldDisplayOrder', (answers: Answers) => getDefaultForPageFieldDisplayOrder(answers)) }),
+    ...addFieldTypeQuestion({ default: defaultFn('FieldType', 'Label') }),
+    ...addFieldTypeParameterQuestion({ default: defaultFn('FieldTypeParameter') }),
+    { name: CaseFieldKeys.Label, message: QUESTION_LABEL, type: 'input', default: defaultFn('Label', 'text') },
+    { name: CaseEventToFieldKeys.FieldShowCondition, message: QUESTION_FIELD_SHOW_CONDITION, when: shouldAskEventQuestions, default: defaultFn('FieldShowCondition') },
+    { name: CaseFieldKeys.HintText, message: QUESTION_HINT_TEXT, default: defaultFn('HintText') },
+    { name: CaseEventToFieldKeys.DisplayContext, message: QUESTION_DISPLAY_CONTEXT, type: 'list', choices: DISPLAY_CONTEXT_OPTIONS, default: defaultFn('DisplayContext', DISPLAY_CONTEXT_OPTIONS[1]) },
+    { name: CaseEventToFieldKeys.ShowSummaryChangeOption, message: QUESTION_SHOW_SUMMARY_CHANGE_OPTION, type: 'list', choices: Y_OR_N, default: defaultFn('ShowSummaryChangeOption'), when: shouldAskEventQuestions },
+    { name: CaseEventToFieldKeys.PageLabel, message: QUESTION_PAGE_LABEL, when: whenFirstOnPage, default: defaultFn('PageLabel') },
+    { name: CaseEventToFieldKeys.PageShowCondition, message: QUESTION_PAGE_SHOW_CONDITION, when: whenFirstOnPage, default: defaultFn('PageShowCondition') },
+    { name: CaseEventToFieldKeys.CallBackURLMidEvent, message: QUESTION_CALLBACK_URL_MID_EVENT, when: whenFirstOnPage, default: defaultFn('CallBackURLMidEvent') },
+    ...addRegularExpressionQuestion({ default: defaultFn('RegularExpression') }),
+    ...addMinQuestion({ default: defaultFn('Min') }),
+    ...addMaxQuestion({ default: defaultFn('Max') }),
+    ...addRetainHiddenValueQuestion({ default: defaultFn('RetainHiddenValue') })
+  ]
+
+  return questions
+}
+
 function shouldAskEventQuestions(answers: Answers) {
   return answers[CaseEventToFieldKeys.CaseEventID] !== NONE
 }
 
-export async function createSingleField(answers: Answers = {}) {
-  answers = await askCaseTypeID(answers)
-  answers = await askCaseEvent(answers, { message: QUESTION_CASE_EVENT_ID, choices: [NONE, ...getCaseEventIDOpts()] })
+export async function createSingleField(answers: Answers = {}, questions: Question[] = []) {
+  const ask = addSingleFieldQuestions()
+  upsertFields(ask, questions, ['name'], spliceCustomQuestionIndex)
 
-  const idOpts = getKnownCaseFieldIDsByEvent(answers[CaseEventToFieldKeys.CaseEventID])
+  answers = await prompt(ask, answers)
 
-  answers = await askAutoComplete(answers, { name: CaseFieldKeys.ID, message: QUESTION_ID, default: CUSTOM, choices: [CUSTOM, ...idOpts], askAnswered: false, sort: true })
-
-  if (answers[CaseFieldKeys.ID] === CUSTOM) {
-    answers = await prompt([{ name: CaseFieldKeys.ID, message: QUESTION_ID, type: 'input', default: 'id', askAnswered: true }], answers)
+  if (answers.createEvent === YES) {
+    await createJourneys.createEvent({ ID: answers.CaseEventID, CaseTypeID: answers.CaseTypeID })
   }
 
-  const existingField: CaseField | undefined = findObject<CaseField>(answers, 'CaseField')
-  const existingCaseEventToField: CaseEventToField | undefined = findObject<CaseEventToField>({ ...answers, CaseFieldID: answers.ID }, 'CaseEventToFields')
-
-  answers = await prompt(
-    [
-      { name: CaseFieldKeys.Label, message: QUESTION_LABEL, type: 'input', default: existingField?.Label || 'text' },
-      { name: CaseEventToFieldKeys.FieldShowCondition, message: QUESTION_FIELD_SHOW_CONDITION, type: 'input', default: existingCaseEventToField?.FieldShowCondition || '', when: shouldAskEventQuestions }
-    ], answers
-  )
-
-  const askEvent = answers[CaseEventToFieldKeys.CaseEventID] !== NONE
-
-  if (askEvent) {
-    answers = await askForPageID(answers, { default: existingCaseEventToField?.PageID })
-    answers = await askForPageFieldDisplayOrder(answers, { default: existingCaseEventToField?.PageFieldDisplayOrder || getDefaultForPageFieldDisplayOrder(answers) })
-  }
-
-  answers = await askFieldType(answers, { default: existingField?.FieldType })
-
-  if (!isFieldTypeInExclusionList(answers[CaseFieldKeys.FieldType], FIELD_TYPES_EXCLUDE_PARAMETER)) {
-    answers = await askFieldTypeParameter(answers, { default: existingField?.FieldTypeParameter })
-  }
-
-  if (answers[CaseFieldKeys.FieldType] !== 'Label') {
-    answers = await prompt([
-      { name: CaseFieldKeys.HintText, message: QUESTION_HINT_TEXT, type: 'input', default: existingField?.HintText },
-      { name: CaseEventToFieldKeys.DisplayContext, message: QUESTION_DISPLAY_CONTEXT, type: 'list', choices: DISPLAY_CONTEXT_OPTIONS, default: existingCaseEventToField?.DisplayContext || DISPLAY_CONTEXT_OPTIONS[1] },
-      { name: CaseEventToFieldKeys.ShowSummaryChangeOption, message: QUESTION_SHOW_SUMMARY_CHANGE_OPTION, type: 'list', choices: Y_OR_N, default: existingCaseEventToField?.ShowSummaryChangeOption || 'Y', when: shouldAskEventQuestions }
-    ], answers)
-  }
-
-  if (askEvent && answers[CaseEventToFieldKeys.PageFieldDisplayOrder] === 1) {
-    answers = await askFirstOnPageQuestions(answers, existingCaseEventToField)
-  }
-
-  if (answers[CaseFieldKeys.FieldType] === 'Text') {
-    answers = await askForRegularExpression(answers, { default: existingField?.RegularExpression })
-  }
-
-  if (!isFieldTypeInExclusionList(answers[CaseFieldKeys.FieldType], FIELD_TYPES_EXCLUDE_MIN_MAX)) {
-    answers = await askMinAndMax(answers, existingField)
-  }
-
-  if (askEvent && answers[CaseEventToFieldKeys.FieldShowCondition]) {
-    answers = await askRetainHiddenValue(answers, { default: existingCaseEventToField?.RetainHiddenValue })
+  if (answers.fieldTypeParameterJourney === FIELD_TYPE_PARAMETERS_CUSTOM_OPTS.ScrubbedList) {
+    await createJourneys.createScrubbed({ [ScrubbedKeys.ID]: CUSTOM })
   }
 
   addToLastAnswers(answers)
 
   return await addonDuplicateQuestion(answers, undefined, (answers: Answers) => {
+    const askEvent = answers[CaseEventToFieldKeys.CaseEventID] !== NONE
     const caseField = createNewCaseField(answers)
     const caseEventToField = askEvent ? createNewCaseEventToField(answers) : undefined
 

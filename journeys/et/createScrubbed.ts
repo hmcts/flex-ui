@@ -23,8 +23,8 @@ function getETQuestions() {
   ]
 }
 
-async function journey() {
-  let answers: Answers = { yesOrNo: YES }
+async function journey(answers: Answers = {}) {
+  answers = { ...answers, yesOrNo: YES }
   const created = { Scrubbed: [] }
 
   answers = await prompt(addAutoCompleteQuestion({
@@ -39,9 +39,10 @@ async function journey() {
   while (answers.yesOrNo !== NO) {
     answers = await askFlexRegion(answers)
     const item = await createSingleScrubbedEntry(answers, getETQuestions())
-    upsertFields(created.Scrubbed, addFlexRegionAndClone(answers[FLEX_REGION_ANSWERS_KEY] as Region[], item), COMPOUND_KEYS.Scrubbed)
-    addToInMemoryConfig(created)
-
+    if (item.ListElement) {
+      upsertFields(created.Scrubbed, addFlexRegionAndClone(answers[FLEX_REGION_ANSWERS_KEY] as Region[], item), COMPOUND_KEYS.Scrubbed)
+      addToInMemoryConfig(created)
+    }
     answers = await askYesOrNo(answers, { message: QUESTION_ADD_ANOTHER })
   }
 

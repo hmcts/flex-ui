@@ -1,5 +1,5 @@
 import inquirer, { prompt } from 'inquirer'
-import { COMPOUND_KEYS, CUSTOM, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, isFieldTypeInExclusionList, NO, NONE, NO_DUPLICATE, YES_OR_NO } from 'app/constants'
+import { COMPOUND_KEYS, CUSTOM, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, isFieldTypeInExclusionList, NO, NONE, NO_DUPLICATE, YES, YES_OR_NO } from 'app/constants'
 import { session } from 'app/session'
 import fuzzy from 'fuzzy'
 import { AllCCDKeys, CaseEventKeys, CaseEventToField, CaseEventToFieldKeys, CaseField, CaseFieldKeys, CCDSheets, CCDTypes, ComplexType, ComplexTypeKeys, ConfigSheets, EventToComplexTypeKeys, ScrubbedKeys } from 'types/ccd'
@@ -8,12 +8,12 @@ import { findObject, getCaseEventIDOpts, getKnownCaseFieldIDs, getKnownCaseField
 import { createEvent } from './journeys/base/createEvent'
 import { createScrubbedList } from './journeys/base/createScrubbed'
 
-const QUESTION_REGULAR_EXPRESSION = 'Do we need a RegularExpression for the field?'
+export const QUESTION_REGULAR_EXPRESSION = 'Do we need a RegularExpression for the field?'
 export const QUESTION_RETAIN_HIDDEN_VALUE = 'Should the field retain its value when hidden?'
-const QUESTION_MIN = 'Enter a min for this field (optional)'
-const QUESTION_MAX = 'Enter a max for this field (optional)'
-const QUESTION_PAGE_ID = 'What page will this appear on?'
-const QUESTION_PAGE_FIELD_DISPLAY_ORDER = 'Whats the PageFieldDisplayOrder for this?'
+export const QUESTION_MIN = 'Enter a min for this field (optional)'
+export const QUESTION_MAX = 'Enter a max for this field (optional)'
+export const QUESTION_PAGE_ID = 'What page will this appear on?'
+export const QUESTION_PAGE_FIELD_DISPLAY_ORDER = 'Whats the PageFieldDisplayOrder for this?'
 export const QUESTION_CASE_TYPE_ID = 'What\'s the CaseTypeID?'
 export const QUESTION_CASE_EVENT_ID = 'What\'s the event ID?'
 export const QUESTION_CASE_FIELD_ID = 'What field does this reference?'
@@ -21,22 +21,22 @@ export const QUESTION_LIST_ELEMENT_CODE = 'What ListElementCode does this refere
 export const QUESTION_FIELD_TYPE = 'What\'s the type of this field?'
 export const QUESTION_FIELD_TYPE_PARAMETER = 'What\'s the parameter for this {0} field?'
 export const QUESTION_FIELD_TYPE_PARAMETER_FREE = 'Enter a value for FieldTypeParameter'
-const QUESTION_FIELD_TYPE_FREE = 'Enter a value for FieldType'
-const QUESTION_CASE_TYPE_ID_CUSTOM = 'Enter a custom value for CaseTypeID'
-const QUESTION_CREATE = 'Would you like to create a new {0} with ID {1}?'
-const QUESTION_DUPLICATE_ADDON = 'Do we need this field duplicated under another caseTypeID?'
-const QUESTION_FIELD_TYPE_PARAMETER_CUSTOM = 'Do you want to create a new scrubbed list or free text enter a FieldTypeParameter?'
-const QUESTION_PAGE_LABEL = 'Does this page have a custom title? (optional)'
-const QUESTION_PAGE_SHOW_CONDITION = 'Enter a page show condition string (optional)'
-const QUESTION_CALLBACK_URL_MID_EVENT = 'Enter the callback url to hit before loading the next page (optional)'
+export const QUESTION_FIELD_TYPE_FREE = 'Enter a value for FieldType'
+export const QUESTION_CASE_TYPE_ID_CUSTOM = 'Enter a custom value for CaseTypeID'
+export const QUESTION_CREATE = 'Would you like to create a new {0} with ID {1}?'
+export const QUESTION_DUPLICATE_ADDON = 'Do we need this field duplicated under another caseTypeID?'
+export const QUESTION_FIELD_TYPE_PARAMETER_CUSTOM = 'Do you want to create a new scrubbed list or free text enter a FieldTypeParameter?'
+export const QUESTION_PAGE_LABEL = 'Does this page have a custom title? (optional)'
+export const QUESTION_PAGE_SHOW_CONDITION = 'Enter a page show condition string (optional)'
+export const QUESTION_CALLBACK_URL_MID_EVENT = 'Enter the callback url to hit before loading the next page (optional)'
 
-const FIELD_TYPE_PARAMETERS_CUSTOM_OPTS = {
-  ScrubbedList: 'Create a new Scrubbed List and use that',
+export const FIELD_TYPE_PARAMETERS_CUSTOM_OPTS = {
+  ScrubbedList: 'Create a new Scrubbed List (after this) and use that',
   FreeText: 'Enter a custom value for FieldTypeParameter'
 }
 
 export type Answers = AllCCDKeys & Record<string, unknown>
-export type Question = inquirer.Question & { name?: string, choices?: string[], sort?: boolean, index?: number, before?: string, after?: string }
+export type Question = inquirer.Question & { name?: string, choices?: string[], sort?: boolean, index?: number, before?: string, after?: string, fallbackDefault?: string | ((answers: Answers) => string) }
 
 export const createJourneys: Record<string, (answers: Answers) => Promise<Partial<ConfigSheets>>> = {
   createEvent,
@@ -102,7 +102,7 @@ export async function askForRegularExpression(answers: Answers = {}, question: Q
   question.name ||= CaseFieldKeys.RegularExpression
   question.message ||= QUESTION_REGULAR_EXPRESSION
 
-  return await prompt([{ type: 'input', ...question }], answers)
+  return await prompt([{ ...question }], answers)
 }
 
 export async function askRetainHiddenValue(answers: Answers = {}, question: Question = {}) {
@@ -393,7 +393,7 @@ export async function createTemplate<T, P>(answers: Answers = {}, keys: T, obj: 
       existing = findObject(answers, sheet)
     }
 
-    const question = { name: field, message: `Give a value for ${field}`, type: 'input', default: existing?.[field] || session.lastAnswers[field] }
+    const question = { name: field, message: `Give a value for ${field}`, default: existing?.[field] || session.lastAnswers[field], type: 'input' }
 
     if (typeof (obj[field]) === 'number') {
       question.type = 'number'
@@ -435,9 +435,9 @@ export async function addonDuplicateQuestion(answers: Answers, opts = getKnownCa
 
 export async function askFirstOnPageQuestions(answers: Answers = {}, existingCaseEventToField?: CaseEventToField) {
   return await prompt([
-    { name: CaseEventToFieldKeys.PageLabel, message: QUESTION_PAGE_LABEL, type: 'input', default: existingCaseEventToField?.PageLabel },
-    { name: CaseEventToFieldKeys.PageShowCondition, message: QUESTION_PAGE_SHOW_CONDITION, type: 'input', default: existingCaseEventToField?.PageShowCondition },
-    { name: CaseEventToFieldKeys.CallBackURLMidEvent, message: QUESTION_CALLBACK_URL_MID_EVENT, type: 'input', default: existingCaseEventToField?.CallBackURLMidEvent }
+    { name: CaseEventToFieldKeys.PageLabel, message: QUESTION_PAGE_LABEL, default: existingCaseEventToField?.PageLabel },
+    { name: CaseEventToFieldKeys.PageShowCondition, message: QUESTION_PAGE_SHOW_CONDITION, default: existingCaseEventToField?.PageShowCondition },
+    { name: CaseEventToFieldKeys.CallBackURLMidEvent, message: QUESTION_CALLBACK_URL_MID_EVENT, default: existingCaseEventToField?.CallBackURLMidEvent }
   ], answers)
 }
 
@@ -510,14 +510,14 @@ export function addFieldTypeParameterQuestion(question: Question = {}) {
     },
     {
       when: (answers: Answers) => answers[question.name] === CUSTOM,
-      name: 'journey',
+      name: 'fieldTypeParameterJourney',
       message: QUESTION_FIELD_TYPE_PARAMETER_CUSTOM,
       choices: Object.values(FIELD_TYPE_PARAMETERS_CUSTOM_OPTS),
       type: 'list',
       askAnswered: true
     },
     {
-      when: (answers: Answers) => answers.journey === FIELD_TYPE_PARAMETERS_CUSTOM_OPTS.FreeText,
+      when: (answers: Answers) => answers.fieldTypeParameterJourney === FIELD_TYPE_PARAMETERS_CUSTOM_OPTS.FreeText,
       name: question.name,
       message: QUESTION_FIELD_TYPE_PARAMETER_FREE,
       askAnswered: true
@@ -584,6 +584,62 @@ export function addMaxQuestion(question: Question = {}) {
   question.when = (answers: Answers) => !isFieldTypeInExclusionList(answers.FieldType, FIELD_TYPES_EXCLUDE_MIN_MAX)
 
   return [question]
+}
+
+export function addPageIDQuestion(question: Question = {}) {
+  question.name ||= CaseEventToFieldKeys.PageID
+  question.message ||= QUESTION_PAGE_ID
+  question.default ||= session.lastAnswers[CaseEventToFieldKeys.PageID] || 1
+
+  return [{ type: 'number', ...question }]
+}
+
+export function addPageFieldDisplayOrderQuestion(question: Question = {}) {
+  question.name ||= CaseEventToFieldKeys.PageFieldDisplayOrder
+  question.message ||= QUESTION_PAGE_FIELD_DISPLAY_ORDER
+
+  return [{ type: 'number', ...question }]
+}
+
+export function addRetainHiddenValueQuestion(question: Question = {}) {
+  question.name ||= CaseEventToFieldKeys.RetainHiddenValue
+  question.message ||= QUESTION_RETAIN_HIDDEN_VALUE
+  question.when ||= (answers: Answers) => answers.FieldShowCondition?.length > 1
+
+  return [{ type: 'list', choices: YES_OR_NO, ...question }]
+}
+
+export function addCaseTypeIDQuestion(question: Question = {}) {
+  question.name ||= CaseFieldKeys.CaseTypeID
+  question.message ||= QUESTION_CASE_TYPE_ID
+  question.default ||= session.lastAnswers[question.name]
+  question.choices ||= [CUSTOM, ...getKnownCaseTypeIDs()]
+
+  return addAutoCompleteQuestion(question)
+}
+
+export function addCaseEvent(question: Question = {}, allowCreate = true) {
+  question.name ||= CaseEventToFieldKeys.CaseEventID
+  question.message ||= QUESTION_CASE_EVENT_ID
+  question.default ||= session.lastAnswers[question.name]
+  question.choices ||= [CUSTOM, NONE, ...getCaseEventIDOpts()]
+
+  remove(question.choices, CUSTOM)
+  question.choices.splice(0, 0, CUSTOM)
+  remove(question.choices, NONE)
+  question.choices.splice(1, 0, NONE)
+
+  return [
+    ...addAutoCompleteQuestion(question),
+    {
+      when: (answers: Answers) => allowCreate && answers[question.name] !== NONE && !findObject({ CaseTypeID: answers.CaseTypeID, ID: answers.CaseEventID }, 'CaseEvent'),
+      name: 'createEvent',
+      message: 'This CaseEvent does not exist, would you like to create it after this?',
+      type: 'list',
+      choices: YES_OR_NO,
+      default: YES
+    }
+  ]
 }
 
 export function spliceCustomQuestionIndex(obj: Question, arr: Question[]) {

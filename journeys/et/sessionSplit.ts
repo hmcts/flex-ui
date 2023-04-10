@@ -48,7 +48,7 @@ async function splitSession() {
   const fieldCountOnPage = validPages[answers.PageID]
 
   const followup = await prompt([
-    { name: 'sessionName', message: format(QUESTION_NAME, fieldCountOnPage), type: 'input' }
+    { name: 'sessionName', message: format(QUESTION_NAME, fieldCountOnPage) }
   ])
 
   createSessionFromPage(answers.PageID, followup.sessionName)
@@ -64,7 +64,7 @@ async function splitPageByPage(fieldCountByPage: Record<number, number>) {
     const fieldCountOnPage = fieldCountByPage[i]
 
     const answers = await prompt([
-      { name: 'sessionName', message: format(QUESTION_NAME_BY_PAGE, i, fieldCountOnPage), type: 'input' }
+      { name: 'sessionName', message: format(QUESTION_NAME_BY_PAGE, i, fieldCountOnPage) }
     ])
 
     createSessionFromPage(i, answers.sessionName)
@@ -83,7 +83,7 @@ async function splitRangePage(pageChoices: Array<{ name: string, value: number }
 
   answers = await prompt([
     { name: 'lastPage', message: QUESTION_PAGE_ID_END, type: 'list', choices: [...lastPageChoice, new Separator()] },
-    { name: 'sessionName', message: QUESTION_NAME_NO_COUNT, type: 'input' }
+    { name: 'sessionName', message: QUESTION_NAME_NO_COUNT }
   ], answers)
 
   const newSession = createNewSession(answers.sessionName)
