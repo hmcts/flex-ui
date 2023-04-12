@@ -1,5 +1,6 @@
 import { CCD_FIELD_TYPES, COMPOUND_KEYS, NONE } from "./constants"
 import { getUniqueByKey, getUniqueByKeyAsArray, groupBy, upsertFields } from "./helpers"
+import { Answers } from "./questions"
 import { CaseEventToField, CaseField, CCDTypes, ConfigSheets, createNewConfigSheets } from "./types/ccd"
 
 export const sheets: ConfigSheets = createNewConfigSheets()
@@ -14,6 +15,7 @@ export function upsertConfigs(from: Partial<ConfigSheets>, to: Partial<ConfigShe
   Object.keys(from).forEach(key => {
     upsertFields(to[key], from[key], COMPOUND_KEYS[key])
   })
+  return to
 }
 
 export function findObject<T>(keys: Record<string, any>, sheetName: keyof CCDTypes, configSheets: ConfigSheets = sheets): T | undefined {
@@ -129,4 +131,12 @@ export function getNextPageFieldIDForPage(caseTypeID: string, caseEventID: strin
 export function getLastPageInEvent(caseTypeID: string, caseEventID: string, configSheets: ConfigSheets = sheets) {
   const fields = configSheets.CaseEventToFields.filter(o => o.CaseTypeID === caseTypeID && o.CaseEventID === caseEventID)
   return Math.max(...fields.map(o => o.PageID))
+}
+
+export function duplicateForCaseTypeIDs(answers: Answers, createFn: (answers: Answers) => Partial<ConfigSheets>) {
+  const dupes = (answers.duplicate as string[]).reduce((acc, obj) => {
+    return upsertConfigs(createFn({ ...answers, CaseTypeID: obj }), acc)
+  }, createNewConfigSheets())
+
+  return upsertConfigs(createFn(answers), dupes)
 }

@@ -1,11 +1,11 @@
 import { prompt } from 'inquirer'
 import { CaseEventToFieldKeys, CaseFieldKeys } from 'types/ccd'
 import { Journey } from 'types/journey'
-import { addCaseEvent, addCaseTypeIDQuestion, addonDuplicateQuestion, addPageFieldDisplayOrderQuestion, addPageIDQuestion, Answers, createJourneys, Question, QUESTION_CALLBACK_URL_MID_EVENT, QUESTION_PAGE_LABEL, QUESTION_PAGE_SHOW_CONDITION, spliceCustomQuestionIndex } from 'app/questions'
+import { addCaseEvent, addCaseTypeIDQuestion, addDuplicateToCaseTypeID, addPageFieldDisplayOrderQuestion, addPageIDQuestion, Answers, createJourneys, Question, QUESTION_CALLBACK_URL_MID_EVENT, QUESTION_PAGE_LABEL, QUESTION_PAGE_SHOW_CONDITION, spliceCustomQuestionIndex } from 'app/questions'
 import { createNewCaseEventToField, createNewCaseField, trimCaseEventToField, trimCaseField } from 'app/ccd'
 import { QUESTION_FIELD_SHOW_CONDITION, QUESTION_ID } from './createSingleField'
 import { addToLastAnswers, addToSession } from 'app/session'
-import { upsertConfigs } from 'app/configs'
+import { duplicateForCaseTypeIDs, upsertConfigs } from 'app/configs'
 import { upsertFields } from 'app/helpers'
 import { YES } from 'app/constants'
 
@@ -28,7 +28,8 @@ function addCallbackPopulatedQuestions() {
     ...addPageFieldDisplayOrderQuestion(),
     { name: CaseEventToFieldKeys.PageLabel, message: QUESTION_PAGE_LABEL, when: whenFirstOnPage },
     { name: CaseEventToFieldKeys.PageShowCondition, message: QUESTION_PAGE_SHOW_CONDITION, when: whenFirstOnPage },
-    { name: CaseEventToFieldKeys.CallBackURLMidEvent, message: QUESTION_CALLBACK_URL_MID_EVENT, when: whenFirstOnPage }
+    { name: CaseEventToFieldKeys.CallBackURLMidEvent, message: QUESTION_CALLBACK_URL_MID_EVENT, when: whenFirstOnPage },
+    ...addDuplicateToCaseTypeID()
   ] as Question[]
 }
 
@@ -38,13 +39,19 @@ export async function createCallbackPopulatedLabel(answers: Answers = {}, questi
 
   answers = await prompt(ask, answers)
 
+  const created = constructFromAnswers(answers)
+
   if (answers.createEvent === YES) {
-    await createJourneys.createEvent({ ID: answers.CaseEventID, CaseTypeID: answers.CaseTypeID })
+    await createJourneys.createEvent({ ID: answers.CaseEventID, CaseTypeID: answers.CaseTypeID, duplicate: answers.duplicate })
   }
 
   addToLastAnswers(answers)
 
-  return await addonDuplicateQuestion(answers, undefined, (answers: Answers) => {
+  return created
+}
+
+export function constructFromAnswers(answers: Answers) {
+  const createFn = (answers: Answers) => {
     const caseField = createNewCaseField({
       ...answers,
       FieldType: 'Text',
@@ -80,7 +87,9 @@ export async function createCallbackPopulatedLabel(answers: Answers = {}, questi
       CaseField: [trimCaseField(caseField), trimCaseField(caseFieldLabel)],
       CaseEventToFields: [trimCaseEventToField(caseEventToField), trimCaseEventToField(caseEventToFieldLabel)]
     }
-  })
+  }
+
+  return duplicateForCaseTypeIDs(answers, createFn)
 }
 
 export default {

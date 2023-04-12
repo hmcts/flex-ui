@@ -26,6 +26,7 @@ export const QUESTION_FIELD_TYPE_FREE = 'Enter a value for FieldType'
 export const QUESTION_CASE_TYPE_ID_CUSTOM = 'Enter a custom value for CaseTypeID'
 export const QUESTION_CREATE = 'Would you like to create a new {0} with ID {1}?'
 export const QUESTION_DUPLICATE_ADDON = 'Do we need this field duplicated under another caseTypeID?'
+export const QUESTION_DUPLICATE = 'Select caseTypeIDs to duplicate this to (optional)'
 export const QUESTION_FIELD_TYPE_PARAMETER_CUSTOM = 'Do you want to create a new scrubbed list or free text enter a FieldTypeParameter?'
 export const QUESTION_PAGE_LABEL = 'Does this page have a custom title? (optional)'
 export const QUESTION_PAGE_SHOW_CONDITION = 'Enter a page show condition string (optional)'
@@ -45,7 +46,7 @@ export const createJourneys: {
   createScrubbed: CreateJourneyFn
   createField: CreateJourneyFn
 } = {
-  createEvent,
+  createEvent: createEvent,
   createScrubbed: createScrubbedList,
   createField: createSingleField
 }
@@ -235,9 +236,12 @@ export async function askCaseFieldID(answers: Answers = {}, question: Question =
   return answers
 }
 
-export async function askDuplicate(answers: Answers, opts = getKnownCaseTypeIDs()) {
-  opts = opts.includes(NO_DUPLICATE) ? opts : [NO_DUPLICATE, ...opts]
-  return await listOrFreeType(answers, { name: 'duplicate', message: QUESTION_DUPLICATE_ADDON, choices: opts, askAnswered: true })
+export async function askDuplicate(answers: Answers, question: Question = {}) {
+  question.name ||= 'duplicate'
+  question.message ||= QUESTION_DUPLICATE_ADDON
+  question.choices ||= [NO_DUPLICATE, ...getKnownCaseTypeIDs()]
+
+  return await listOrFreeType(answers, { askAnswered: true, ...question })
 }
 
 /**
@@ -284,11 +288,11 @@ export async function createTemplate<T, P>(answers: Answers = {}, keys: T, obj: 
   return answers
 }
 
-export async function addonDuplicateQuestion(answers: Answers, opts = getKnownCaseTypeIDs(), fn: (answers: Answers) => Partial<ConfigSheets>) {
+export async function addonDuplicateQuestion(answers: Answers, question: Question = {}, fn: (answers: Answers) => Partial<ConfigSheets>) {
   const created = fn(answers)
 
   while (true) {
-    answers = await askDuplicate(answers, opts)
+    answers = await askDuplicate(answers, question)
 
     if (answers.duplicate === NO_DUPLICATE) {
       return created
@@ -298,6 +302,19 @@ export async function addonDuplicateQuestion(answers: Answers, opts = getKnownCa
     const more = fn(answers)
     upsertConfigs(more, created)
   }
+}
+
+export function addDuplicateToCaseTypeID(question: Question = {}) {
+  question.name ||= 'duplicate'
+  question.message ||= QUESTION_DUPLICATE
+  question.choices ||= getKnownCaseTypeIDs()
+
+  return [
+    {
+      type: 'checkbox',
+      ...question
+    }
+  ]
 }
 
 export async function askFirstOnPageQuestions(answers: Answers = {}, existingCaseEventToField?: CaseEventToField) {
@@ -486,7 +503,7 @@ export function addCaseEvent(question: Question = {}, allowCreate = true) {
     {
       when: (answers: Answers) => allowCreate && answers[question.name] !== NONE && !findObject({ CaseTypeID: answers.CaseTypeID, ID: answers.CaseEventID }, 'CaseEvent'),
       name: 'createEvent',
-      message: 'This CaseEvent does not exist, would you like to create it after this?',
+      message: (answers: Answers) => `Event ${answers[question.name]} does not exist, would you like to create it after this?`,
       type: 'list',
       choices: YES_OR_NO,
       default: YES

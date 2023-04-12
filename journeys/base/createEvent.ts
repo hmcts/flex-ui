@@ -1,10 +1,10 @@
 import { prompt } from 'inquirer'
 import { Journey } from 'types/journey'
-import { addCaseEvent, addCaseTypeIDQuestion, addonDuplicateQuestion, Answers, Question, spliceCustomQuestionIndex } from 'app/questions'
+import { addCaseEvent, addCaseTypeIDQuestion, addDuplicateToCaseTypeID, Answers, Question, spliceCustomQuestionIndex } from 'app/questions'
 import { createNewCaseEvent } from 'app/ccd'
 import { Y_OR_N } from 'app/constants'
 import { CaseEvent, CaseEventKeys } from 'app/types/ccd'
-import { findObject, upsertConfigs } from 'app/configs'
+import { duplicateForCaseTypeIDs, findObject, upsertConfigs } from 'app/configs'
 import { addToSession } from 'app/session'
 import { format, upsertFields } from 'app/helpers'
 
@@ -28,7 +28,7 @@ async function journey(answers: Answers = {}) {
 }
 
 function findExisting(answers: Answers) {
-  return findObject<CaseEvent>({ ...answers, ID: answers.CaseEventID }, 'CaseEvent')
+  return findObject<CaseEvent>({ ...answers, ID: answers.ID || answers.CaseEventID }, 'CaseEvent')
 }
 
 export function addEventQuestions(existingFn: (answers: Answers) => CaseEvent = findExisting) {
@@ -52,7 +52,8 @@ export function addEventQuestions(existingFn: (answers: Answers) => CaseEvent = 
     { name: 'ShowSummary', message: QUESTION_SHOW_SUMMARY, type: 'list', choices: Y_OR_N, default: defaultFn('ShowSummary', 'Y') },
     { name: 'CallBackURLAboutToStartEvent', message: QUESTION_CALLBACK_URL_ABOUT_TO_START_EVENT, default: defaultFn('CallBackURLAboutToStartEvent') },
     { name: 'CallBackURLAboutToSubmitEvent', message: QUESTION_CALLBACK_URL_ABOUT_TO_SUBMIT_EVENT, default: defaultFn('CallBackURLAboutToSubmitEvent') },
-    { name: 'CallBackURLSubmittedEvent', message: QUESTION_CALLBACK_URL_SUBMITTED_EVENT, default: defaultFn('CallBackURLSubmittedEvent') }
+    { name: 'CallBackURLSubmittedEvent', message: QUESTION_CALLBACK_URL_SUBMITTED_EVENT, default: defaultFn('CallBackURLSubmittedEvent') },
+    ...addDuplicateToCaseTypeID()
   ] as Question[]
 }
 
@@ -62,18 +63,18 @@ export async function createEvent(answers: Answers = {}, questions: Question[] =
 
   answers = await prompt(ask, answers)
 
-  return await addonDuplicateQuestion(answers, undefined, (answers: Answers) => {
+  return construcFromAnswers(answers)
+}
+
+export function construcFromAnswers(answers: Answers) {
+  const createFn = (answers: Answers) => {
     const caseEvent = createNewCaseEvent(answers)
-
-    // ET creates authorisations here - this is highly specific code so teams implementing this will
-    // need to provide their own journey for this. See journeys/et/createSingleField for an example.
-    const authorisations = []
-
     return {
-      AuthorisationCaseEvent: authorisations,
       CaseEvent: [caseEvent]
     }
-  })
+  }
+
+  return duplicateForCaseTypeIDs(answers, createFn)
 }
 
 export default {

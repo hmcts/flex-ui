@@ -1,11 +1,11 @@
 import { prompt } from 'inquirer'
 import { addToLastAnswers, addToSession, session } from 'app/session'
 import { CaseEventToField, CaseEventToFieldKeys, CaseField, CaseFieldKeys, ScrubbedKeys } from 'types/ccd'
-import { addAutoCompleteQuestion, addCaseEvent, addCaseTypeIDQuestion, addFieldTypeParameterQuestion, addFieldTypeQuestion, addMaxQuestion, addMinQuestion, addonDuplicateQuestion, addPageFieldDisplayOrderQuestion, addPageIDQuestion, addRegularExpressionQuestion, addRetainHiddenValueQuestion, Answers, createJourneys, FIELD_TYPE_PARAMETERS_CUSTOM_OPTS, Question, QUESTION_CALLBACK_URL_MID_EVENT, QUESTION_PAGE_LABEL, QUESTION_PAGE_SHOW_CONDITION, spliceCustomQuestionIndex } from 'app/questions'
+import { addAutoCompleteQuestion, addCaseEvent, addCaseTypeIDQuestion, addDuplicateToCaseTypeID, addFieldTypeParameterQuestion, addFieldTypeQuestion, addMaxQuestion, addMinQuestion, addPageFieldDisplayOrderQuestion, addPageIDQuestion, addRegularExpressionQuestion, addRetainHiddenValueQuestion, Answers, createJourneys, FIELD_TYPE_PARAMETERS_CUSTOM_OPTS, Question, QUESTION_CALLBACK_URL_MID_EVENT, QUESTION_PAGE_LABEL, QUESTION_PAGE_SHOW_CONDITION, spliceCustomQuestionIndex } from 'app/questions'
 import { CUSTOM, DISPLAY_CONTEXT_OPTIONS, NONE, YES, Y_OR_N } from 'app/constants'
 import { createNewCaseEventToField, createNewCaseField, trimCaseEventToField, trimCaseField } from 'app/ccd'
 import { Journey } from 'types/journey'
-import { findObject, getKnownCaseFieldIDsByEvent, getNextPageFieldIDForPage, upsertConfigs } from 'app/configs'
+import { duplicateForCaseTypeIDs, findObject, getKnownCaseFieldIDsByEvent, getNextPageFieldIDForPage, upsertConfigs } from 'app/configs'
 import { upsertFields } from 'app/helpers'
 
 export const QUESTION_ID = 'What\'s the ID for this field?'
@@ -68,7 +68,8 @@ function addSingleFieldQuestions(existingFn: (answers: Answers) => CaseField & C
     ...addRegularExpressionQuestion({ default: defaultFn('RegularExpression') }),
     ...addMinQuestion({ default: defaultFn('Min') }),
     ...addMaxQuestion({ default: defaultFn('Max') }),
-    ...addRetainHiddenValueQuestion({ default: defaultFn('RetainHiddenValue') })
+    ...addRetainHiddenValueQuestion({ default: defaultFn('RetainHiddenValue') }),
+    ...addDuplicateToCaseTypeID()
   ]
 }
 
@@ -82,8 +83,10 @@ export async function createSingleField(answers: Answers = {}, questions: Questi
 
   answers = await prompt(ask, answers)
 
+  const configs = constructFromAnswers(answers)
+
   if (answers.createEvent === YES) {
-    await createJourneys.createEvent({ ID: answers.CaseEventID, CaseTypeID: answers.CaseTypeID })
+    await createJourneys.createEvent({ ID: answers.CaseEventID, CaseTypeID: answers.CaseTypeID, duplicate: answers.duplicate })
   }
 
   if (answers.fieldTypeParameterJourney === FIELD_TYPE_PARAMETERS_CUSTOM_OPTS.ScrubbedList) {
@@ -92,21 +95,7 @@ export async function createSingleField(answers: Answers = {}, questions: Questi
 
   addToLastAnswers(answers)
 
-  return await addonDuplicateQuestion(answers, undefined, (answers: Answers) => {
-    const askEvent = answers[CaseEventToFieldKeys.CaseEventID] !== NONE
-    const caseField = createNewCaseField(answers)
-    const caseEventToField = askEvent ? createNewCaseEventToField(answers) : undefined
-
-    // ET creates authorisations here - this is highly specific code so teams implementing this will
-    // need to provide their own journey for this. See journeys/et/createSingleField for an example.
-    const authorisations = []
-
-    return {
-      AuthorisationCaseField: authorisations,
-      CaseField: [trimCaseField(caseField)],
-      CaseEventToFields: askEvent ? [trimCaseEventToField(caseEventToField)] : []
-    }
-  })
+  return configs
 }
 
 function getDefaultForPageFieldDisplayOrder(answers: Answers = {}) {
@@ -123,6 +112,21 @@ function getDefaultForPageFieldDisplayOrder(answers: Answers = {}) {
     return session.lastAnswers[pageFieldDisplayOrder] + 1
   }
   return 1
+}
+
+export function constructFromAnswers(answers: Answers) {
+  const createFn = (answers: Answers) => {
+    const askEvent = answers[CaseEventToFieldKeys.CaseEventID] !== NONE
+    const caseField = createNewCaseField(answers)
+    const caseEventToField = askEvent ? createNewCaseEventToField(answers) : undefined
+
+    return {
+      CaseField: [trimCaseField(caseField)],
+      CaseEventToFields: askEvent ? [trimCaseEventToField(caseEventToField)] : []
+    }
+  }
+
+  return duplicateForCaseTypeIDs(answers, createFn)
 }
 
 export default {

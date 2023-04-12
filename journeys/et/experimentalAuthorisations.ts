@@ -1,7 +1,7 @@
 import { prompt } from 'inquirer'
 import { session, saveSession } from 'app/session'
 import { Journey } from 'types/journey'
-import { getKnownETCaseFieldIDsByEvent, getRegionFromCaseTypeId, Region, RoleMappings, defaultRoleMappings, Roles, createCaseFieldAuthorisations, addToInMemoryConfig, getEnglandWales, getScotland, createCaseEventAuthorisations, getETCaseEventIDOpts, getKnownETCaseTypeIDs } from 'app/et/configs'
+import { getKnownETCaseFieldIDsByEvent, getRegionFromCaseTypeId, Region, RoleMappings, defaultRoleMappings, Roles, createCaseFieldAuthorisations, addToInMemoryConfig, getEnglandWales, getScotland, createCaseEventAuthorisations, getETCaseEventIDOpts } from 'app/et/configs'
 import { Answers, askAutoComplete, sayWarning, askCaseEvent, askCaseTypeID, addonDuplicateQuestion } from 'app/questions'
 import { format, getIdealSizeForInquirer } from 'app/helpers'
 import { CaseEventToFieldKeys, CaseFieldKeys } from 'app/types/ccd'
@@ -75,7 +75,7 @@ async function changeAuthorisationsForCaseEvent(caseTypeID: string, caseEventID:
   const newMapping = await askAuthorisations(QUESTION_AUTHORISATIONS.replace('{1}', caseEventID), region)
   const answers = { [CaseFieldKeys.CaseTypeID]: caseTypeID }
 
-  await addonDuplicateQuestion(answers, getKnownETCaseTypeIDs(), (answers: Answers) => {
+  await addonDuplicateQuestion(answers, undefined, (answers: Answers) => {
     const duplicateRegion = getRegionFromCaseTypeId(answers[CaseFieldKeys.CaseTypeID])
     for (const key in newMapping) {
       newMapping[key][duplicateRegion] = newMapping[key][region]
@@ -100,7 +100,7 @@ async function changeAuthorisationsForCaseField(caseTypeID: string, region: Regi
   const newMapping = await askAuthorisations(message, region)
 
   const answers = { [CaseFieldKeys.CaseTypeID]: caseTypeID }
-  await addonDuplicateQuestion(answers, getKnownETCaseTypeIDs(), (answers: Answers) => {
+  await addonDuplicateQuestion(answers, undefined, (answers: Answers) => {
     const duplicateRegion = getRegionFromCaseTypeId(answers[CaseFieldKeys.CaseTypeID])
     for (const key in newMapping) {
       newMapping[key][duplicateRegion] = newMapping[key][region]
