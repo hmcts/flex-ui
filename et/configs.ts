@@ -2,16 +2,13 @@ import { readFileSync, writeFileSync } from 'fs'
 import { sep } from 'path'
 import { findLastIndex, format, removeFields, upsertFields } from 'app/helpers'
 import { addToSession, session } from 'app/session'
-import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventKeys, CaseEventToField, CaseEventToFieldKeys, CaseField, CaseTypeTab, CaseTypeTabKeys, CCDTypes, ComplexType, ConfigSheets, createNewConfigSheets, EventToComplexType, EventToComplexTypeKeys, FlexExtensions, Scrubbed, ScrubbedKeys, sheets } from 'types/ccd'
+import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventKeys, CaseEventToField, CaseEventToFieldKeys, CaseTypeTab, CaseTypeTabKeys, CCDTypes, ComplexType, ConfigSheets, createNewConfigSheets, EventToComplexType, EventToComplexTypeKeys, FlexExtensions, Scrubbed, ScrubbedKeys, sheets } from 'types/ccd'
 import { COMPOUND_KEYS } from 'app/constants'
-import { clearConfigs, findObject, getCaseEventIDOpts, getKnownCaseFieldIDs, getKnownCaseFieldIDsByEvent, getKnownCaseFieldTypeParameters, getKnownCaseFieldTypes, getKnownCaseTypeIDs, getKnownComplexTypeIDs, getKnownComplexTypeListElementCodes, getKnownScrubbedLists, getNextPageFieldIDForPage, sheets as globalConfigs } from 'app/configs'
+import { clearConfigs, findObject, getCaseEventIDOpts, getKnownCaseFieldIDsByEvent, sheets as globalConfigs } from 'app/configs'
 
 let readTime = 0
 
 export interface ETFlexExtensions extends FlexExtensions {
-  flex?: {
-    regions?: Region[]
-  }
   flexRegion?: Region
 }
 
@@ -152,71 +149,10 @@ export function getETCaseEventIDOpts() {
 }
 
 /**
- * Get all currently known FieldType IDs in englandwales and scotland configs (FieldTypes that are referenced by at least one CaseField)
- */
-export function getKnownETCaseFieldTypes() {
-  return getKnownCaseFieldTypes(getCombinedSheets())
-}
-
-/**
- * Gets possible FieldTypeParameters by collecting
- *  * FieldTypeParameters refereced in other CaseFields
- *  * Available FixedList IDs
- *  * Available ComplexType IDs
- *  * Known CCD Field Types as defined on Confluence
- */
-export function getKnownETCaseFieldTypeParameters() {
-  return getKnownCaseFieldTypeParameters(getCombinedSheets())
-}
-
-/**
- * Get all defined Scrubbed IDs in englandwales and scotland configs
- */
-export function getKnownETScrubbedLists() {
-  return getKnownScrubbedLists(getCombinedSheets())
-}
-
-/**
- * Get all defined CaseType IDs in englandwales and scotland configs
- */
-export function getKnownETCaseTypeIDs() {
-  return getKnownCaseTypeIDs(getCombinedSheets())
-}
-
-/**
- * Get all defined CaseField IDs in englandwales and scotland configs
- */
-export function getKnownETCaseFieldIDs(filter?: (obj: CaseField) => CaseField[]) {
-  return getKnownCaseFieldIDs(getCombinedSheets(), filter)
-}
-
-/**
  * Get all defined CaseField IDs in englandwales and scotland configs on an event
  */
 export function getKnownETCaseFieldIDsByEvent(caseEventId?: string, regions: Region[] = [Region.EnglandWales, Region.Scotland]) {
   return getKnownCaseFieldIDsByEvent(caseEventId, getConfigSheetsFromFlexRegion(regions))
-}
-
-/**
- * Get all defined ComplexType IDs in englandwales and scotland configs
- */
-export function getKnownETComplexTypeIDs() {
-  return getKnownComplexTypeIDs(getCombinedSheets())
-}
-
-/**
- * Get all defined ComplexType IDs in englandwales and scotland configs
- */
-export function getKnownETComplexTypeListElementCodes(id: string, regions: Region[]) {
-  return getKnownComplexTypeListElementCodes(id, getConfigSheetsFromFlexRegion(regions))
-}
-
-/**
- * Gets the highest PageFieldDisplayOrder number from fields on a certain page
- */
-export function getNextPageFieldIDForPageET(caseTypeID: string, caseEventID: string, pageID: number) {
-  const region = getConfigSheetsForCaseTypeID(caseTypeID)
-  return getNextPageFieldIDForPage(caseTypeID, caseEventID, pageID, region)
 }
 
 export function getConfigSheetName(region: Region, configSheet: keyof (ConfigSheets)) {
@@ -476,7 +412,6 @@ export function deleteFromInMemoryConfig(fields: Partial<ConfigSheets>) {
 
 /**
  * Upserts new fields into the in-memory configs and current session. Does NOT touch the original JSON files.
- * See TODOs in body. This is functional but ordering is not necessarily ideal
  */
 export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
   for (const key of sheets) {
