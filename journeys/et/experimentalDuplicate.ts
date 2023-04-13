@@ -2,7 +2,6 @@ import { prompt } from 'inquirer'
 import { Journey } from 'types/journey'
 import { getKnownETCaseFieldIDsByEvent, getRegionFromCaseTypeId, Region, getEnglandWales, getScotland, addToConfig, addToInMemoryConfig, getETCaseEventIDOpts } from 'app/et/configs'
 import { Answers, askAutoComplete, askCaseEvent, askCaseTypeID, sayWarning } from 'app/questions'
-import { addFlexRegionToCcdObject, FLEX_REGION_ANSWERS_KEY } from 'app/et/questions'
 import { CaseEventToFieldKeys, CaseFieldKeys, createNewConfigSheets } from 'app/types/ccd'
 import { MULTI, NONE } from 'app/constants'
 import { duplicateAuthorisationInCaseType, duplicateInCaseType, getObjectsReferencedByCaseFields } from 'app/et/duplicateCaseField'
@@ -27,16 +26,11 @@ function getFieldOptions(caseTypeID: string, caseEventID: string) {
 }
 
 async function extractFieldsAndDependants(fromRegion: Region, toCaseTypeID: string, fieldIDs: string[]) {
-  const toRegion = getRegionFromCaseTypeId(toCaseTypeID)
   const relatedConfig = createNewConfigSheets()
 
   fieldIDs.forEach(o => {
     const configs = fromRegion === Region.EnglandWales ? getEnglandWales() : getScotland()
-    const fakeRegions = { [FLEX_REGION_ANSWERS_KEY]: fromRegion === toRegion ? [toRegion] : [fromRegion, toRegion] }
     const related = getObjectsReferencedByCaseFields(configs, [configs.CaseField.find(x => x.ID === o)])
-    related.ComplexTypes.forEach(o => addFlexRegionToCcdObject(o, fakeRegions))
-    related.Scrubbed.forEach(o => addFlexRegionToCcdObject(o, fakeRegions))
-    related.EventToComplexTypes.forEach(o => addFlexRegionToCcdObject(o, fakeRegions))
 
     addToConfig(relatedConfig, related)
   })
@@ -45,6 +39,10 @@ async function extractFieldsAndDependants(fromRegion: Region, toCaseTypeID: stri
   relatedConfig.CaseEventToFields = relatedConfig.CaseEventToFields.map(o => duplicateInCaseType(toCaseTypeID, o))
   relatedConfig.CaseField = relatedConfig.CaseField.map(o => duplicateInCaseType(toCaseTypeID, o))
   relatedConfig.CaseTypeTab = relatedConfig.CaseTypeTab.map(o => duplicateInCaseType(toCaseTypeID, o))
+
+  relatedConfig.ComplexTypes = relatedConfig.ComplexTypes.map(o => duplicateInCaseType(toCaseTypeID, o))
+  relatedConfig.Scrubbed = relatedConfig.Scrubbed.map(o => duplicateInCaseType(toCaseTypeID, o))
+  relatedConfig.EventToComplexTypes = relatedConfig.EventToComplexTypes.map(o => duplicateInCaseType(toCaseTypeID, o))
 
   relatedConfig.AuthorisationCaseEvent = relatedConfig.AuthorisationCaseEvent.map(o => duplicateAuthorisationInCaseType(toCaseTypeID, o))
   relatedConfig.AuthorisationCaseField = relatedConfig.AuthorisationCaseField.map(o => duplicateAuthorisationInCaseType(toCaseTypeID, o))

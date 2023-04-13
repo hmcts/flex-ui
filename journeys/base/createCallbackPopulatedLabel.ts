@@ -1,36 +1,57 @@
 import { prompt } from 'inquirer'
 import { CaseEventToFieldKeys, CaseFieldKeys } from 'types/ccd'
 import { Journey } from 'types/journey'
-import { addonDuplicateQuestion, Answers, askCaseEvent, askCaseTypeID, askForPageFieldDisplayOrder, askForPageID } from 'app/questions'
+import { addCaseEvent, addCaseTypeIDQuestion, addDuplicateToCaseTypeID, addPageFieldDisplayOrderQuestion, addPageIDQuestion, Answers, createJourneys, Question, QUESTION_CALLBACK_URL_MID_EVENT, QUESTION_PAGE_LABEL, QUESTION_PAGE_SHOW_CONDITION, spliceCustomQuestionIndex } from 'app/questions'
 import { createNewCaseEventToField, createNewCaseField, trimCaseEventToField, trimCaseField } from 'app/ccd'
-import { askFirstOnPageQuestions, QUESTION_FIELD_SHOW_CONDITION, QUESTION_ID } from './createSingleField'
+import { QUESTION_FIELD_SHOW_CONDITION, QUESTION_ID } from './createSingleField'
 import { addToLastAnswers, addToSession } from 'app/session'
-import { sheets } from 'app/configs'
+import { duplicateForCaseTypeIDs, upsertConfigs } from 'app/configs'
 import { upsertFields } from 'app/helpers'
-import { COMPOUND_KEYS } from 'app/constants'
-import { createEvent } from 'app/journeys/base/createEvent'
+import { YES } from 'app/constants'
 
-export async function createCallbackPopulatedLabel(answers: Answers = {}) {
-  answers = await askCaseTypeID(answers)
-  answers = await askCaseEvent(answers, undefined, createEvent)
+async function journey(answers: Answers = {}) {
+  const created = await createCallbackPopulatedLabel(answers)
 
-  answers = await prompt(
-    [
-      { name: CaseFieldKeys.ID, message: QUESTION_ID, type: 'input', default: 'id' },
-      { name: CaseEventToFieldKeys.FieldShowCondition, message: QUESTION_FIELD_SHOW_CONDITION, type: 'input' }
-    ], answers
-  )
+  addToSession(created)
+  upsertConfigs(created)
+}
 
-  answers = await askForPageID(answers)
-  answers = await askForPageFieldDisplayOrder(answers)
+function addCallbackPopulatedQuestions() {
+  const whenFirstOnPage = (answers: Answers) => answers[CaseEventToFieldKeys.PageFieldDisplayOrder] === 1
 
-  if (answers[CaseEventToFieldKeys.PageFieldDisplayOrder] === 1) {
-    answers = await askFirstOnPageQuestions(answers)
+  return [
+    ...addCaseTypeIDQuestion(),
+    ...addCaseEvent(),
+    { name: CaseFieldKeys.ID, message: QUESTION_ID, default: 'id' },
+    { name: CaseEventToFieldKeys.FieldShowCondition, message: QUESTION_FIELD_SHOW_CONDITION },
+    ...addPageIDQuestion(),
+    ...addPageFieldDisplayOrderQuestion(),
+    { name: CaseEventToFieldKeys.PageLabel, message: QUESTION_PAGE_LABEL, when: whenFirstOnPage },
+    { name: CaseEventToFieldKeys.PageShowCondition, message: QUESTION_PAGE_SHOW_CONDITION, when: whenFirstOnPage },
+    { name: CaseEventToFieldKeys.CallBackURLMidEvent, message: QUESTION_CALLBACK_URL_MID_EVENT, when: whenFirstOnPage },
+    ...addDuplicateToCaseTypeID()
+  ] as Question[]
+}
+
+export async function createCallbackPopulatedLabel(answers: Answers = {}, questions: Question[] = []) {
+  const ask = addCallbackPopulatedQuestions()
+  upsertFields(ask, questions, ['name'], spliceCustomQuestionIndex)
+
+  answers = await prompt(ask, answers)
+
+  const created = constructFromAnswers(answers)
+
+  if (answers.createEvent === YES) {
+    await createJourneys.createEvent({ ID: answers.CaseEventID, CaseTypeID: answers.CaseTypeID, duplicate: answers.duplicate })
   }
 
   addToLastAnswers(answers)
 
-  await addonDuplicateQuestion(answers, undefined, (answers: Answers) => {
+  return created
+}
+
+export function constructFromAnswers(answers: Answers) {
+  const createFn = (answers: Answers) => {
     const caseField = createNewCaseField({
       ...answers,
       FieldType: 'Text',
@@ -62,28 +83,19 @@ export async function createCallbackPopulatedLabel(answers: Answers = {}) {
       PageShowCondition: ''
     })
 
-    const authorisations = [
-      // ...createCaseFieldAuthorisations(answers.CaseTypeID, answers.ID),
-      // ...createCaseFieldAuthorisations(answers.CaseTypeID, `${answers.ID}Label`)
-    ]
-
-    const newFields = {
-      AuthorisationCaseField: authorisations,
+    return {
       CaseField: [trimCaseField(caseField), trimCaseField(caseFieldLabel)],
       CaseEventToFields: [trimCaseEventToField(caseEventToField), trimCaseEventToField(caseEventToFieldLabel)]
     }
-    addToSession(newFields)
+  }
 
-    for (const sheetName in newFields) {
-      upsertFields(sheets[sheetName], newFields[sheetName], COMPOUND_KEYS[sheetName])
-    }
-  })
+  return duplicateForCaseTypeIDs(answers, createFn)
 }
 
 export default {
   disabled: true,
   group: 'create',
   text: 'Create/Modify a callback-populated label',
-  fn: createCallbackPopulatedLabel,
+  fn: journey,
   alias: 'CreateCallbackPopulatedLabel'
 } as Journey

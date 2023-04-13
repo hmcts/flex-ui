@@ -3,7 +3,6 @@ import { session, saveSession, addToSession } from 'app/session'
 import { Journey } from 'types/journey'
 import { getKnownETCaseFieldIDsByEvent, getRegionFromCaseTypeId, Region, getEnglandWales, getScotland, addToConfig, getETCaseEventIDOpts } from 'app/et/configs'
 import { Answers, askAutoComplete, askCaseEvent, askCaseTypeID, sayWarning } from 'app/questions'
-import { addFlexRegionToCcdObject, FLEX_REGION_ANSWERS_KEY } from 'app/et/questions'
 import { CaseEventToFieldKeys, CaseFieldKeys, createNewConfigSheets } from 'app/types/ccd'
 import { MULTI, NONE } from 'app/constants'
 import { getObjectsReferencedByCaseFields } from 'app/et/duplicateCaseField'
@@ -30,11 +29,8 @@ async function extractFieldsAndDependants(region: Region, fieldIDs: string[]) {
 
   fieldIDs.forEach(o => {
     const configs = region === Region.EnglandWales ? getEnglandWales() : getScotland()
-    const fakeRegions = { [FLEX_REGION_ANSWERS_KEY]: [region] }
     const related = getObjectsReferencedByCaseFields(configs, [configs.CaseField.find(x => x.ID === o)])
-    related.ComplexTypes.forEach(o => addFlexRegionToCcdObject(o, fakeRegions))
-    related.Scrubbed.forEach(o => addFlexRegionToCcdObject(o, fakeRegions))
-    related.EventToComplexTypes.forEach(o => addFlexRegionToCcdObject(o, fakeRegions))
+
     addToConfig(relatedConfig, related)
   })
 

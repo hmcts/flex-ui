@@ -1,26 +1,17 @@
 import { Journey } from 'types/journey'
-import { CaseEventToField, CaseEventToFieldKeys } from 'app/types/ccd'
-import { createNewCaseEventToField, trimCaseEventToField } from 'app/ccd'
-import { Answers, addonDuplicateQuestion } from 'app/questions'
-import { addToInMemoryConfig, getKnownETCaseTypeIDs } from 'app/et/configs'
-import { createTemplate } from 'app/et/questions'
+import { addToInMemoryConfig } from 'app/et/configs'
+import { createCaseEventToFieldJourney } from '../base/createCaseEventToField'
+import { Answers } from 'app/questions'
 
-export async function createCaseEventToFieldJourney() {
-  const answers = await createTemplate<unknown, CaseEventToField>({}, CaseEventToFieldKeys, createNewCaseEventToField(), 'CaseEventToFields')
-
-  await addonDuplicateQuestion(answers, getKnownETCaseTypeIDs(), (answers: Answers) => {
-    const caseEventToField = createNewCaseEventToField(answers)
-
-    addToInMemoryConfig({
-      CaseEventToFields: [trimCaseEventToField(caseEventToField)]
-    })
-  })
+async function journey(answers: Answers = {}) {
+  const created = await createCaseEventToFieldJourney(answers)
+  addToInMemoryConfig(created)
 }
 
 export default {
   disabled: true,
   group: 'create',
   text: 'Create/Modify a CaseEventToField',
-  fn: createCaseEventToFieldJourney,
+  fn: journey,
   alias: 'UpsertCaseEventToField'
 } as Journey

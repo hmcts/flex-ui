@@ -1,13 +1,13 @@
 import { prompt } from 'inquirer'
-import { EventToComplexTypeKeys } from 'types/ccd'
-import { QUESTION_ANOTHER, QUESTION_HINT_TEXT } from './createSingleField'
+import { CaseField, EventToComplexType, EventToComplexTypeKeys } from 'types/ccd'
+import { QUESTION_HINT_TEXT } from './createSingleField'
 import { createNewEventToComplexType, trimCcdObject } from 'app/ccd'
-import { Answers, askCaseEvent, askCaseFieldID, askRetainHiddenValue } from 'app/questions'
-import { addToLastAnswers, addToSession, saveSession, session } from 'app/session'
+import { addAutoCompleteQuestion, addCaseEvent, addCaseFieldID, addRetainHiddenValueQuestion, Answers, createJourneys, Question, spliceCustomQuestionIndex } from 'app/questions'
+import { addToLastAnswers, addToSession, session } from 'app/session'
 import { Journey } from 'types/journey'
-import { COMPOUND_KEYS, YES, YES_OR_NO } from 'app/constants'
-import { sheets } from 'app/configs'
+import { findObject, getKnownComplexTypeListElementCodes, upsertConfigs } from 'app/configs'
 import { upsertFields } from 'app/helpers'
+import { CUSTOM, YES } from 'app/constants'
 
 const QUESTION_CASE_EVENT_ID = 'What event does this belong to?'
 const QUESTION_ID = "What's the ID of this EventToComplexType?"
@@ -17,6 +17,48 @@ const QUESTION_DISPLAY_CONTEXT = 'Should this field be READONLY, OPTIONAL or MAN
 const QUESTION_FIELD_SHOW_CONDITION = 'Enter a FieldShowCondition (optional)'
 const DISPLAY_CONTEXT_OPTIONS = ['READONLY', 'OPTIONAL', 'MANDATORY']
 const QUESTION_LIST_ELEMENT_CODE = 'What\'s the ListElementCode that this references?'
+
+async function journey(answers: Answers = {}) {
+  const created = await createEventToComplexType(answers)
+  addToSession(created)
+  upsertConfigs(created)
+}
+
+function findExisting(answers: Answers) {
+  return findObject<EventToComplexType>(answers, 'EventToComplexTypes')
+}
+
+export function addEventToComplexTypesQuestions(existingFn: (answers: Answers) => EventToComplexType = findExisting) {
+  const defaultFn = (key: keyof (Answers), or?: string | number | ((answers: Answers) => string | number)) => {
+    return (answers: Answers) => {
+      const orResult = typeof (or) === 'function' ? (or as any)(answers) : or
+      return existingFn(answers)?.[key] || orResult
+    }
+  }
+
+  return [
+    { name: EventToComplexTypeKeys.ID, message: QUESTION_ID, default: session.lastAnswers.ID },
+    ...addCaseEvent({ message: QUESTION_CASE_EVENT_ID, default: session.lastAnswers.CaseEventID }),
+    ...addCaseFieldID(),
+    ...addAutoCompleteQuestion({ name: EventToComplexTypeKeys.ListElementCode, message: QUESTION_LIST_ELEMENT_CODE, choices: findListElementCodeOptions as any }),
+    { name: EventToComplexTypeKeys.EventElementLabel, message: QUESTION_EVENT_ELEMENT_LABEL, default: defaultFn('EventElementLabel', session.lastAnswers.EventElementLabel) },
+    { name: EventToComplexTypeKeys.FieldDisplayOrder, message: QUESTION_FIELD_DISPLAY_ORDER, type: 'number', default: defaultFn('FieldDisplayOrder', getDefaultValueForFieldDisplayOrder()) },
+    { name: EventToComplexTypeKeys.DisplayContext, message: QUESTION_DISPLAY_CONTEXT, type: 'list', choices: DISPLAY_CONTEXT_OPTIONS, default: defaultFn('DisplayContext', session.lastAnswers.DisplayContext) },
+    { name: EventToComplexTypeKeys.FieldShowCondition, message: QUESTION_FIELD_SHOW_CONDITION, default: defaultFn('FieldShowCondition') },
+    { name: EventToComplexTypeKeys.EventHintText, message: QUESTION_HINT_TEXT, default: defaultFn('EventHintText') },
+    ...addRetainHiddenValueQuestion({ default: defaultFn('RetainHiddenValue') })
+  ] as Question[]
+}
+
+function findListElementCodeOptions(answers: Answers) {
+  // Look up the CaseField we are referencing to get the ComplexType we're referencing
+  // Afaik the ID on an EventToComplexType has no real meaning and can be different to the ComplexType ID
+
+  const caseField = findObject<CaseField>({ ID: answers[EventToComplexTypeKeys.CaseFieldID] }, 'CaseField')
+  if (!caseField) return [CUSTOM]
+
+  return [CUSTOM, ...getKnownComplexTypeListElementCodes(caseField.FieldTypeParameter || caseField.FieldType)]
+}
 
 /**
  * Gets the default value for FieldDisplayOrder question
@@ -29,48 +71,22 @@ function getDefaultValueForFieldDisplayOrder() {
   return 1
 }
 
-export async function createEventToComplexType(answers: Answers = {}) {
-  answers = await askCaseEvent(answers, { message: QUESTION_CASE_EVENT_ID })
+export async function createEventToComplexType(answers: Answers = {}, questions: Question[] = []) {
+  const ask = addEventToComplexTypesQuestions()
+  upsertFields(ask, questions, ['name'], spliceCustomQuestionIndex)
 
-  answers = await prompt([{ name: EventToComplexTypeKeys.ID, message: QUESTION_ID, type: 'input', default: session.lastAnswers.ID }], answers)
+  answers = await prompt(ask, answers)
 
-  answers = await askCaseFieldID(answers)
-
-  answers = await prompt([
-    { name: EventToComplexTypeKeys.ListElementCode, message: QUESTION_LIST_ELEMENT_CODE },
-    { name: EventToComplexTypeKeys.EventElementLabel, message: QUESTION_EVENT_ELEMENT_LABEL, type: 'input', default: session.lastAnswers.EventElementLabel },
-    { name: EventToComplexTypeKeys.FieldDisplayOrder, message: QUESTION_FIELD_DISPLAY_ORDER, type: 'number', default: getDefaultValueForFieldDisplayOrder },
-    { name: EventToComplexTypeKeys.DisplayContext, message: QUESTION_DISPLAY_CONTEXT, type: 'list', choices: DISPLAY_CONTEXT_OPTIONS, default: session.lastAnswers.DisplayContext },
-    { name: EventToComplexTypeKeys.FieldShowCondition, message: QUESTION_FIELD_SHOW_CONDITION, type: 'input', default: session.lastAnswers.FieldShowCondition },
-    { name: EventToComplexTypeKeys.EventHintText, message: QUESTION_HINT_TEXT, type: 'input' }
-  ], answers)
-
-  answers = await askRetainHiddenValue(answers)
-
-  const eventToComplexType = createNewEventToComplexType(answers)
-
-  const newFields = {
-    EventToComplexTypes: [trimCcdObject(eventToComplexType)]
-  }
-  addToSession(newFields)
-
-  for (const sheetName in newFields) {
-    upsertFields(sheets[sheetName], newFields[sheetName], COMPOUND_KEYS[sheetName])
+  if (answers.createField === YES) {
+    await createJourneys.createField({ ID: answers.CaseFieldID, CaseEventID: answers.CaseEventID })
   }
 
   addToLastAnswers(answers)
 
-  const followup = await prompt([{
-    name: 'another',
-    message: QUESTION_ANOTHER,
-    type: 'list',
-    choices: YES_OR_NO,
-    default: YES
-  }])
+  const eventToComplexType = createNewEventToComplexType(answers)
 
-  if (followup.another === YES) {
-    saveSession(session)
-    return createEventToComplexType()
+  return {
+    EventToComplexTypes: [trimCcdObject(eventToComplexType)]
   }
 }
 
@@ -78,6 +94,6 @@ export default {
   disabled: true,
   group: 'create',
   text: 'Create/Modify an EventToComplexType',
-  fn: createEventToComplexType,
+  fn: journey,
   alias: 'UpsertEventToComplexType'
 } as Journey

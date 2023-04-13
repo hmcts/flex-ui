@@ -1,107 +1,50 @@
-import { prompt } from 'inquirer'
-import { CaseFieldKeys, ComplexType, ComplexTypeKeys } from 'types/ccd'
-import { QUESTION_ANOTHER, QUESTION_HINT_TEXT } from './createSingleField'
-import { createNewComplexType, trimCcdObject } from 'app/ccd'
-import { addToInMemoryConfig, findETObject, getKnownETCaseFieldTypeParameters, getKnownETCaseFieldTypes, getKnownETComplexTypeIDs, getKnownETComplexTypeListElementCodes, Region } from 'app/et/configs'
-import { Answers, askBasicFreeEntry, askComplexTypeListElementCode, askFieldType, askFieldTypeParameter, askForRegularExpression, askMinAndMax, fuzzySearch } from 'app/questions'
-import { CUSTOM, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, isFieldTypeInExclusionList, YES, YES_OR_NO } from 'app/constants'
-import { addToLastAnswers, saveSession, session } from 'app/session'
+import { addToInMemoryConfig, CCDTypeWithRegion, Region } from 'app/et/configs'
+import { addAutoCompleteQuestion, addComplexTypeListElementCodeQuestion, Answers } from 'app/questions'
 import { Journey } from 'types/journey'
-import { getIdealSizeForInquirer, matcher } from 'app/helpers'
-import { addFlexRegionToCcdObject, askFlexRegion, FLEX_REGION_ANSWERS_KEY, REGION_OPTS } from 'app/et/questions'
+import { addFlexRegionAndClone, askFlexRegion, FLEX_REGION_ANSWERS_KEY, REGION_OPTS } from 'app/et/questions'
+import { createComplexType, QUESTION_ID } from '../base/createComplexType'
+import { prompt } from 'inquirer'
+import { ComplexType, ComplexTypeKeys } from 'app/types/ccd'
+import { CUSTOM } from 'app/constants'
+import { findObject, getKnownComplexTypeIDs } from 'app/configs'
+import { session } from 'app/session'
+import { matcher } from 'app/helpers'
 
-const QUESTION_ID = "What's the ID of this ComplexType?"
-const QUESTION_ELEMENT_LABEL = 'What\'s the custom label for this control?'
-const QUESTION_DISPLAY_ORDER = 'What\'s the DisplayOrder for this? (use 0 to leave blank)'
-const QUESTION_DISPLAY_CONTEXT_PARAMETER = 'What\'s the DisplayContextParameter for this?'
-const QUESTION_FIELD_SHOW_CONDITION = 'Enter a FieldShowCondition (optional)'
 const QUESTION_EXISTING_REGION_DIFFERENT = 'The ComplexType object in both regions are different, which one should we bring back for defaults?'
 
-/**
- * Gets the default value for FieldDisplayOrder question
- */
-function getDefaultValueForFieldDisplayOrder(existing?: ComplexType) {
-  if (existing) {
-    return existing.DisplayOrder
-  }
+async function journey(answers: Answers = {}) {
+  answers = await askFlexRegion(answers)
 
-  const lastOrder: number = session.lastAnswers[ComplexTypeKeys.DisplayOrder]
-  if (session.lastAnswers[ComplexTypeKeys.DisplayOrder]) {
-    return lastOrder + 1
-  }
-  return 0
-}
-
-export async function createComplexType(answers: Answers = {}) {
-  answers = await askFlexRegion(undefined, undefined, undefined, answers)
-  answers = await askForID(answers, undefined, undefined, session.lastAnswers[ComplexTypeKeys.ID])
-
-  answers = await askComplexTypeListElementCode(answers, { choices: getKnownETComplexTypeListElementCodes(answers.ID) })
-
-  const existing = await prepopulateAnswersWithExistingValues(answers)
-
+  // We only need to ask these questions ourselves to cover the scenario of two objects existing in both EW and SC but them being different (ie, EventElementLabel is different)
+  // If we were okay with bringing back defaults for one region regardless - we could rely just on the base journey
   answers = await prompt([
-    { name: ComplexTypeKeys.ElementLabel, message: QUESTION_ELEMENT_LABEL, type: 'input', default: existing?.ElementLabel, validate: (input: string) => input.length > 0 },
-    { name: ComplexTypeKeys.FieldShowCondition, message: QUESTION_FIELD_SHOW_CONDITION, type: 'input', default: existing?.FieldShowCondition },
-    { name: ComplexTypeKeys.DisplayOrder, message: QUESTION_DISPLAY_ORDER, type: 'number', default: () => getDefaultValueForFieldDisplayOrder(existing) },
-    { name: ComplexTypeKeys.DisplayContextParameter, message: QUESTION_DISPLAY_CONTEXT_PARAMETER, default: existing?.DisplayContextParameter },
-    { name: ComplexTypeKeys.HintText, message: QUESTION_HINT_TEXT, type: 'input', default: existing?.HintText }
+    ...addAutoCompleteQuestion({
+      name: ComplexTypeKeys.ID,
+      message: QUESTION_ID,
+      choices: [CUSTOM, ...getKnownComplexTypeIDs()],
+      default: session.lastAnswers[ComplexTypeKeys.ID]
+    }),
+    ...addComplexTypeListElementCodeQuestion()
   ], answers)
 
-  // TODO: Verify that this is not needed
-  // if (answers[ComplexTypeKeys.FieldShowCondition]) {
-  //   answers = await askRetainHiddenValue(answers, undefined, undefined, existing?.RetainHiddenValue)
-  // }
+  const existing: CCDTypeWithRegion = await findExistingComplexType(answers)
 
-  answers = await askFieldType(answers, { default: existing?.FieldType, choices: getKnownETCaseFieldTypes() })
+  const created = await createComplexType({ ...answers, flexRegion: existing?.flexRegion || answers[FLEX_REGION_ANSWERS_KEY][0] })
+  created.ComplexTypes = addFlexRegionAndClone(answers[FLEX_REGION_ANSWERS_KEY] as Region[], created.ComplexTypes[0])
 
-  if (!isFieldTypeInExclusionList(answers[CaseFieldKeys.FieldType], FIELD_TYPES_EXCLUDE_PARAMETER)) {
-    answers = await askFieldTypeParameter(answers, { default: existing?.FieldTypeParameter, choices: getKnownETCaseFieldTypeParameters() })
-  }
-
-  if (answers[ComplexTypeKeys.FieldType] === 'Text') {
-    answers = await askForRegularExpression(answers, { default: existing?.RegularExpression })
-  }
-
-  if (!isFieldTypeInExclusionList(answers[CaseFieldKeys.FieldType], FIELD_TYPES_EXCLUDE_MIN_MAX)) {
-    answers = await askMinAndMax(answers, existing)
-  }
-
-  const complexType = createNewComplexType(answers)
-  addFlexRegionToCcdObject(complexType, answers)
-
-  addToInMemoryConfig({
-    ComplexTypes: [trimCcdObject(complexType)]
-  })
-
-  addToLastAnswers(answers)
-
-  const followup = await prompt([{
-    name: 'another',
-    message: QUESTION_ANOTHER,
-    type: 'list',
-    choices: YES_OR_NO,
-    default: YES
-  }])
-
-  if (followup.another === YES) {
-    saveSession(session)
-    return createComplexType()
-  }
-
-  return answers[ComplexTypeKeys.ID]
+  addToInMemoryConfig(created)
 }
 
-async function prepopulateAnswersWithExistingValues(answers: Answers) {
+async function findExistingComplexType(answers: Answers) {
   let ewExisting: ComplexType | null = null
   let scExisting: ComplexType | null = null
 
   if ((answers[FLEX_REGION_ANSWERS_KEY] as string[]).includes(Region.EnglandWales)) {
-    ewExisting = findETObject(answers, 'ComplexTypes', Region.EnglandWales)
+    ewExisting = findObject({ ...answers, flexRegion: Region.EnglandWales }, 'ComplexTypes')
   }
 
   if ((answers[FLEX_REGION_ANSWERS_KEY] as string[]).includes(Region.Scotland)) {
-    scExisting = findETObject(answers, 'ComplexTypes', Region.Scotland)
+    scExisting = findObject({ ...answers, flexRegion: Region.Scotland }, 'ComplexTypes')
   }
 
   if (!ewExisting || !scExisting) {
@@ -109,7 +52,7 @@ async function prepopulateAnswersWithExistingValues(answers: Answers) {
   }
 
   // We have both objects - we need to check that they are the same, else it'll be hard to know which to bring back
-  if (matcher(ewExisting, scExisting, Object.keys(ewExisting) as Array<keyof (ComplexType)>)) {
+  if (matcher(ewExisting, scExisting, Object.keys(ComplexTypeKeys) as Array<keyof (ComplexType)>)) {
     return ewExisting
   }
 
@@ -121,34 +64,10 @@ async function prepopulateAnswersWithExistingValues(answers: Answers) {
   return obj.region === Region.EnglandWales ? ewExisting : scExisting
 }
 
-// TODO: Update this to take in Question parameter
-async function askForID(answers: Answers = {}, key?: string, message?: string, defaultValue?: string) {
-  const opts = getKnownETComplexTypeIDs()
-  key = key || ComplexTypeKeys.ID
-
-  answers = await prompt([
-    {
-      name: key,
-      message: message || QUESTION_ID,
-      type: 'autocomplete',
-      source: (_answers: unknown, input: string) => fuzzySearch([CUSTOM, ...opts], input),
-      default: defaultValue || session.lastAnswers[key],
-      pageSize: getIdealSizeForInquirer()
-    }
-  ], answers)
-
-  if (answers[key] === CUSTOM) {
-    const newEventTypeAnswers = await askBasicFreeEntry({}, { name: key, message: 'Enter a custom value for ID' })
-    answers[key] = newEventTypeAnswers[key]
-  }
-
-  return answers
-}
-
 export default {
   disabled: true,
   group: 'create',
   text: 'Create/Modify a ComplexType',
-  fn: createComplexType,
+  fn: journey,
   alias: 'UpsertComplexTyoe'
 } as Journey

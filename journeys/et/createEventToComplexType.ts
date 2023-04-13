@@ -1,82 +1,79 @@
-import { prompt } from 'inquirer'
-import { EventToComplexTypeKeys } from 'types/ccd'
-import { QUESTION_ANOTHER, QUESTION_HINT_TEXT } from './createSingleField'
-import { createNewEventToComplexType, trimCcdObject } from 'app/ccd'
-import { addToInMemoryConfig, getETCaseEventIDOpts, getKnownETCaseFieldIDsByEvent } from 'app/et/configs'
-import { Answers, askCaseEvent, askCaseFieldID, askRetainHiddenValue } from 'app/questions'
-import { addToLastAnswers, saveSession, session } from 'app/session'
+import { addToInMemoryConfig, CCDTypeWithRegion, Region } from 'app/et/configs'
 import { Journey } from 'types/journey'
-import { addFlexRegionToCcdObject, askEventToComplexTypeListElementCode, askFlexRegion } from 'app/et/questions'
-import { YES, YES_OR_NO } from 'app/constants'
-import { createEvent } from './createEvent'
+import { addFlexRegionAndClone, askFlexRegion, FLEX_REGION_ANSWERS_KEY, REGION_OPTS } from 'app/et/questions'
+import { createEventToComplexType } from '../base/createEventToComplexType'
+import { addAutoCompleteQuestion, addCaseEvent, addCaseFieldID, Answers, QUESTION_CASE_EVENT_ID, QUESTION_LIST_ELEMENT_CODE } from 'app/questions'
+import { CaseField, EventToComplexType, EventToComplexTypeKeys } from 'app/types/ccd'
+import { findObject, getKnownComplexTypeListElementCodes } from 'app/configs'
+import { matcher } from 'app/helpers'
+import { prompt } from 'inquirer'
+import { session } from 'app/session'
+import { CUSTOM } from 'app/constants'
 
-const QUESTION_CASE_EVENT_ID = 'What event does this belong to?'
-const QUESTION_ID = "What's the ID of this EventToComplexType?"
-const QUESTION_EVENT_ELEMENT_LABEL = 'What\'s the custom label for this control?'
-const QUESTION_FIELD_DISPLAY_ORDER = 'What\'s the FieldDisplayOrder for this?'
-const QUESTION_DISPLAY_CONTEXT = 'Should this field be READONLY, OPTIONAL or MANDATORY?'
-const QUESTION_FIELD_SHOW_CONDITION = 'Enter a FieldShowCondition (optional)'
-const DISPLAY_CONTEXT_OPTIONS = ['READONLY', 'OPTIONAL', 'MANDATORY']
+const QUESTION_EXISTING_REGION_DIFFERENT = 'The EventToComplexType object in both regions are different, which one should we bring back for defaults?'
 
-/**
- * Gets the default value for FieldDisplayOrder question
- */
-function getDefaultValueForFieldDisplayOrder() {
-  const lastOrder: number = session.lastAnswers[EventToComplexTypeKeys.FieldDisplayOrder]
-  if (session.lastAnswers[EventToComplexTypeKeys.FieldDisplayOrder]) {
-    return lastOrder + 1
-  }
-  return 1
-}
+async function journey(answers: Answers = {}) {
+  answers = await askFlexRegion(answers)
+  if (!(answers.flexRegion as string[]).length) return
 
-export async function createEventToComplexType(answers: Answers = {}) {
-  answers = await askFlexRegion(undefined, undefined, undefined, answers)
-
-  answers = await askCaseEvent(answers, { message: QUESTION_CASE_EVENT_ID, choices: getETCaseEventIDOpts() }, createEvent)
-
-  answers = await prompt([{ name: EventToComplexTypeKeys.ID, message: QUESTION_ID, type: 'input', default: session.lastAnswers.ID }], answers)
-
-  answers = await askCaseFieldID(answers, { choices: getKnownETCaseFieldIDsByEvent(answers.CaseEventID) })
-
-  answers = await askEventToComplexTypeListElementCode(answers)
-
+  // We only need to ask these questions ourselves to cover the scenario of two objects existing in both EW and SC but them being different (ie, EventElementLabel is different)
+  // If we were okay with bringing back defaults for one region regardless - we could rely just on the base journey
   answers = await prompt([
-    { name: EventToComplexTypeKeys.EventElementLabel, message: QUESTION_EVENT_ELEMENT_LABEL, type: 'input', default: session.lastAnswers.EventElementLabel },
-    { name: EventToComplexTypeKeys.FieldDisplayOrder, message: QUESTION_FIELD_DISPLAY_ORDER, type: 'number', default: getDefaultValueForFieldDisplayOrder },
-    { name: EventToComplexTypeKeys.DisplayContext, message: QUESTION_DISPLAY_CONTEXT, type: 'list', choices: DISPLAY_CONTEXT_OPTIONS, default: session.lastAnswers.DisplayContext },
-    { name: EventToComplexTypeKeys.FieldShowCondition, message: QUESTION_FIELD_SHOW_CONDITION, type: 'input', default: session.lastAnswers.FieldShowCondition },
-    { name: EventToComplexTypeKeys.EventHintText, message: QUESTION_HINT_TEXT, type: 'input' }
+    ...addCaseEvent({ message: QUESTION_CASE_EVENT_ID, default: session.lastAnswers.CaseEventID }),
+    ...addCaseFieldID(),
+    ...addAutoCompleteQuestion({ name: EventToComplexTypeKeys.ListElementCode, message: QUESTION_LIST_ELEMENT_CODE, choices: findListElementCodeOptions as any })
   ], answers)
 
-  answers = await askRetainHiddenValue(answers)
+  const existing: CCDTypeWithRegion = await findExisting(answers)
 
-  const eventToComplexType = createNewEventToComplexType(answers)
-  addFlexRegionToCcdObject(eventToComplexType, answers)
+  const created = await createEventToComplexType({ ...answers, flexRegion: existing.flexRegion })
+  created.EventToComplexTypes = addFlexRegionAndClone(answers[FLEX_REGION_ANSWERS_KEY] as Region[], created.EventToComplexTypes[0])
+  addToInMemoryConfig(created)
+}
 
-  addToInMemoryConfig({
-    EventToComplexTypes: [trimCcdObject(eventToComplexType)]
-  })
+function findListElementCodeOptions(answers: Answers) {
+  // Look up the CaseField we are referencing to get the ComplexType we're referencing
+  // Afaik the ID on an EventToComplexType has no real meaning and can be different to the ComplexType ID
 
-  addToLastAnswers(answers)
+  const caseField = findObject<CaseField>({ ID: answers[EventToComplexTypeKeys.CaseFieldID] }, 'CaseField')
+  if (!caseField) return [CUSTOM]
 
-  const followup = await prompt([{
-    name: 'another',
-    message: QUESTION_ANOTHER,
-    type: 'list',
-    choices: YES_OR_NO,
-    default: YES
-  }])
+  return [CUSTOM, ...getKnownComplexTypeListElementCodes(caseField.FieldTypeParameter || caseField.FieldType)]
+}
 
-  if (followup.another === YES) {
-    saveSession(session)
-    return createEventToComplexType()
+async function findExisting(answers: Answers) {
+  let ewExisting: EventToComplexType | null = null
+  let scExisting: EventToComplexType | null = null
+
+  if ((answers[FLEX_REGION_ANSWERS_KEY] as string[]).includes(Region.EnglandWales)) {
+    ewExisting = findObject({ ...answers, flexRegion: Region.EnglandWales }, 'EventToComplexTypes')
   }
+
+  if ((answers[FLEX_REGION_ANSWERS_KEY] as string[]).includes(Region.Scotland)) {
+    scExisting = findObject({ ...answers, flexRegion: Region.Scotland }, 'EventToComplexTypes')
+  }
+
+  if (!ewExisting || !scExisting) {
+    return ewExisting || scExisting
+  }
+
+  // We have both objects - we need to check that they are the same, else it'll be hard to know which to bring back
+  if (matcher(ewExisting, scExisting, Object.keys(EventToComplexTypeKeys) as Array<keyof (EventToComplexType)>)) {
+    return ewExisting
+  }
+
+  // The complex types in ew and sc are different - we need to know what defaults to load back
+  const obj = await prompt([
+    { name: 'region', message: QUESTION_EXISTING_REGION_DIFFERENT, type: 'list', choices: REGION_OPTS }
+  ])
+
+  return obj.region === Region.EnglandWales ? ewExisting : scExisting
 }
 
 export default {
   disabled: true,
   group: 'create',
   text: 'Create/Modify an EventToComplexType',
-  fn: createEventToComplexType,
+  fn: journey,
   alias: 'UpsertEventToComplexType'
 } as Journey

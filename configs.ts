@@ -1,8 +1,22 @@
 import { CCD_FIELD_TYPES, COMPOUND_KEYS, NONE } from "./constants"
-import { getUniqueByKey, getUniqueByKeyAsArray, groupBy } from "./helpers"
+import { getUniqueByKey, getUniqueByKeyAsArray, groupBy, upsertFields } from "./helpers"
+import { Answers } from "./questions"
 import { CaseEventToField, CaseField, CCDTypes, ConfigSheets, createNewConfigSheets } from "./types/ccd"
 
 export const sheets: ConfigSheets = createNewConfigSheets()
+
+/** Clear everything on the currently loaded sheets */
+export function clearConfigs() {
+  Object.keys(sheets).forEach(key => { sheets[key] = [] })
+}
+
+/** Upsert/combine two sets of ConfigSheets together */
+export function upsertConfigs(from: Partial<ConfigSheets>, to: Partial<ConfigSheets> = sheets) {
+  Object.keys(from).forEach(key => {
+    upsertFields(to[key], from[key], COMPOUND_KEYS[key])
+  })
+  return to
+}
 
 export function findObject<T>(keys: Record<string, any>, sheetName: keyof CCDTypes, configSheets: ConfigSheets = sheets): T | undefined {
   const arr = configSheets[sheetName] as Array<Record<string, any>>
@@ -111,4 +125,18 @@ export function getNextPageFieldIDForPage(caseTypeID: string, caseEventID: strin
   const fieldsOnPage = configSheets.CaseEventToFields.filter(o => o.CaseTypeID === caseTypeID && o.CaseEventID === caseEventID && o.PageID === pageID)
   const fieldOrders = fieldsOnPage.map(o => Number(o.PageFieldDisplayOrder))
   return fieldsOnPage.length ? Math.max(...fieldOrders) + 1 : 1
+}
+
+/** Gets the highest PageID from all CaseEventToFields belonging to an event */
+export function getLastPageInEvent(caseTypeID: string, caseEventID: string, configSheets: ConfigSheets = sheets) {
+  const fields = configSheets.CaseEventToFields.filter(o => o.CaseTypeID === caseTypeID && o.CaseEventID === caseEventID)
+  return Math.max(...fields.map(o => o.PageID))
+}
+
+export function duplicateForCaseTypeIDs(answers: Answers, createFn: (answers: Answers) => Partial<ConfigSheets>) {
+  const dupes = (answers.duplicate as string[]).reduce((acc, obj) => {
+    return upsertConfigs(createFn({ ...answers, CaseTypeID: obj }), acc)
+  }, createNewConfigSheets())
+
+  return upsertConfigs(createFn(answers), dupes)
 }

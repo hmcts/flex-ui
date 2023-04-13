@@ -6,7 +6,7 @@ import { createEvent } from './createEvent'
 import { createEventToComplexType } from './createEventToComplexType'
 import { createSingleField } from './createSingleField'
 import { createCallbackPopulatedLabel } from './createCallbackPopulatedLabel'
-import { createScrubbed } from './createScrubbed'
+import { createSingleScrubbedEntry } from './createScrubbed'
 import { createCaseEventToFieldJourney } from './createCaseEventToField'
 import { isCurrentSessionEmpty, saveSession, session } from 'app/session'
 import { setSessionName } from '../base/sessionSetName'
@@ -56,7 +56,7 @@ export async function createJourney() {
         await createSingleField()
         break
       case TASK_CHOICES.SCRUBBED:
-        await createScrubbed()
+        await createSingleScrubbedEntry()
         break
     }
 

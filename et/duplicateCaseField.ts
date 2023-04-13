@@ -1,5 +1,5 @@
 import { COMPOUND_KEYS } from 'app/constants'
-import { getRegionFromCaseTypeId, regionRoles } from 'app/et/configs'
+import { CCDTypeWithRegion, getRegionFromCaseTypeId, regionRoles } from 'app/et/configs'
 import { upsertFields } from 'app/helpers'
 import { CaseField, ComplexType, ConfigSheets } from 'app/types/ccd'
 
@@ -12,9 +12,12 @@ function getEquivalentRole(caseTypeID: string, role: string) {
 /**
  * Duplicate object with a new CaseTypeID
  */
-export function duplicateInCaseType<T extends { CaseTypeID: string }>(caseTypeID: string, obj: T) {
+export function duplicateInCaseType<T extends CCDTypeWithRegion>(caseTypeID: string, obj: T) {
   const copy = Object.assign({}, obj)
   copy.CaseTypeID = caseTypeID
+  if (obj.flexRegion) {
+    copy.flexRegion = getRegionFromCaseTypeId(caseTypeID)
+  }
   return copy
 }
 
