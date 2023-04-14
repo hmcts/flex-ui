@@ -15,25 +15,28 @@ async function journey(answers: Answers = {}) {
 }
 
 async function createAuthorisations(created: Partial<ConfigSheets>) {
-  const createdCaseEvent = created.CaseEvent?.[0] || { ID: '', CaseTypeID: '' }
-  const authsExist = sheets.AuthorisationCaseEvent.find(o => o.CaseEventID === createdCaseEvent.ID && o.CaseTypeId === createdCaseEvent.CaseTypeID)
+  let authorisations = []
+  for (const event of created.CaseEvent) {
+    const authsExist = sheets.AuthorisationCaseEvent.find(o => o.CaseEventID === event.ID && o.CaseTypeId === event.CaseTypeID)
 
-  let answers: Answers = { authorisations: YES }
+    let answers: Answers = { authorisations: YES }
 
-  if (authsExist) {
-    answers = await prompt([{
-      name: 'authorisations',
-      message: 'Do you want to create authorisations for this event?',
-      type: 'list',
-      choices: YES_OR_NO,
-      default: YES,
-      askAnswered: true
-    }], answers)
+    if (authsExist) {
+      answers = await prompt([{
+        name: 'authorisations',
+        message: `Do you want to create authorisations for ${event.CaseTypeID}.${event.ID}?`,
+        type: 'list',
+        choices: YES_OR_NO,
+        default: YES,
+        askAnswered: true
+      }], answers)
+    }
+
+    if (answers.authorisations === YES) {
+      authorisations = authorisations.concat(...createCaseEventAuthorisations(event.CaseTypeID, event.ID))
+    }
   }
-
-  return answers.authorisations === YES
-    ? createCaseEventAuthorisations(createdCaseEvent.CaseTypeID, createdCaseEvent.ID)
-    : []
+  return authorisations
 }
 
 export default {

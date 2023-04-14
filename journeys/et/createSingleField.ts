@@ -14,25 +14,28 @@ async function journey(answers: Answers = {}) {
 }
 
 async function createAuthorisations(created: Partial<ConfigSheets>) {
-  const createdCaseField = created.CaseField?.[0] || { ID: '', CaseTypeID: '' }
-  const authsExist = sheets.AuthorisationCaseEvent.find(o => o.CaseEventID === createdCaseField.ID && o.CaseTypeId === createdCaseField.CaseTypeID)
+  let authorisations = []
+  for (const field of created.CaseField) {
+    const authsExist = sheets.AuthorisationCaseEvent.find(o => o.CaseEventID === field.ID && o.CaseTypeId === field.CaseTypeID)
 
-  let answers: Answers = { authorisations: YES }
+    let answers: Answers = { authorisations: YES }
 
-  if (authsExist) {
-    answers = await prompt([{
-      name: 'authorisations',
-      message: 'Do you want to create authorisations for this field?',
-      type: 'list',
-      choices: YES_OR_NO,
-      default: YES,
-      askAnswered: true
-    }], answers)
+    if (authsExist) {
+      answers = await prompt([{
+        name: 'authorisations',
+        message: `Do you want to create authorisations for ${field.CaseTypeID}.${field.ID}?`,
+        type: 'list',
+        choices: YES_OR_NO,
+        default: YES,
+        askAnswered: true
+      }], answers)
+    }
+
+    if (answers.authorisations === YES) {
+      authorisations = authorisations.concat(...createCaseFieldAuthorisations(field.CaseTypeID, field.ID))
+    }
   }
-
-  return answers.authorisations === YES
-    ? createCaseFieldAuthorisations(createdCaseField.CaseTypeID, createdCaseField.ID)
-    : []
+  return authorisations
 }
 
 export default {

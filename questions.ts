@@ -392,16 +392,19 @@ export function addFieldTypeParameterQuestion(question: Question = {}) {
     },
     {
       when: (answers: Answers) => answers[question.name] === CUSTOM,
+      name: question.name,
+      message: question.message,
+      askAnswered: true
+    },
+    {
+      when: (answers: Answers) => {
+        const value = (answers[question.name] as string)
+        return !!value && !question.choices.includes(value)
+      },
       name: 'fieldTypeParameterJourney',
       message: QUESTION_FIELD_TYPE_PARAMETER_CUSTOM,
       choices: Object.values(FIELD_TYPE_PARAMETERS_CUSTOM_OPTS),
       type: 'list',
-      askAnswered: true
-    },
-    {
-      when: (answers: Answers) => answers.fieldTypeParameterJourney === FIELD_TYPE_PARAMETERS_CUSTOM_OPTS.FreeText,
-      name: question.name,
-      message: QUESTION_FIELD_TYPE_PARAMETER_FREE,
       askAnswered: true
     }
   ]
