@@ -90,7 +90,7 @@ export async function createSingleField(answers: Answers = {}, questions: Questi
   }
 
   if (answers.fieldTypeParameterJourney === FIELD_TYPE_PARAMETERS_CUSTOM_OPTS.ScrubbedList) {
-    await createJourneys.createScrubbed({ [ScrubbedKeys.ID]: CUSTOM })
+    await createJourneys.createScrubbed({ [ScrubbedKeys.ID]: answers.FieldTypeParameter })
   }
 
   addToLastAnswers(answers)
