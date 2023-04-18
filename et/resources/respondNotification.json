@@ -1,0 +1,50 @@
+{
+  "data": {
+    "selectNotificationDropdown": {
+      "value": {
+        "code": "18faedf8-4cd3-4773-b589-e68a05a2f2cd",
+        "label": "Notification Title - [Claimant / Respondent details, Claim (ET1), Response (ET3), Hearing, Judgment, Case management orders / requests, Employer Contract Claim, Other (General correspondence)]"
+      },
+      "selectedCode": "18faedf8-4cd3-4773-b589-e68a05a2f2cd",
+      "selectedLabel": "Notification Title - [Claimant / Respondent details, Claim (ET1), Response (ET3), Hearing, Judgment, Case management orders / requests, Employer Contract Claim, Other (General correspondence)]",
+      "list_items": [
+        {
+          "code": "18faedf8-4cd3-4773-b589-e68a05a2f2cd",
+          "label": "Notification Title - [Claimant / Respondent details, Claim (ET1), Response (ET3), Hearing, Judgment, Case management orders / requests, Employer Contract Claim, Other (General correspondence)]"
+        }
+      ]
+    },
+    "notificationMarkdown": null,
+    "respondNotificationTitle": "Caseworker response",
+    "respondNotificationAdditionalInfo": "Additional information",
+    "respondNotificationUploadDocument": [
+      {
+        "value": {
+          "typeOfDocument": null,
+          "shortDescription": "FlexUI sample document",
+          "uploadedDocument": {
+            "document_url": "http://dm-store:8080/documents/<FLEX_DOC_UUID>",
+            "document_binary_url": "http://dm-store:8080/documents/<FLEX_DOC_UUID>/binary",
+            "document_filename": "evidence.txt"
+          }
+        },
+        "id": null
+      }
+    ],
+    "respondNotificationCmoOrRequest": "Case management order",
+    "respondNotificationResponseRequired": "Yes",
+    "respondNotificationWhoRespond": "Claimant only",
+    "respondNotificationRequestMadeBy": null,
+    "respondNotificationCaseManagementMadeBy": "Legal officer",
+    "respondNotificationFullName": "Name of person responding",
+    "respondNotificationPartyToNotify": "Both parties",
+    "respondNotificationDate": null
+  },
+  "event": {
+    "id": "respondNotification",
+    "summary": "",
+    "description": ""
+  },
+  "event_token": "",
+  "ignore_warning": false
+}

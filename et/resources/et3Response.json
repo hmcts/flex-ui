@@ -1,64 +1,107 @@
 {
   "data": {
     "et3ResponseShowInset": "Yes",
+    "et3RepresentingRespondent": [
+      {
+        "value": {
+          "dynamicList": {
+            "value": {
+              "code": "R: Another Person",
+              "label": "Another Person"
+            },
+            "selectedCode": "R: Another Person",
+            "selectedLabel": "Another Person",
+            "list_items": [
+              {
+                "code": "R: Another Person",
+                "label": "Another Person"
+              }
+            ]
+          }
+        },
+        "id": "fddc093a-15e8-403e-9edb-371d58971ab7"
+      }
+    ],
     "et3ResponseClaimantName": "<pre> ET1 claimant name&#09&#09&#09&#09 Jack Reeve</pre><hr>",
     "et3ResponseIsClaimantNameCorrect": "Yes",
     "et3ResponseClaimantNameCorrection": null,
-    "et3ResponseRespondentLegalName": "Jack Reeve",
-    "et3ResponseRespondentCompanyNumber": "123456",
-    "et3ResponseRespondentEmployerType": "Individual",
-    "et3ResponseRespondentPreferredTitle": "Doctor Professor",
-    "et3ResponseRespondentContactName": "Alter Ego",
+    "et3ResponseRespondentLegalName": "idklol",
+    "et3ResponseRespondentCompanyNumber": null,
+    "et3ResponseRespondentEmployerType": null,
+    "et3ResponseRespondentPreferredTitle": null,
+    "et3ResponseRespondentContactName": null,
     "et3ResponseNameShowInset": "Yes",
-    "et3RespondentAddress": {
-      "AddressLine1": "49 Bridge Road",
-      "AddressLine2": "",
-      "AddressLine3": "",
-      "PostTown": "Erith",
-      "County": "",
-      "PostCode": "DA8 2DE",
-      "Country": "United Kingdom"
-    },
-    "et3ResponseDXAddress": "DX123",
+    "et3ResponseDXAddress": null,
     "et3ResponsePhone": "+446666666666",
     "et3ResponseContactPreference": "Email",
     "et3ResponseContactReason": null,
+    "et3ResponseEmploymentCount": "100",
+    "et3ResponseMultipleSites": "Yes",
+    "et3ResponseSiteEmploymentCount": "10",
+    "et3RespondentAddress": {
+      "AddressLine1": "3 Beverley Road",
+      "AddressLine2": null,
+      "AddressLine3": "Wellesley Avenue",
+      "PostTown": "Hull",
+      "County": null,
+      "PostCode": "HU6 7LN",
+      "Country": "United Kingdom"
+    },
     "et3ResponseHearingRepresentative": [
-      "Phone hearings",
-      "Video hearings"
+      "Phone hearings"
     ],
     "et3ResponseHearingRespondent": [
       "Phone hearings"
     ],
-    "et3ResponseEmploymentCount": "100",
-    "et3ResponseMultipleSites": "Yes",
-    "et3ResponseSiteEmploymentCount": "5",
     "et3ResponseAcasAgree": "No",
-    "et3ResponseAcasAgreeReason": "I disagree with ACAS conciliation because idklol",
+    "et3ResponseAcasAgreeReason": "Flex does not agree",
     "et3ResponseAreDatesCorrect": "No",
-    "et3ResponseEmploymentStartDate": "2022-09-05",
-    "et3ResponseEmploymentEndDate": "2022-09-06",
+    "et3ResponseEmploymentStartDate": "2020-11-12",
+    "et3ResponseEmploymentEndDate": "2020-11-12",
     "et3ResponseEmploymentInformation": "Further information about employment dates",
     "et3ResponseContinuingEmployment": "No",
     "et3ResponseIsJobTitleCorrect": "No",
-    "et3ResponseCorrectJobTitle": "Fall Guy",
+    "et3ResponseCorrectJobTitle": "Fall guy",
     "et3ResponseClaimantWeeklyHours": "No",
-    "et3ResponseClaimantCorrectHours": "128",
+    "et3ResponseClaimantCorrectHours": "168",
     "et3ResponseEarningDetailsCorrect": "No",
     "et3ResponsePayFrequency": "Annually",
-    "et3ResponsePayBeforeTax": "690000",
-    "et3ResponsePayTakehome": "250000",
+    "et3ResponsePayBeforeTax": "6900000",
+    "et3ResponsePayTakehome": "100",
     "et3ResponseIsNoticeCorrect": "No",
-    "et3ResponseCorrectNoticeDetails": "Details here about the correct notice",
+    "et3ResponseCorrectNoticeDetails": "Correct notice details",
     "et3ResponseIsPensionCorrect": "No",
-    "et3ResponsePensionCorrectDetails": "Correct details about pension",
+    "et3ResponsePensionCorrectDetails": "correct pension details",
     "et3ResponseRespondentContestClaim": "Yes",
-    "et3ResponseContestClaimDocument": [],
-    "et3ResponseContestClaimDetails": "Explanation as to why the respondent contests the claim",
+    "et3ResponseContestClaimDocument": [
+      {
+        "value": {
+          "typeOfDocument": null,
+          "shortDescription": null,
+          "uploadedDocument": {
+            "document_url": "http://dm-store:8080/documents/<FLEX_DOC_UUID>",
+            "document_binary_url": "http://dm-store:8080/documents/<FLEX_DOC_UUID>/binary",
+            "document_filename": "evidence.txt"
+          }
+        },
+        "id": null
+      }
+    ],
+    "et3ResponseContestClaimDetails": "additional information about contesting the claim",
     "et3ResponseEmployerClaim": "Yes",
-    "et3ResponseEmployerClaimDetails": "Employers contract claim background details",
+    "et3ResponseEmployerClaimDetails": "Background of ECC",
     "et3ResponseRespondentSupportNeeded": "Yes",
-    "et3ResponseRespondentSupportDetails": "Details about the support required"
+    "et3ResponseRespondentSupportDetails": "Details about support required",
+    "et3ResponseEmployerClaimDocument": {
+      "document_url": "http://dm-store:8080/documents/<FLEX_DOC_UUID>",
+      "document_binary_url": "http://dm-store:8080/documents/<FLEX_DOC_UUID>/binary",
+      "document_filename": "evidence.txt"
+    },
+    "et3ResponseRespondentSupportDocument": {
+      "document_url": "http://dm-store:8080/documents/<FLEX_DOC_UUID>",
+      "document_binary_url": "http://dm-store:8080/documents/<FLEX_DOC_UUID>/binary",
+      "document_filename": "evidence.txt"
+    }
   },
   "event": {
     "id": "et3Response",
