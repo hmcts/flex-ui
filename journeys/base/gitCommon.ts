@@ -37,13 +37,18 @@ export const knownRepos: KnownRepos = {
 }
 
 export async function getRepos() {
-  const repos: KnownRepos = {}
+  const repos: Record<keyof KnownRepos, { dir: string, alias: string }> = {}
   for (const key in knownRepos) {
     const path = knownRepos[key]
     const status = await getBranchStatus(path)
-    repos[`${key} - ${status}`] = path
+    repos[key] = { dir: path, alias: `${key} - ${status}` }
   }
   return repos
+}
+
+export function getRepo(opts: Record<keyof KnownRepos, { dir: string, alias: string }>, choice: string) {
+  const repoName = /(.+) - .+/.exec(choice)?.[1]
+  return Object.values(opts).find(o => o.alias.startsWith(repoName))?.dir
 }
 
 export async function gitJourney() {
@@ -54,7 +59,7 @@ export async function gitJourney() {
   }
 
   const answers = await prompt([
-    { name: 'repos', message: QUESTION_REPOS, type: 'checkbox', choices: Object.keys(REPOS), default: Object.keys(REPOS), pageSize: getIdealSizeForInquirer() }
+    { name: 'repos', message: QUESTION_REPOS, type: 'checkbox', choices: Object.values(REPOS).map(o => o.alias), pageSize: getIdealSizeForInquirer() }
   ])
 
   if (!answers.repos.length) {
@@ -63,7 +68,7 @@ export async function gitJourney() {
 
   while (true) {
     let followup: Record<string, any> = { repos: answers.repos }
-    const branchOpts = await getBranchOpts(REPOS[followup.repos[0]])
+    const branchOpts = await getBranchOpts(getRepo(REPOS, followup.repos[0]))
 
     followup = await askAutoComplete(followup, { name: 'task', message: QUESTION_TASK, default: TASK_CHOICES.PULL, choices: Object.values(TASK_CHOICES), askAnswered: true, sort: false })
     const repos = followup.repos as string[]
@@ -71,7 +76,7 @@ export async function gitJourney() {
     switch (followup.task) {
       case TASK_CHOICES.ADD:
         followup = await prompt([{ name: 'command', message: QUESTION_ADD, askAnswered: true, default: '.' }], followup)
-        await Promise.allSettled(repos.map(async o => await add(REPOS[o], followup.command)))
+        await Promise.allSettled(repos.map(async o => await add(getRepo(REPOS, o), followup.command)))
         break
       case TASK_CHOICES.BACK:
         return
@@ -81,11 +86,11 @@ export async function gitJourney() {
           followup = await prompt([{ name: 'branch', message: QUESTION_BRANCH, askAnswered: true }], followup)
         }
 
-        await Promise.allSettled(repos.map(async o => await switchBranch(REPOS[o], followup.branch, /(.+) - /.exec(o)?.[1])))
+        await Promise.allSettled(repos.map(async o => await switchBranch(getRepo(REPOS, o), followup.branch, /(.+) - /.exec(o)?.[1])))
         break
       case TASK_CHOICES.COMMIT:
         followup = await askBasicFreeEntry(followup, { name: 'message', message: QUESTION_MESSAGE_COMMIT })
-        await Promise.allSettled(repos.map(async o => await commit(REPOS[o], followup.message)))
+        await Promise.allSettled(repos.map(async o => await commit(getRepo(REPOS, o), followup.message)))
         break
       case TASK_CHOICES.DELETE:
         followup = await askAutoComplete(followup, { name: 'branch', message: QUESTION_BRANCH, default: 'master', choices: [CUSTOM, ...branchOpts], askAnswered: true, sort: true })
@@ -93,36 +98,36 @@ export async function gitJourney() {
           followup = await prompt([{ name: 'branch', message: QUESTION_BRANCH, askAnswered: true }], followup)
         }
 
-        await Promise.allSettled(repos.map(async o => await deleteBranch(REPOS[o], followup.branch)))
+        await Promise.allSettled(repos.map(async o => await deleteBranch(getRepo(REPOS, o), followup.branch)))
         break
       case TASK_CHOICES.FETCH:
-        await Promise.allSettled(repos.map(async o => await fetch(REPOS[o])))
+        await Promise.allSettled(repos.map(async o => await fetch(getRepo(REPOS, o))))
         break
       case TASK_CHOICES.FORCE_PUSH:
-        await Promise.allSettled(repos.map(async o => await push(REPOS[o], true)))
+        await Promise.allSettled(repos.map(async o => await push(getRepo(REPOS, o), true)))
         break
       case TASK_CHOICES.PR:
         await openPRJourney(followup)
         break
       case TASK_CHOICES.PULL:
-        await Promise.allSettled(repos.map(async o => await pull(REPOS[o], false)))
+        await Promise.allSettled(repos.map(async o => await pull(getRepo(REPOS, o), false)))
         break
       case TASK_CHOICES.FORCE_PULL:
-        await Promise.allSettled(repos.map(async o => await pull(REPOS[o], true)))
+        await Promise.allSettled(repos.map(async o => await pull(getRepo(REPOS, o), true)))
         break
       case TASK_CHOICES.PUSH:
-        await Promise.allSettled(repos.map(async o => await push(REPOS[o])))
+        await Promise.allSettled(repos.map(async o => await push(getRepo(REPOS, o))))
         break
       case TASK_CHOICES.STATUS:
-        await Promise.allSettled(repos.map(async o => await status(REPOS[o])))
+        await Promise.allSettled(repos.map(async o => await status(getRepo(REPOS, o))))
         break
       case TASK_CHOICES.STASH:
         followup = await askBasicFreeEntry(followup, { name: 'message', message: QUESTION_MESSAGE_STASH })
-        await Promise.allSettled(repos.map(async o => await stash(REPOS[o], followup.message)))
+        await Promise.allSettled(repos.map(async o => await stash(getRepo(REPOS, o), followup.message)))
         break
       case TASK_CHOICES.ABITRARY:
         followup = await askBasicFreeEntry(followup, { name: 'message', message: QUESTION_ABITRARY_COMMAND })
-        await Promise.allSettled(repos.map(async o => await runCommand(REPOS[o], followup.message)))
+        await Promise.allSettled(repos.map(async o => await runCommand(getRepo(REPOS, o), followup.message)))
         break
     }
   }

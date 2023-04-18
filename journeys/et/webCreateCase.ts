@@ -43,7 +43,9 @@ const EVENT_OPTS = [
   'tseAdmin',
   'tseAdmReply',
   'amendRespondentRepresentative',
-  'sendNotification'
+  'sendNotification',
+  'respondNotification',
+  'pseRespondentRespondToTribunal'
 ]
 
 const REGION_OPTS = [

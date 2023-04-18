@@ -14,14 +14,14 @@
         }
       ]
     },
-    "pseRespondentOrdReqTableMarkUp": "|Hearing, case management order or request | |\r\n|--|--|\r\n|Notification | Notification Title|\r\n|Hearing | 1: Hearing - Barnstaple - 16 May 2022 01:00|\r\n|Date sent | 25 March 2023|\r\n|Sent by | Tribunal|\r\n|Case management order or request? | Case management order|\r\n|Response due | Yes - view document for details|\r\n|Party or parties to respond | Claimant only|\r\n|Additional information | more data|\r\n|Description | FlexUI sample document|\r\n|Document | <a href=\"/documents/089c9945-9f3b-46fb-a4d2-5fc9b1a0b988/binary\" target=\"_blank\">evidence.txt</a>|\r\n|Case management order made by | Legal officer|\r\n|Name | Name of person 1|\r\n|Sent to | Both parties|",
-    "pseRespondentOrdReqResponseText": "idklol",
+    "pseRespondentOrdReqTableMarkUp": "### Hearing, case management order or request \r\n | | |\r\n|--|--|\r\n|Notification | Notification Title|\r\n|Hearing | 1: Hearing - Barnstaple - 16 May 2022 01:00|\r\n|Date sent | 18 April 2023|\r\n|Sent by | Tribunal|\r\n|Case management order or request? | Case management order|\r\n|Response due | Yes - view document for details|\r\n|Party or parties to respond | Claimant only|\r\n|Additional information | more data|\r\n|Description | FlexUI sample document|\r\n|Document | <a href=\"/documents/8d1bebd3-85ba-435b-bee4-19dc912e29fc/binary\" target=\"_blank\">evidence.txt</a>|\r\n|Case management order made by | Legal officer|\r\n|Name | Name of person 1|\r\n|Who made the judgment? | Judge|\r\n|Full name | Full name for judgment|\r\n|Decision | Other|\r\n|Details | decision details|\r\n|What is the ECC notification? | Notice of Employer Contract Claim|\r\n|Sent to | Both parties|",
+    "pseRespondentOrdReqResponseText": "Response to the tribunal",
     "pseRespondentOrdReqHasSupportingMaterial": "Yes",
     "pseRespondentOrdReqUploadDocument": [
       {
         "value": {
           "typeOfDocument": null,
-          "shortDescription": null,
+          "shortDescription": "FlexUI sample document",
           "uploadedDocument": {
             "document_url": "http://dm-store:8080/documents/<FLEX_DOC_UUID>",
             "document_binary_url": "http://dm-store:8080/documents/<FLEX_DOC_UUID>/binary",
