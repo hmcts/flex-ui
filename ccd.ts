@@ -19,7 +19,7 @@ export function createNewCaseEvent(answers?: AllCCDKeys): CaseEvent {
     ID: answers?.ID || '',
     Name: answers?.Name || '',
     Description: answers?.Description || '',
-    DisplayOrder: answers?.DisplayOrder || 1,
+    DisplayOrder: answers?.DisplayOrder,
     'PreConditionState(s)': answers?.['PreConditionState(s)'] || '*',
     PostConditionState: answers?.PostConditionState || '*',
     SecurityClassification: 'Public',
