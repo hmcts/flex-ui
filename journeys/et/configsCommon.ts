@@ -24,6 +24,7 @@ const CHOICE_IMPORT = 'Import spreadsheet configs into local CCD'
 const IMPORT_SCRIPT = `${process.env.ECM_DOCKER_DIR}/bin/ccd-import-definition.sh`
 
 const IP_OPTS = [
+  '<- Cancel and go back to main menu',
   'host.docker.internal (if callbacks runs on Windows/Mac)',
   'WSL IP (if callbacks runs inside WSL)'
 ]
@@ -49,10 +50,14 @@ export async function askConfigTasks() {
     answers.env = 'local'
   }
 
-  const isInWsl = await isRunningInWsl() ? IP_OPTS[1] : IP_OPTS[0]
+  const isInWsl = await isRunningInWsl() ? IP_OPTS[2] : IP_OPTS[1]
 
   if (answers.tasks.includes(TASK_CHOICES.GENERATE) && answers.env === 'local') {
     answers = await prompt([{ name: 'ip', message: QUESTION_IP, type: 'list', choices: IP_OPTS, default: isInWsl }], answers)
+  }
+
+  if (answers.ip === IP_OPTS[0]) {
+    return answers
   }
 
   if (answers.env === 'demo') {
@@ -71,6 +76,10 @@ export async function execConfigTasks(answers: Record<string, any>) {
   const choices = getConfigChoices()
   const tasks = answers.tasks as string[]
   const env = answers.env
+
+  if (answers.ip === IP_OPTS[0]) {
+    return
+  }
 
   if (tasks.find(o => o.startsWith(CHOICE_SAVE))) {
     await saveBackToProject()
