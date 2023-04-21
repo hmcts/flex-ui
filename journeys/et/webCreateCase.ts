@@ -20,14 +20,17 @@ type CookieJar = Record<string, string>
 https.globalAgent.options.rejectUnauthorized = false
 
 // These login credentials are public and will only work when running the stack locally #secops
-const USER = 'et.dev@hmcts.net'
 const USER_ORG = 'superuser@etorganisation1.com'
-const PASS = 'Pa55word11'
 const PASS_ORG = 'Pa55word11'
-const BASE_URL = 'http://localhost:3455'
 const BASE_URL_ORG = 'http://localhost:3456'
-const IDAM_LOGIN_START_URL = `${BASE_URL}/auth/login`
 const IDAM_LOGIN_START_URL_ORG = `${BASE_URL_ORG}/auth/login`
+
+const ENV_CONFIG = {
+  USER: 'et.dev@hmcts.net',
+  PASS: 'Pa55word11',
+  BASE_URL: 'http://localhost:3455',
+  IDAM_LOGIN_START_URL: 'http://localhost:3455/auth/login'
+}
 
 const QUESTION_STEPS = 'What events are we interested in running?'
 const QUESTION_CALLBACKS = 'Do we need to spin up callbacks first?'
@@ -58,21 +61,47 @@ const CREATE_OPTS = [
   'Choose an existing case'
 ]
 
+const ENV_OPTS = [
+  'Local',
+  'Preview',
+  'Demo',
+  'ITHC'
+]
+
 async function journey() {
   await askCreateOrExistingCase()
 }
 
+function setCredentialsForEnvironment(env: string) {
+  const user = process.env[`${env.toUpperCase()}_IDAM_USER`]
+  const pass = process.env[`${env.toUpperCase()}_IDAM_PASS`]
+  const url = process.env[`${env.toUpperCase()}_EXUI_URL`]
+
+  if (!user || !pass || !url) {
+    throw new Error(`Could not find credentials for environment - Please make sure ${env.toUpperCase()}_IDAM_USER, ${env.toUpperCase()}_IDAM_PASS and ${env.toUpperCase()}_EXUI_URL are set as environment variables`)
+  }
+
+  ENV_CONFIG.USER = user
+  ENV_CONFIG.PASS = pass
+  ENV_CONFIG.BASE_URL = url
+  ENV_CONFIG.IDAM_LOGIN_START_URL = `${url}/auth/login`
+}
+
 async function askCreateOrExistingCase() {
   let answers = await prompt([
+    { name: 'env', message: 'Which environment are we targeting?', type: 'list', choices: ENV_OPTS, default: ENV_OPTS[0] },
     { name: 'create', message: 'Do you want to create a new case or run an event on an existing case?', type: 'list', choices: CREATE_OPTS }
   ])
+
+  setCredentialsForEnvironment(answers.env)
 
   if (answers.create === CREATE_OPTS[0]) {
     return await doCreateCaseTasks(await askCreateCaseQuestions())
   }
+
   temporaryLog(`Fetching existing cases...`)
 
-  const cookieJar = await loginToIdam(USER, PASS)
+  const cookieJar = await loginToIdam()
 
   const cases = [
     ...await findExistingCases('ET_EnglandWales', cookieJar),
@@ -95,11 +124,12 @@ async function askCreateOrExistingCase() {
 }
 
 export async function askCreateCaseQuestions(answers: Answers = {}) {
+  const whenLocalEnv = () => ENV_CONFIG.BASE_URL.includes('localhost')
   return await prompt([
     { name: 'region', message: 'What regions are we creating for?', type: 'checkbox', choices: REGION_OPTS, default: REGION_OPTS, pageSize: getIdealSizeForInquirer() },
     { name: 'events', message: QUESTION_STEPS, type: 'checkbox', choices: EVENT_OPTS, default: EVENT_OPTS, pageSize: getIdealSizeForInquirer() },
-    { name: 'share', message: QUESTION_SHARE, type: 'list', choices: YES_OR_NO, default: NO },
-    { name: 'callbacks', message: QUESTION_CALLBACKS, type: 'list', choices: YES_OR_NO, default: answers.callbacks || NO, askAnswered: true },
+    { name: 'share', message: QUESTION_SHARE, type: 'list', choices: YES_OR_NO, default: NO, when: whenLocalEnv },
+    { name: 'callbacks', message: QUESTION_CALLBACKS, type: 'list', choices: YES_OR_NO, default: answers.callbacks || NO, askAnswered: true, when: whenLocalEnv },
     { name: 'kill', message: 'Do you want to kill callbacks after?', type: 'list', choices: YES_OR_NO, default: YES, when: (ans) => ans.callbacks === YES }
   ], answers)
 }
@@ -130,9 +160,11 @@ export async function doCreateCaseTasks(answers: Record<string, any>) {
     answers.events.push('amendRespondentRepresentative')
   }
 
-  await fixExitedContainers()
+  if (ENV_CONFIG.BASE_URL.includes('localhost')) {
+    await fixExitedContainers()
+  }
 
-  const cookieJar = await loginToIdam(USER, PASS)
+  const cookieJar = await loginToIdam()
 
   for (const region of answers.region) {
     try {
@@ -206,7 +238,7 @@ export async function startAndWaitForCallbacksToBeReady(): Promise<ChildProcess>
   })
 }
 
-export async function getInitialLoginUrl(url: string = IDAM_LOGIN_START_URL) {
+export async function getInitialLoginUrl(url: string = ENV_CONFIG.IDAM_LOGIN_START_URL) {
   const res = await fetch(url, { redirect: 'manual' })
 
   if (res.status !== 302) {
@@ -228,7 +260,7 @@ export async function getCsrfTokenFromLoginPage(authUrl: string, cookieJar: Cook
   return /name="_csrf" value="([0-9a-f-]+)"/.exec(html)?.[1]
 }
 
-export async function loginToIdam(username = USER, password = PASS, unauthorisedUrl: string = IDAM_LOGIN_START_URL) {
+export async function loginToIdam(username = ENV_CONFIG.USER, password = ENV_CONFIG.PASS, unauthorisedUrl = ENV_CONFIG.IDAM_LOGIN_START_URL) {
   const { location: authUrl, cookieJar } = await getInitialLoginUrl(unauthorisedUrl)
   const csrf = await getCsrfTokenFromLoginPage(authUrl, cookieJar)
 
@@ -302,7 +334,7 @@ async function makeAuthorisedRequest(url: string, cookieJar: CookieJar, opts: Re
     Accept: '*/*',
     'Accept-Language': 'en-GB,en;q=0.5',
     'Accept-Encoding': 'gzip, deflate, br',
-    Referer: BASE_URL,
+    Referer: ENV_CONFIG.BASE_URL,
     Connection: 'keep-alive',
     'Upgrade-Insecure-Requests': '1',
     'Sec-Fetch-Dest': 'empty',
@@ -326,11 +358,9 @@ async function makeAuthorisedRequest(url: string, cookieJar: CookieJar, opts: Re
   return res
 }
 
-export async function createNewCase(region: string, cookieJar?: CookieJar) {
-  const jar = cookieJar ?? await loginToIdam(USER, PASS)
-  const eventToken = await createCaseInit(jar, region)
-
-  return await postCase(jar, eventToken, region)
+export async function createNewCase(region: string, cookieJar: CookieJar) {
+  const eventToken = await createCaseInit(cookieJar, region)
+  return await postCase(cookieJar, eventToken, region)
 }
 
 async function executeEventsOnCase(cookieJar: CookieJar, caseId: string, region: string, events: string[]) {
@@ -352,7 +382,7 @@ async function executeEventsOnCase(cookieJar: CookieJar, caseId: string, region:
 }
 
 async function createCaseInit(cookieJar: CookieJar, region = 'ET_EnglandWales') {
-  const url = `${BASE_URL}/data/internal/case-types/${region}/event-triggers/initiateCase?ignore-warning=false`
+  const url = `${ENV_CONFIG.BASE_URL}/data/internal/case-types/${region}/event-triggers/initiateCase?ignore-warning=false`
 
   const res = await makeAuthorisedRequest(url, cookieJar)
   const json = await res.json()
@@ -380,7 +410,7 @@ function tryGetResource(jsonResourcePath: string, region: string) {
 
 async function postGeneric(jsonResourcePath: string, caseId: string, cookieJar: CookieJar, eventToken: string, region: string, testFileId: string): Promise<number | string[]> {
   const caseData = { ...require(tryGetResource(jsonResourcePath, region)), event_token: eventToken }
-  const url = `${BASE_URL}/data/cases/${caseId}/events`
+  const url = `${ENV_CONFIG.BASE_URL}/data/cases/${caseId}/events`
   const body = JSON.stringify(caseData).replace(/<FLEX_DOC_UUID>/g, testFileId)
 
   const res = await makeAuthorisedRequest(url, cookieJar, {
@@ -400,7 +430,7 @@ async function postGeneric(jsonResourcePath: string, caseId: string, cookieJar: 
 
 async function postCase(cookieJar: CookieJar, eventToken: string, region: string) {
   const caseData = { ...require(resolve(process.env.APP_ROOT, '../et/resources/initiateCase.json')), event_token: eventToken }
-  const url = `${BASE_URL}/data/case-types/${region}/cases?ignore-warning=false`
+  const url = `${ENV_CONFIG.BASE_URL}/data/case-types/${region}/cases?ignore-warning=false`
   const body = JSON.stringify(caseData)
 
   temporaryLog(`Creating new ${region} case... `)
@@ -414,7 +444,7 @@ async function postCase(cookieJar: CookieJar, eventToken: string, region: string
   const json = await res.json()
 
   if (res.status === 201) {
-    console.log(`✓`)
+    console.log(`${json.id} ✓`)
   } else {
     console.log(`✕ (returned ${res.status})`)
   }
@@ -423,7 +453,7 @@ async function postCase(cookieJar: CookieJar, eventToken: string, region: string
 }
 
 async function pingEventTrigger(caseId: string, eventName: string, cookieJar: CookieJar) {
-  const url = `${BASE_URL}/data/internal/cases/${caseId}/event-triggers/${eventName}?ignore-warning=false`
+  const url = `${ENV_CONFIG.BASE_URL}/data/internal/cases/${caseId}/event-triggers/${eventName}?ignore-warning=false`
 
   const res = await makeAuthorisedRequest(url, cookieJar)
   const json = await res.json()
@@ -486,10 +516,10 @@ async function uploadTestFile(cookieJar: CookieJar) {
   form.append('files', fileStream, { knownLength: fileSizeInBytes })
   form.append('classification', 'PUBLIC')
 
-  const res = await makeAuthorisedRequest(`${BASE_URL}/documents`, cookieJar, {
+  const res = await makeAuthorisedRequest(`${ENV_CONFIG.BASE_URL}/documents`, cookieJar, {
     method: 'POST',
     headers: {
-      referrer: `${BASE_URL}/cases/case-details/1672844316015433/trigger/tseRespond/tseRespond3`,
+      referrer: `${ENV_CONFIG.BASE_URL}/cases/case-details/1672844316015433/trigger/tseRespond/tseRespond3`,
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36'
     },
     body: form
@@ -500,7 +530,7 @@ async function uploadTestFile(cookieJar: CookieJar) {
 }
 
 async function findExistingCases(region: string, cookieJar: CookieJar) {
-  const url = `${BASE_URL}/data/internal/searchCases?ctid=${region}&use_case=WORKBASKET&view=WORKBASKET&page=1`
+  const url = `${ENV_CONFIG.BASE_URL}/data/internal/searchCases?ctid=${region}&use_case=WORKBASKET&view=WORKBASKET&page=1`
   const res = await makeAuthorisedRequest(url, cookieJar, {
     method: 'post'
   })
