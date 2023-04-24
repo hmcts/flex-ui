@@ -3,7 +3,7 @@ import { Journey } from 'types/journey'
 import { prompt } from 'inquirer'
 import { Region, saveBackToProject } from 'app/et/configs'
 import { setIPToHostDockerInternal, setIPToWslHostAddress } from './dockerUpdateIP'
-import { execCommand, getFiles, getIdealSizeForInquirer, isRunningInWsl, temporaryLog, wait } from 'app/helpers'
+import { execCommand, format, getFiles, getIdealSizeForInquirer, isRunningInWsl, temporaryLog, wait } from 'app/helpers'
 import { createReadStream, statSync } from 'fs'
 import FormData from 'form-data'
 import fetch from 'node-fetch'
@@ -15,7 +15,7 @@ import { fixExitedContainers } from 'app/et/docker'
 const QUESTION_TASK = 'What stages of import are you interested in?'
 const QUESTION_ENVIRONMENT = 'What environment should we generate spreadsheets for?'
 const QUESTION_IP = 'What IP should be used for ExUI to talk to callbacks?'
-const QUESTION_UPLOAD = 'Would you like to upload demo configs to the demo environment?'
+const QUESTION_UPLOAD = 'Would you like to upload configs to the {0} environment?'
 
 const CHOICE_SAVE = 'Save in-memory config'
 const CHOICE_GENERATE = 'Generate spreadsheets from JSON files'
@@ -28,6 +28,13 @@ const IP_OPTS = [
   'host.docker.internal (if callbacks runs on Windows/Mac)',
   'WSL IP (if callbacks runs inside WSL)'
 ]
+
+export const ENV_CONFIG = {
+  USER: '',
+  PASS: '',
+  BASE_URL: '',
+  IDAM_LOGIN_START_URL: ''
+}
 
 export function getConfigChoices() {
   return {
@@ -60,8 +67,8 @@ export async function askConfigTasks() {
     return answers
   }
 
-  if (answers.env === 'demo') {
-    answers = await prompt([{ name: 'upload', message: QUESTION_UPLOAD, type: 'list', choices: YES_OR_NO, default: YES }], answers)
+  if (answers.env !== 'local') {
+    answers = await prompt([{ name: 'upload', message: format(QUESTION_UPLOAD, answers.env), type: 'list', choices: YES_OR_NO, default: YES }], answers)
   }
 
   return answers
@@ -100,10 +107,11 @@ export async function execConfigTasks(answers: Record<string, any>) {
   }
 
   if (answers.upload === YES) {
-    const cookieJar = await loginToIdam(process.env.DEMO_ADMIN_USER, process.env.DEMO_ADMIN_PASS, 'https://ccd-admin-web.demo.platform.hmcts.net')
+    setCredentialsForEnvironment(answers.env)
+    const cookieJar = await loginToIdam(ENV_CONFIG.USER, ENV_CONFIG.PASS, ENV_CONFIG.BASE_URL)
     const cookie = cookieJarToString(cookieJar)
-    await uploadConfig(process.env.ENGWALES_DEF_DIR, cookie)
-    await uploadConfig(process.env.SCOTLAND_DEF_DIR, cookie)
+    await uploadConfig(process.env.ENGWALES_DEF_DIR, answers.env, cookie)
+    await uploadConfig(process.env.SCOTLAND_DEF_DIR, answers.env, cookie)
   }
 }
 
@@ -143,12 +151,12 @@ export async function importConfigs() {
   await ccdImport(Region.Scotland)
 }
 
-async function uploadConfig(dir: string, cookie: string) {
+async function uploadConfig(dir: string, env: string, cookie: string) {
   const files = await getFiles(`${dir}/definitions/xlsx`)
-  const configFile = files.find(o => o.match(/et-(englandwales|scotland)-ccd-config-demo\.xlsx/))
+  const configFile = files.find(o => o.match(new RegExp(`et-(englandwales|scotland)-ccd-config-${env}\\.xlsx`)))
 
   if (!configFile) {
-    return temporaryLog(`Could not find a demo config file in ${dir}/definitions/xlsx`)
+    return temporaryLog(`Could not find a ${env} config file in ${dir}/definitions/xlsx`)
   }
 
   const form = new FormData()
@@ -157,11 +165,11 @@ async function uploadConfig(dir: string, cookie: string) {
   const fileStream = createReadStream(configFile)
   form.append('file', fileStream, { knownLength: fileSizeInBytes })
 
-  await fetch('https://ccd-admin-web.demo.platform.hmcts.net/import', {
+  await fetch(`${ENV_CONFIG.BASE_URL}/import`, {
     method: 'POST',
     headers: {
       Cookie: cookie,
-      referrer: ' https://ccd-admin-web.demo.platform.hmcts.net/',
+      referrer: ENV_CONFIG.BASE_URL,
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36'
     },
     body: form
@@ -171,11 +179,11 @@ async function uploadConfig(dir: string, cookie: string) {
 }
 
 async function verifyUpload(cookie: string) {
-  const res = await fetch('https://ccd-admin-web.demo.platform.hmcts.net/import', {
+  const res = await fetch(`${ENV_CONFIG.BASE_URL}/import`, {
     method: 'GET',
     headers: {
       Cookie: cookie,
-      referrer: ' https://ccd-admin-web.demo.platform.hmcts.net/',
+      referrer: ENV_CONFIG.BASE_URL,
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36'
     }
   })
@@ -193,6 +201,21 @@ async function verifyUpload(cookie: string) {
   }
 
   return true
+}
+
+function setCredentialsForEnvironment(env: string) {
+  const importUser = process.env[`${env.toUpperCase()}_IMPORT_USER`]
+  const importPass = process.env[`${env.toUpperCase()}_IMPORT_PASS`]
+  const importUrl = process.env[`${env.toUpperCase()}_IMPORT_URL`]
+
+  if (!importUser || !importPass || !importUrl) {
+    throw new Error(`Could not find credentials for environment - Please make sure ${env.toUpperCase()}_IMPORT_USER, ${env.toUpperCase()}_IMPORT_PASS and ${env.toUpperCase()}_IMPORT_URL are set as environment variables`)
+  }
+
+  ENV_CONFIG.USER = importUser
+  ENV_CONFIG.PASS = importPass
+  ENV_CONFIG.BASE_URL = importUrl
+  ENV_CONFIG.IDAM_LOGIN_START_URL = `${importUrl}/auth/login`
 }
 
 export default {
