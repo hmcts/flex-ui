@@ -8,7 +8,7 @@ import { createReadStream, existsSync, statSync } from 'fs'
 import { NO, YES, YES_OR_NO } from 'app/constants'
 import { execCommand, getEnvVarsFromFile, getIdealSizeForInquirer, temporaryLog, wait } from 'app/helpers'
 import { ChildProcess, exec } from 'child_process'
-import { getWslHostIP, setIPToHostDockerInternal, setIPToWslHostAddress } from './dockerUpdateIP'
+import { getWslHostIP, setIPToHostDockerInternal } from './dockerUpdateIP'
 import { generateSpreadsheets, importConfigs } from './configsCommon'
 import { fixExitedContainers } from 'app/et/docker'
 import FormData from 'form-data'
@@ -83,8 +83,8 @@ function setCredentialsForEnvironment(env: string) {
 
   ENV_CONFIG.USER = user
   ENV_CONFIG.PASS = pass
-  ENV_CONFIG.BASE_URL = url
-  ENV_CONFIG.IDAM_LOGIN_START_URL = `${url}/auth/login`
+  ENV_CONFIG.BASE_URL = url.endsWith('/') ? url.slice(0, -1) : url
+  ENV_CONFIG.IDAM_LOGIN_START_URL = `${ENV_CONFIG.BASE_URL}/auth/login`
 }
 
 async function askCreateOrExistingCase() {
@@ -143,7 +143,6 @@ export async function doCreateCaseTasks(answers: Record<string, any>) {
 
   if (answers.callbacks === YES) {
     await killProcessesOnPort8081()
-    await setIPToWslHostAddress()
     await generateSpreadsheets('local')
     await importConfigs()
     try {
@@ -238,14 +237,12 @@ export async function startAndWaitForCallbacksToBeReady(): Promise<ChildProcess>
   })
 }
 
-export async function getInitialLoginUrl(url: string = ENV_CONFIG.IDAM_LOGIN_START_URL) {
+export async function getInitialLoginUrl(url: string = ENV_CONFIG.IDAM_LOGIN_START_URL, cookieJar: CookieJar = { seen_cookie_message: 'yes', cookies_policy: '{ "essential": true, "analytics": false, "apm": false }', cookies_preferences_set: 'false' }) {
   const res = await fetch(url, { redirect: 'manual' })
 
   if (res.status !== 302) {
     throw new Error(`Something went wrong calling IDAM LOGIN - expected 302 but got ${res.status}`)
   }
-
-  const cookieJar = { seen_cookie_message: 'yes', cookies_policy: '{ "essential": true, "analytics": false, "apm": false }', cookies_preferences_set: 'false' }
 
   return {
     location: res.headers.get('location') || '',
@@ -261,10 +258,15 @@ export async function getCsrfTokenFromLoginPage(authUrl: string, cookieJar: Cook
 }
 
 export async function loginToIdam(username = ENV_CONFIG.USER, password = ENV_CONFIG.PASS, unauthorisedUrl = ENV_CONFIG.IDAM_LOGIN_START_URL) {
-  const { location: authUrl, cookieJar } = await getInitialLoginUrl(unauthorisedUrl)
+  let { location: authUrl, cookieJar } = await getInitialLoginUrl(unauthorisedUrl)
+  if (authUrl.includes('/o/authorize?')) {
+    const authorize = await getInitialLoginUrl(authUrl, cookieJar)
+    authUrl = authorize.location
+    cookieJar = authorize.cookieJar
+  }
   const csrf = await getCsrfTokenFromLoginPage(authUrl, cookieJar)
 
-  const body = objToFormData({ username, password, save: 'Sign in', selfRegistrationEnabled: 'true', azureLoginEnabled: 'true', mojLoginEnabled: 'true', _csrf: csrf })
+  const body = objToFormData({ username, password, selfRegistrationEnabled: 'false', azureLoginEnabled: 'true', mojLoginEnabled: 'true', _csrf: csrf })
 
   const res = await fetch(authUrl, {
     method: 'POST',
