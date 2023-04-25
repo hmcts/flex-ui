@@ -83,8 +83,8 @@ function setCredentialsForEnvironment(env: string) {
 
   ENV_CONFIG.USER = user
   ENV_CONFIG.PASS = pass
-  ENV_CONFIG.BASE_URL = url
-  ENV_CONFIG.IDAM_LOGIN_START_URL = `${url}/auth/login`
+  ENV_CONFIG.BASE_URL = url.endsWith('/') ? url.slice(0, -1) : url
+  ENV_CONFIG.IDAM_LOGIN_START_URL = `${ENV_CONFIG.BASE_URL}/auth/login`
 }
 
 async function askCreateOrExistingCase() {

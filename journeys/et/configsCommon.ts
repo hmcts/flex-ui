@@ -29,7 +29,7 @@ const IP_OPTS = [
   'WSL IP (if callbacks runs inside WSL)'
 ]
 
-export const ENV_CONFIG = {
+const ENV_CONFIG = {
   USER: '',
   PASS: '',
   BASE_URL: '',
@@ -52,7 +52,7 @@ export async function askConfigTasks() {
   ])
 
   if (answers.tasks.includes(TASK_CHOICES.GENERATE) && !answers.tasks.includes(TASK_CHOICES.IMPORT)) {
-    answers = await prompt([{ name: 'env', message: QUESTION_ENVIRONMENT, default: 'local' }], answers)
+    answers = await prompt([{ name: 'env', message: QUESTION_ENVIRONMENT, default: 'local', filter: (input: string) => input.toLowerCase() }], answers)
   } else {
     answers.env = 'local'
   }
@@ -110,7 +110,9 @@ export async function execConfigTasks(answers: Record<string, any>) {
     setCredentialsForEnvironment(answers.env)
     const cookieJar = await loginToIdam(ENV_CONFIG.USER, ENV_CONFIG.PASS, ENV_CONFIG.BASE_URL)
     const cookie = cookieJarToString(cookieJar)
+    temporaryLog(`Uploading ${answers.env} configs for ET_EnglandWales... `)
     await uploadConfig(process.env.ENGWALES_DEF_DIR, answers.env, cookie)
+    temporaryLog(`Uploading ${answers.env} configs for ET_Scotland... `)
     await uploadConfig(process.env.SCOTLAND_DEF_DIR, answers.env, cookie)
   }
 }
@@ -156,7 +158,7 @@ async function uploadConfig(dir: string, env: string, cookie: string) {
   const configFile = files.find(o => o.match(new RegExp(`et-(englandwales|scotland)-ccd-config-${env}\\.xlsx`)))
 
   if (!configFile) {
-    return temporaryLog(`Could not find a ${env} config file in ${dir}/definitions/xlsx`)
+    return console.log(`✕ (could not find generated config file)`)
   }
 
   const form = new FormData()
@@ -165,7 +167,7 @@ async function uploadConfig(dir: string, env: string, cookie: string) {
   const fileStream = createReadStream(configFile)
   form.append('file', fileStream, { knownLength: fileSizeInBytes })
 
-  await fetch(`${ENV_CONFIG.BASE_URL}/import`, {
+  const res = await fetch(`${ENV_CONFIG.BASE_URL}/import`, {
     method: 'POST',
     headers: {
       Cookie: cookie,
@@ -175,7 +177,17 @@ async function uploadConfig(dir: string, env: string, cookie: string) {
     body: form
   })
 
-  return await verifyUpload(cookie)
+  const text = await res.text()
+
+  if (text.includes('Case Definition data successfully imported')) {
+    return console.log(`✓`)
+  }
+
+  if (await verifyUpload(cookie)) {
+    return console.log(`✓`)
+  }
+
+  return console.log(`✕ (returned ${res.status} and could not find history record)`)
 }
 
 async function verifyUpload(cookie: string) {
@@ -196,7 +208,6 @@ async function verifyUpload(cookie: string) {
   const date = new Date(firstMatch?.substring(0, 14).replace(/(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1-$2-$3T$4:$5:$6') || 0)
 
   if (Date.now() - date.getTime() > 1000 * 60) {
-    console.warn('Could not find an entry for our uploaded file ((\\d+)_et-(englandwales|scotland)-ccd-config-demo\\.xlsx) in the last 60 seconds - it may not have uploaded')
     return false
   }
 
@@ -204,18 +215,18 @@ async function verifyUpload(cookie: string) {
 }
 
 function setCredentialsForEnvironment(env: string) {
-  const importUser = process.env[`${env.toUpperCase()}_IMPORT_USER`]
-  const importPass = process.env[`${env.toUpperCase()}_IMPORT_PASS`]
-  const importUrl = process.env[`${env.toUpperCase()}_IMPORT_URL`]
+  const user = process.env[`${env.toUpperCase()}_IMPORT_USER`]
+  const pass = process.env[`${env.toUpperCase()}_IMPORT_PASS`]
+  const url = process.env[`${env.toUpperCase()}_IMPORT_URL`]
 
-  if (!importUser || !importPass || !importUrl) {
+  if (!user || !pass || !url) {
     throw new Error(`Could not find credentials for environment - Please make sure ${env.toUpperCase()}_IMPORT_USER, ${env.toUpperCase()}_IMPORT_PASS and ${env.toUpperCase()}_IMPORT_URL are set as environment variables`)
   }
 
-  ENV_CONFIG.USER = importUser
-  ENV_CONFIG.PASS = importPass
-  ENV_CONFIG.BASE_URL = importUrl
-  ENV_CONFIG.IDAM_LOGIN_START_URL = `${importUrl}/auth/login`
+  ENV_CONFIG.USER = user
+  ENV_CONFIG.PASS = pass
+  ENV_CONFIG.BASE_URL = url.endsWith('/') ? url.slice(0, -1) : url
+  ENV_CONFIG.IDAM_LOGIN_START_URL = `${ENV_CONFIG.BASE_URL}/auth/login`
 }
 
 export default {
