@@ -29,7 +29,7 @@ function updateRegion(regionDir: string, ip: string) {
   const packageJsonPath = `${regionDir}${sep}package.json`
   const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'))
   packageJson.config.local.et_cos = `http://${ip}:8081`
-  writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2))
+  writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n')
 }
 
 export default {
