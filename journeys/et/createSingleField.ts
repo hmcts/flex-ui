@@ -16,7 +16,7 @@ async function journey(answers: Answers = {}) {
 async function createAuthorisations(created: Partial<ConfigSheets>) {
   let authorisations = []
   for (const field of created.CaseField) {
-    const authsExist = sheets.AuthorisationCaseEvent.find(o => o.CaseEventID === field.ID && o.CaseTypeId === field.CaseTypeID)
+    const authsExist = sheets.AuthorisationCaseField.find(o => o.CaseFieldID === field.ID && o.CaseTypeId === field.CaseTypeID)
 
     let answers: Answers = { authorisations: YES }
 
