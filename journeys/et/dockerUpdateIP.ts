@@ -20,22 +20,22 @@ export async function setIPToWslHostAddress() {
 }
 
 export function getWslHostIP() {
-  const packageJsonPath = `${process.env.ENGWALES_DEF_DIR}${sep}package.json`
-  const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'))
-  return packageJson.config.local.et_cos.replace(/http:\/\/(.+):8081/, '$1')
+  const envJsonPath = `${process.env.ENGWALES_DEF_DIR}${sep}env.json`
+  const envJson = JSON.parse(readFileSync(envJsonPath, 'utf-8'))
+  return envJson.local.ET_COS_URL.replace(/http:\/\/(.+):8081/, '$1')
 }
 
 function updateRegion(regionDir: string, ip: string) {
-  const packageJsonPath = `${regionDir}${sep}package.json`
-  const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'))
-  packageJson.config.local.et_cos = `http://${ip}:8081`
-  writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n')
+  const envJsonPath = `${regionDir}${sep}env.json`
+  const envJson = JSON.parse(readFileSync(envJsonPath, 'utf-8'))
+  envJson.local.ET_COS_URL = `http://${ip}:8081`
+  writeFileSync(envJsonPath, JSON.stringify(envJson, null, 2) + '\n')
 }
 
 export default {
   disabled: true,
   group: 'et-docker',
-  text: 'Update IP address in package.json of config repos',
+  text: 'Update IP address in config repos',
   fn: setIPToWslHostAddress,
   alias: 'DockerIP'
 } as Journey
