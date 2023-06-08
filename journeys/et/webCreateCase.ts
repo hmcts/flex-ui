@@ -12,7 +12,7 @@ import { getWslHostIP, setIPToHostDockerInternal } from './dockerUpdateIP'
 import { generateSpreadsheets, importConfigs } from './configsCommon'
 import { fixExitedContainers } from 'app/et/docker'
 import FormData from 'form-data'
-import { Answers } from 'app/questions'
+import { Answers, shouldContinue } from 'app/questions'
 import { EOL } from 'os'
 
 type CookieJar = Record<string, string>
@@ -35,6 +35,7 @@ const ENV_CONFIG = {
 const QUESTION_STEPS = 'What events are we interested in running?'
 const QUESTION_CALLBACKS = 'Do we need to spin up callbacks first?'
 const QUESTION_SHARE = 'Would you like to share this case with solicitor1@etorganisation1.com?'
+const QUESTION_EXECUTE_EVENTS_AGAIN = "Do you want to execute the same events again?"
 
 const EVENT_OPTS = [
   'et1Vetting',
@@ -109,10 +110,7 @@ async function askCreateOrExistingCase() {
   ]
 
   if (!cases.length) {
-    // There are no cases - this may or may not be truthful (known issue with exui)
-    // TODO: How does CitUI get this data?
-    console.log(`There were no cases returned by ExUI. Aborting...`)
-    return
+    return console.log(`There were no cases returned by ExUI. Aborting...`)
   }
 
   answers = await prompt([{ name: 'cases', message: 'Select a case', type: 'list', choices: cases.map(o => o.alias), pageSize: getIdealSizeForInquirer() }])
@@ -120,7 +118,10 @@ async function askCreateOrExistingCase() {
   const region = selectedCase.case_fields['[CASE_TYPE]']
 
   const followup = await askCreateCaseQuestions({ region: [region], caseId: selectedCase.caseId })
-  return await doCreateCaseTasks(followup)
+
+  do {
+    await doCreateCaseTasks(followup)
+  } while (await shouldContinue(QUESTION_EXECUTE_EVENTS_AGAIN))
 }
 
 export async function askCreateCaseQuestions(answers: Answers = {}) {
