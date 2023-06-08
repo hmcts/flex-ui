@@ -52,6 +52,14 @@ export const createJourneys: {
 }
 
 /**
+ * Asks whether to continue
+ * @returns boolean whether should continue
+ */
+export async function shouldContinue(message: string): Promise<boolean> {
+  return (await prompt([{ name: 'continue', message, type: 'confirm' }])).continue
+}
+
+/**
  * Asks for generic input selecting from a list
  * @returns extended answers object as passed in
  */
