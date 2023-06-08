@@ -2,7 +2,7 @@
   "data": {
     "resTseSelectApplication": "Change personal details",
     "resTseTextBox2": "look ma, flexUI populated",
-    "resTseCopyToOtherPartyYesOrNo": "I confirm I want to copy",
+    "resTseCopyToOtherPartyYesOrNo": "Yes",
     "resTseCopyToOtherPartyTextArea": null
   },
   "event": {
