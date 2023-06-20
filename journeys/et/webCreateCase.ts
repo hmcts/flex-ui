@@ -533,24 +533,32 @@ async function uploadTestFile(cookieJar: CookieJar) {
 }
 
 async function findExistingCases(region: string, cookieJar: CookieJar) {
-  const url = `${ENV_CONFIG.BASE_URL}/data/internal/searchCases?ctid=${region}&use_case=WORKBASKET&view=WORKBASKET&page=1`
-  const res = await makeAuthorisedRequest(url, cookieJar, {
-    method: 'post'
-  })
+  const allCases = []
+  let newCases
+  let pageNumber = 1
+  do {
+    const url = `${ENV_CONFIG.BASE_URL}/data/internal/searchCases?ctid=${region}&use_case=WORKBASKET&view=WORKBASKET&page=${pageNumber++}`
+    const res = await makeAuthorisedRequest(url, cookieJar, {
+      method: 'post'
+    })
 
-  if (res.status > 299) {
-    console.log(`Unexpected return when getting cases for ${region} - ${res.status} ${res.statusText}`)
-    return []
-  }
-
-  const json = await res.json()
-  return json.results?.map(o => {
-    return {
-      ...o,
-      caseId: o.case_id,
-      alias: `${o.case_fields['[CASE_TYPE]']} - ${o.case_fields.ethosCaseReference} - ${o.case_id} (${o.case_fields.claimant} vs ${o.case_fields.respondent})`
+    if (res.status > 299) {
+      console.log(`Unexpected return when getting cases for ${region} - ${res.status} ${res.statusText}`)
+      return []
     }
-  }) || [] as Array<Record<string, any> & { caseId: string, alias: string }>
+
+    newCases = (await res.json()).results?.map(o => {
+      return {
+        ...o,
+        caseId: o.case_id,
+        alias: `${o.case_fields['[CASE_TYPE]']} - ${o.case_fields.ethosCaseReference} - ${o.case_id} (${o.case_fields.claimant} vs ${o.case_fields.respondent})`
+      }
+    }) || [] as Array<Record<string, any> & { caseId: string, alias: string }>
+
+    allCases.push(...newCases)
+  } while (newCases.length)
+
+  return allCases
 }
 
 export default {
