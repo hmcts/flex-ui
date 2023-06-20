@@ -544,7 +544,7 @@ async function findExistingCases(region: string, cookieJar: CookieJar) {
 
     if (res.status > 299) {
       console.log(`Unexpected return when getting cases for ${region} - ${res.status} ${res.statusText}`)
-      return allCases;
+      return allCases
     }
 
     newCases = (await res.json()).results?.map(o => {
