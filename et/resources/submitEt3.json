@@ -1,0 +1,28 @@
+{
+  "data": {
+    "submitEt3Respondent": {
+      "value": {
+        "code": "R: {{respondentCollection.0.value.respondent_name}}",
+        "label": "{{respondentCollection.0.value.respondent_name}}"
+      },
+      "selectedLabel": "{{respondentCollection.0.value.respondent_name}}",
+      "selectedCode": "R: {{respondentCollection.0.value.respondent_name}}",
+      "list_items": [
+        {
+          "code": "R: {{respondentCollection.0.value.respondent_name}}",
+          "label": "{{respondentCollection.0.value.respondent_name}}"
+        }
+      ]
+    },
+    "confirmEt3Submit": [
+      "Yes"
+    ]
+  },
+  "event": {
+    "id": "submitEt3",
+    "summary": "",
+    "description": ""
+  },
+  "event_token": "",
+  "ignore_warning": false
+}

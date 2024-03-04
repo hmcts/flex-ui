@@ -2,14 +2,14 @@
   "data": {
     "selectNotificationDropdown": {
       "value": {
-        "code": "18faedf8-4cd3-4773-b589-e68a05a2f2cd",
+        "code": "{{sendNotificationCollection.0.id}}",
         "label": "Notification Title - [Claimant / Respondent details, Claim (ET1), Response (ET3), Hearing, Judgment, Case management orders / requests, Employer Contract Claim, Other (General correspondence)]"
       },
-      "selectedCode": "18faedf8-4cd3-4773-b589-e68a05a2f2cd",
+      "selectedCode": "{{sendNotificationCollection.0.id}}",
       "selectedLabel": "Notification Title - [Claimant / Respondent details, Claim (ET1), Response (ET3), Hearing, Judgment, Case management orders / requests, Employer Contract Claim, Other (General correspondence)]",
       "list_items": [
         {
-          "code": "18faedf8-4cd3-4773-b589-e68a05a2f2cd",
+          "code": "{{sendNotificationCollection.0.id}}",
           "label": "Notification Title - [Claimant / Respondent details, Claim (ET1), Response (ET3), Hearing, Judgment, Case management orders / requests, Employer Contract Claim, Other (General correspondence)]"
         }
       ]
@@ -23,8 +23,8 @@
           "typeOfDocument": null,
           "shortDescription": "FlexUI sample document",
           "uploadedDocument": {
-            "document_url": "http://dm-store:8080/documents/<FLEX_DOC_UUID>",
-            "document_binary_url": "http://dm-store:8080/documents/<FLEX_DOC_UUID>/binary",
+            "document_url": "<FLEX_DOC_UUID>",
+            "document_binary_url": "<FLEX_DOC_UUID>/binary",
             "document_filename": "evidence.txt"
           }
         },

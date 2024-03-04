@@ -2,7 +2,7 @@ import { prompt } from 'inquirer'
 import { ComplexType, ComplexTypeKeys } from 'types/ccd'
 import { QUESTION_HINT_TEXT } from './createSingleField'
 import { createNewComplexType, trimCcdObject } from 'app/ccd'
-import { addAutoCompleteQuestion, addComplexTypeListElementCodeQuestion, addFieldTypeParameterQuestion, addFieldTypeQuestion, addMaxQuestion, addMinQuestion, addRegularExpressionQuestion, Answers, Question, spliceCustomQuestionIndex } from 'app/questions'
+import { addAutoCompleteQuestion, addComplexTypeListElementCodeQuestion, addFieldTypeParameterQuestion, addFieldTypeQuestion, addMaxQuestion, addMinQuestion, addNonProdFeatureQuestions, addRegularExpressionQuestion, Answers, Question, spliceCustomQuestionIndex } from 'app/questions'
 import { CUSTOM } from 'app/constants'
 import { addToLastAnswers, addToSession, session } from 'app/session'
 import { Journey } from 'types/journey'
@@ -50,7 +50,8 @@ export function addComplexTypeQuestions(existingFn: (answers: Answers) => Comple
     ...addFieldTypeParameterQuestion({ default: defaultFn('FieldTypeParameter') }),
     ...addRegularExpressionQuestion({ default: defaultFn('RegularExpression') }),
     ...addMinQuestion({ default: defaultFn('Min') }),
-    ...addMaxQuestion({ default: defaultFn('Max') })
+    ...addMaxQuestion({ default: defaultFn('Max') }),
+    ...addNonProdFeatureQuestions('ComplexTypes'),
   ] as Question[]
 }
 

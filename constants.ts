@@ -92,15 +92,21 @@ export function isFieldTypeInExclusionList(fieldType: string, exclusionList: str
 export const NONE = '<none>'
 export const CUSTOM = '<custom>'
 export const CANCEL = '<cancel>'
+export const NONPROD = 'nonprod'
+export const PROD = 'prod'
 
 export const COMPOUND_KEYS: CompoundKeys<CCDTypes> = {
   AuthorisationCaseEvent: ['CaseEventID', 'CaseTypeId', 'UserRole'],
   AuthorisationCaseField: ['CaseFieldID', 'CaseTypeId', 'UserRole'],
+  AuthorisationComplexType: ['CaseFieldID', 'CaseTypeID', 'ListElementCode', 'UserRole'],
   CaseEvent: ['ID', 'CaseTypeID'],
   CaseEventToFields: ['CaseFieldID', 'CaseEventID', 'CaseTypeID'],
   CaseField: ['ID', 'CaseTypeID'],
   CaseTypeTab: ['CaseTypeID', 'Channel', 'TabID', 'CaseFieldID'],
   ComplexTypes: ['ID', 'ListElementCode'],
   EventToComplexTypes: ['ID', 'CaseEventID', 'CaseFieldID', 'ListElementCode'],
-  Scrubbed: ['ID', 'ListElementCode']
+  Scrubbed: ['ID', 'ListElementCode'],
+  RoleToAccessProfiles: ['CaseTypeID', 'RoleName', 'AccessProfiles'],
+  AuthorisationCaseState: ['CaseTypeID', 'CaseStateID', 'UserRole'],
+  AuthorisationCaseType: ['CaseTypeId', 'UserRole']
 }

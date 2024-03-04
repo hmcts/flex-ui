@@ -15,8 +15,8 @@ function matchText(text: string) {
   return text.startsWith(STATIC_TEXT)
 }
 
-function readConfig() {
-  readInCurrentConfig()
+async function readConfig() {
+  await readInCurrentConfig(undefined, process.env.ENGWALES_DEF_DIR, process.env.SCOTLAND_DEF_DIR)
   // Reload the session to sync up in-memory config with session data
   restorePreviousSession(session.name + SESSION_EXT)
   loadCurrentSessionIntoMemory()

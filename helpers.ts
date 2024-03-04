@@ -1,6 +1,7 @@
 import { ChildProcess, exec, ExecException } from 'child_process'
 import { Dirent, existsSync, mkdirSync, readFileSync } from 'fs'
 import { readdir } from 'fs/promises'
+import fetch from 'node-fetch'
 import { EOL } from 'os'
 import { resolve, sep } from 'path'
 
@@ -100,7 +101,7 @@ export function removeFields<T>(main: T[], toDelete: T[], keys: Array<keyof (T)>
  */
 export function matcher<T>(item1: T, item2: T, keys: Array<keyof (T)>) {
   for (const key of keys) {
-    if (item1[key] !== item2[key]) {
+    if (item1?.[key] !== item2?.[key]) {
       return false
     }
   }
@@ -156,10 +157,13 @@ export function getEnvVarsFromFile(): Record<string, string> {
  * @returns an object with stdout, stderr and the exit code
  */
 export async function execCommand(command: string, cwd?: string, rejectOnNonZeroExitCode = true): Promise<{ err: ExecException | null, stdout: string, stderr: string, code: number }> {
+  if (process.env.DEBUG) {
+    console.log('\x1b[2m', `Executing: ${command} in ${cwd || process.cwd()}}`, '\x1b[0m')
+  }
   return await new Promise((resolve, reject) => {
-    const env = getEnvVarsFromFile()
-    const child: ChildProcess = exec(command, { cwd, env: { ...process.env, ...env } }, (err, stdout, stderr) => {
-      const out = { err, stdout, stderr, code: child.exitCode || 0 }
+    const env = process.env.CFTLIB ? {} : getEnvVarsFromFile() // Hack here to avoid loading ecm-ccd-docker vars when using cftlib
+    const child: ChildProcess = exec(command, { maxBuffer: 1024 * 1024 * 5, cwd, env: { ...process.env, ...env } }, (err, stdout, stderr) => {
+      const out = { err, stdout, stderr, code: child.exitCode || 0, cwd: cwd || process.cwd() }
       if (rejectOnNonZeroExitCode && child.exitCode && child.exitCode > 0) {
         return reject(out)
       }
@@ -254,4 +258,127 @@ export function remove<T>(arr: T[], item: T) {
   if (index > -1) {
     arr.splice(index, 1)
   }
+}
+
+export function unescapeHtml(html: string): string {
+  let returnText = html;
+  returnText = returnText.replace(/&nbsp;/gi, ' ')
+  returnText = returnText.replace(/&amp;/gi, '&')
+  returnText = returnText.replace(/&quot;/gi, `"`)
+  returnText = returnText.replace(/&quot;/gi, `'`)
+  returnText = returnText.replace(/&lt;/gi, '<')
+  returnText = returnText.replace(/&gt;/gi, '>')
+  return returnText
+}
+
+export async function killOn(port: number | string) {
+  return await execCommand(`lsof -i:${port} -Fp | head -n 1 | sed 's/^p//' | xargs kill`, undefined, false)
+}
+
+export async function startAndWaitForService(opts: { name: string, dir: string, cmd: string, timeoutMs?: number, successRegex?: RegExp }) {
+  opts.timeoutMs ||= 600000
+  opts.successRegex ||= /Started (.+?) in [\d.]+ seconds \(JVM/g
+
+  return await new Promise((resolve, reject) => {
+    const stdout: string[] = []
+    const stderr: string[] = []
+    const start = Date.now()
+
+    const cleanupAndExit = (fn: () => void) => {
+      clearInterval(interval)
+      fn()
+    }
+
+    const interval = setInterval(() => {
+      if (stdout.find(o => o.match(opts.successRegex))) {
+        cleanupAndExit(() => resolve(child))
+      }
+
+      if (stdout.find(o => o.includes("APPLICATION FAILED TO START"))) {
+        cleanupAndExit(() => reject(stdout.join('')))
+      }
+
+      if (Date.now() - start > opts.timeoutMs) {
+        cleanupAndExit(() => reject(`Failed to start within ${opts.timeoutMs / 1000} seconds`))
+      }
+    }, 1000)
+
+    const child: ChildProcess = exec(opts.cmd, { cwd: opts.dir, env: { ...process.env, ...getEnvVarsFromFile() } }, err => {
+      if (err) {
+        return cleanupAndExit(() => reject(err))
+      }
+
+      return cleanupAndExit(() => resolve(child))
+    })
+
+    child.stdout?.on('data', data => {
+      stdout.push(data)
+    })
+
+    child.stderr?.on('data', data => {
+      stderr.push(data)
+    })
+  })
+}
+
+export async function startSpringbootApp(name: string, dir: string, cmd?: string, timeoutMs: number = 60000) {
+  return await startAndWaitForService({
+    name,
+    dir,
+    cmd: cmd || `./gradlew bootRun --args='--spring.profiles.active=dev'`,
+    timeoutMs
+  })
+}
+
+/**
+ * Same as calling fetch but will retry on failure infinitely
+ */
+export async function retryFetch(url: string, opts?: any) {
+  try {
+    if (process.env.DEBUG) {
+      console.log('\x1b[2m', `Calling ${url}`, '\x1b[0m')
+    }
+    // opts.signal ||= AbortSignal.timeout(60_000)
+    const res = await fetch(url, opts)
+    if (res.status > 499) {
+      const text = await res.text()
+      console.warn(text)
+      throw new Error(`Status code ${res.status}`)
+    }
+    return res
+  } catch (e) {
+    console.warn(`Fetch to ${url} failed with ${e.message}. Retrying in 5 seconds...`)
+    await wait(5000)
+    return await retryFetch(url, opts)
+  }
+}
+
+export function underlineRow(contents: Record<string, string>) {
+  return [
+    contents,
+    Object.keys(contents).reduce((acc, key) => {
+      if (!contents[key].length) return acc
+      acc[key] = "".padStart(contents[key].length + 1, "-")
+      return acc
+    }, {})
+  ]
+}
+
+export function formatTableRows(contents: Record<string, string>[]) {
+  const maxLengths = contents.reduce((acc, obj: Record<string, string>) => {
+    for (const key in obj) {
+      if (!acc[key] || acc[key] < (obj[key]?.length || 0)) {
+        acc[key] = obj[key].length
+      }
+    }
+    return acc
+  }, {} as Record<string, number>)
+
+  return contents.map(o => {
+    for (const key in maxLengths) {
+      if (!o[key]) continue
+      o[key] = (o[key] as String).padEnd(maxLengths[key], " ")
+    }
+    return o
+  })
 }

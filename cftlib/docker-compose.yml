@@ -1,0 +1,53 @@
+---
+version: '3.5'
+services:
+  xui-manage-cases:
+    image: "${XUI_MANAGE_CASES_USE_LOCAL-hmctspublic.azurecr.io/}xui/webapp:${XUI_MANAGE_CASES_TAG:-latest}"
+    environment:
+      FEATURE_APP_INSIGHTS_ENABLED: "false"
+      FEATURE_SECURE_COOKIE_ENABLED: "false"
+      FEATURE_REDIS_ENABLED: "false"
+      JURISDICTIONS: "${XUI_JURISDICTIONS:-DIVORCE,PROBATE,SSCS,PRIVATELAW,PUBLICLAW,ADOPTION,CIVIL,EMPLOYMENT}"
+      MICROSERVICE: xui_webapp
+      PROTOCOL: http
+      XUI_ENV: local
+      DEBUG: '*:*'
+      SERVICES_DOCUMENTS_API: "${XUI_DOCUMENTS_API:-http://dm-store-aat.service.core-compute-aat.internal}"
+      SERVICES_DOCUMENTS_API_V2: "${XUI_DOCUMENTS_API_V2:-http://172.30.12.147:4455}"
+
+      SERVICES_PAYMENTS_URL: http://payment-api-aat.service.core-compute-aat.internal
+      SERVICES_EM_ANNO_API: http://172.30.12.147:4452
+      SERVICES_CCD_COMPONENT_API: http://172.30.12.147:4452
+      SERVICES_CCD_DATA_STORE_API: http://172.30.12.147:4452
+      SERVICES_CCD_CASE_ASSIGNMENT_API: http://172.30.12.147:4454
+      SERVICES_IDAM_API_URL: "${XUI_IDAM_API_URL:-https://idam-api.aat.platform.hmcts.net}"
+      SERVICES_IDAM_CLIENT_ID: xuiwebapp
+      SERVICES_IDAM_LOGIN_URL: "${XUI_IDAM_LOGIN_URL:-https://idam-web-public.aat.platform.hmcts.net}"
+      SERVICES_IDAM_INDEX_URL: /
+      SERVICES_IDAM_OAUTH_CALLBACK_URL: /oauth2/callback
+      SERVICES_EM_DOCASSEMBLY_API: "${XUI_EM_DOCASSEMBLY_API:-http://dg-docassembly-aat.service.core-compute-aat.internal}"
+      HEALTH_EM_DOCASSEMBLY_API: "${XUI_EM_DOCASSEMBLY_API:-http://dg-docassembly-aat.service.core-compute-aat.internal}/health"
+      SERVICES_S2S: "${XUI_S2S_URL:-http://rpe-service-auth-provider-aat.service.core-compute-aat.internal}"
+      SYSTEM_USER_NAME: "${XUI_SYSTEM_USER_NAME:-cwd_system@mailinator.com}"
+      SYSTEM_USER_PASSWORD: "${XUI_SYSTEM_USER_PASSWORD:-password}"
+      REDISCLOUD_URL: http://localhost:6780
+      HEALTH_CCD_COMPONENT_API: http://172.30.12.147:4452/health
+      HEALTH_CCD_DATA_API: http://172.30.12.147:4452/health
+      SERVICES_PRD_API: "${RD_PROFESSIONAL_API_URL:-http://rd-professional-api-aat.service.core-compute-aat.internal}"
+      APPINSIGHTS_INSTRUMENTATIONKEY: TESTVAR
+      IDAM_SECRET: "${XUI_OAUTH_SECRET:-AAAAAAAAAAAAAAA}"
+      S2S_SECRET: "${XUI_SERVICE_KEY:-AAAAAAAAAAAAAAAA}"
+      LAUNCH_DARKLY_CLIENT_ID: "${XUI_LD_ID}"
+      SERVICES_ROLE_ASSIGNMENT_API: http://172.30.12.147:4096
+      HEALTH_ROLE_ASSIGNMENT_API: http://172.30.12.147:4096/health
+      SERVICES_PRD_COMMONDATA_API: http://host.docker.internal:8765
+      SERVICES_LOCATION_REF_API_URL: http://host.docker.internal:8765
+      SERVICES_PRD_LOCATION_API: http://host.docker.internal:8765
+      SERVICES_LOCATION_API: http://host.docker.internal:8765
+      SERVICES_WORK_ALLOCATION_TASK_API: http://host.docker.internal:8087
+      # WA_SUPPORTED_JURISDICTIONS: "EMPLOYMENT,EMPLOYMENT"
+    ports:
+      - ${XUI_PORT:-3000}:3000
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      

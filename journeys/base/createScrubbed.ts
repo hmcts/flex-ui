@@ -1,7 +1,7 @@
 import { getKnownScrubbedLists, sheets, upsertConfigs } from 'app/configs'
 import { COMPOUND_KEYS, CUSTOM, NO, YES } from 'app/constants'
 import { upsertFields } from 'app/helpers'
-import { addAutoCompleteQuestion, Answers, askYesOrNo, Question } from 'app/questions'
+import { addAutoCompleteQuestion, addNonProdFeatureQuestions, Answers, askYesOrNo, Question } from 'app/questions'
 import { addToSession } from 'app/session'
 import { prompt } from 'inquirer'
 import { ConfigSheets, Scrubbed, ScrubbedKeys } from 'types/ccd'
@@ -43,7 +43,8 @@ export function addScrubbedQuestions() {
   return [
     { name: 'ListElement', message: QUESTION_LIST_ELEMENT, askAnswered: true },
     { name: 'ListElementCode', message: QUESTION_LIST_ELEMENT_CODE, default: (ans) => ans.ListElement, askAnswered: true },
-    { name: 'DisplayOrder', type: 'number', message: QUESTION_DISPLAY_ORDER, default: (ans) => getLastDisplayOrderInScrubbed(ans) + 1, askAnswered: true }
+    { name: 'DisplayOrder', type: 'number', message: QUESTION_DISPLAY_ORDER, default: (ans) => getLastDisplayOrderInScrubbed(ans) + 1, askAnswered: true },
+    ...addNonProdFeatureQuestions('Scrubbed')
   ] as Question[]
 }
 

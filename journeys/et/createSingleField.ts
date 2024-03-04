@@ -32,7 +32,7 @@ async function createAuthorisations(created: Partial<ConfigSheets>) {
     }
 
     if (answers.authorisations === YES) {
-      authorisations = authorisations.concat(...createCaseFieldAuthorisations(field.CaseTypeID, field.ID))
+      authorisations = authorisations.concat(...createCaseFieldAuthorisations(field.CaseTypeID, field.ID, undefined, field.ext, field.feature))
     }
   }
   return authorisations

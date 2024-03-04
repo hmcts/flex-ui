@@ -76,12 +76,16 @@ export function getObjectsReferencedByCaseFields(config: ConfigSheets, caseField
   return {
     AuthorisationCaseEvent: refAuthCaseEvent,
     AuthorisationCaseField: refAuthCaseField,
+    AuthorisationComplexType: [],
     CaseField: refCaseFields,
     CaseEvent: refCaseEvents,
     CaseEventToFields: refCaseEventToField,
     ComplexTypes: refComplexType,
     Scrubbed: refScrubbed,
     EventToComplexTypes: refEventToComplexTypes,
-    CaseTypeTab: refCaseTypeTab
+    CaseTypeTab: refCaseTypeTab,
+    RoleToAccessProfiles: [],
+    AuthorisationCaseState: [],
+    AuthorisationCaseType: []
   }
 }

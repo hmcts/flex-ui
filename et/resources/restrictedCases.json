@@ -1,0 +1,53 @@
+{
+  "data": {
+    "restrictedReporting": {
+      "requestedBy": "Both Parties",
+      "dynamicRequestedBy": {
+        "value": {
+          "code": "Both Parties",
+          "label": "Both Parties"
+        },
+        "list_items": [
+          {
+            "code": "R: Another Person",
+            "label": "Another Person"
+          },
+          {
+            "code": "C: Jack Reeve",
+            "label": "Jack Reeve"
+          },
+          {
+            "code": "Judge",
+            "label": "Judge"
+          },
+          {
+            "code": "Both Parties",
+            "label": "Both Parties"
+          },
+          {
+            "code": "Other",
+            "label": "Other"
+          },
+          {
+            "code": "None",
+            "label": "None"
+          }
+        ]
+      },
+      "imposed": "Yes",
+      "dateCeased": "2000-01-11",
+      "rule503b": "Yes",
+      "startDate": "1989-01-16",
+      "excludedRegister": "Definite",
+      "deletedPhyRegister": "Yes",
+      "excludedNames": "not for public release"
+    }
+  },
+  "event": {
+    "id": "restrictedCases",
+    "summary": "",
+    "description": ""
+  },
+  "event_token": "",
+  "ignore_warning": false
+}

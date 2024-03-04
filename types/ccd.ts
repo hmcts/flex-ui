@@ -18,6 +18,14 @@ export interface AuthorisationCaseField extends FlexExtensions {
   CRUD: string
 }
 
+export interface AuthorisationComplexType extends FlexExtensions {
+  CaseTypeID: string
+  CaseFieldID: string
+  ListElementCode: string
+  UserRole: string
+  CRUD: string
+}
+
 export interface CaseEventToField extends FlexExtensions {
   CaseTypeID: string
   CaseEventID: string
@@ -37,6 +45,7 @@ export interface CaseEventToField extends FlexExtensions {
   RetriesTimeoutURLMidEvent: string
   CaseEventFieldLabel: string
   CaseEventFieldHint: string
+  Publish: 'Y' | 'N'
 }
 
 export interface CaseEvent extends FlexExtensions {
@@ -54,6 +63,7 @@ export interface CaseEvent extends FlexExtensions {
   CallBackURLAboutToStartEvent: string
   CallBackURLAboutToSubmitEvent: string
   CallBackURLSubmittedEvent: string
+  Publish: 'Y' | 'N'
 }
 
 export interface EventToComplexType extends FlexExtensions {
@@ -67,6 +77,7 @@ export interface EventToComplexType extends FlexExtensions {
   DisplayContext: 'READONLY' | 'OPTIONAL' | 'MANDATORY'
   FieldShowCondition: string
   RetainHiddenValue: 'No' | 'Yes'
+  Publish: 'Y' | 'N'
 }
 
 export interface AuthorisationCaseEvent extends FlexExtensions {
@@ -113,19 +124,57 @@ export interface CaseTypeTab extends FlexExtensions {
   DisplayContextParameter: string
 }
 
+export interface RoleToAccessProfile extends FlexExtensions {
+  CaseTypeID: string
+  RoleName: string
+  ReadOnly: string
+  AccessProfiles: string
+  Authorisation: string
+  Disabled: string
+  CaseAccessCategories: string
+}
+
+export interface AuthorisationCaseState extends FlexExtensions {
+  CaseTypeID: string
+  CaseStateID: string
+  UserRole?: string
+  CRUD?: string
+  AccessControl?: {
+    UserRoles: string[]
+    CRUD: string
+  }[]
+}
+
+export interface AuthorisationCaseType extends FlexExtensions {
+  CaseTypeId: string
+  UserRole?: string
+  UserRoles?: string[]
+  CRUD: string
+}
+
 export interface FlexExtensions {
   flex?: Record<string, any>
+  /** Arbitrary feature name - used in determining file name (ie, CaseField-FEATURE-nonprod.json) */
+  feature?: string
+  /** Target environment - used in determining file name (ie, CaseField-CaseFlags[-EXT].json) */
+  ext?: CCDSheetExtension
+  /** If the source object was previously compressed - we should re-compress on save */
+  compress?: boolean
 }
 
 export interface CCDTypes {
   AuthorisationCaseEvent: AuthorisationCaseEvent
   AuthorisationCaseField: AuthorisationCaseField
+  AuthorisationCaseState: AuthorisationCaseState
+  AuthorisationCaseType: AuthorisationCaseType
+  AuthorisationComplexType: AuthorisationComplexType
   CaseEvent: CaseEvent
   CaseEventToFields: CaseEventToField
   CaseField: CaseField
   CaseTypeTab: CaseTypeTab
   ComplexTypes: ComplexType
   EventToComplexTypes: EventToComplexType
+  RoleToAccessProfiles: RoleToAccessProfile
   Scrubbed: Scrubbed
 }
 
@@ -169,6 +218,14 @@ export enum AuthorisationCaseFieldKeys {
   CRUD = 'CRUD'
 }
 
+export enum AuthorisationComplexTypeKeys {
+  CaseTypeId = 'CaseTypeId',
+  CaseFieldID = 'CaseFieldID',
+  ListElementCode = 'ListElementCode',
+  UserRole = 'UserRole',
+  CRUD = 'CRUD'
+}
+
 export enum CaseEventToFieldKeys {
   CaseTypeID = 'CaseTypeID',
   CaseEventID = 'CaseEventID',
@@ -187,7 +244,8 @@ export enum CaseEventToFieldKeys {
   ShowSummaryContentOption = 'ShowSummaryContentOption',
   RetriesTimeoutURLMidEvent = 'RetriesTimeoutURLMidEvent',
   CaseEventFieldLabel = 'CaseEventFieldLabel',
-  CaseEventFieldHint = 'CaseEventFieldHint'
+  CaseEventFieldHint = 'CaseEventFieldHint',
+  Publish = 'Publish'
 }
 
 export enum CaseEventKeys {
@@ -205,6 +263,7 @@ export enum CaseEventKeys {
   CallBackURLAboutToStartEvent = 'CallBackURLAboutToStartEvent',
   CallBackURLAboutToSubmitEvent = 'CallBackURLAboutToSubmitEvent',
   CallBackURLSubmittedEvent = 'CallBackURLSubmittedEvent',
+  Publish = 'Publish'
 }
 
 export enum EventToComplexTypeKeys {
@@ -218,6 +277,7 @@ export enum EventToComplexTypeKeys {
   DisplayContext = 'DisplayContext',
   FieldShowCondition = 'FieldShowCondition',
   RetainHiddenValue = 'RetainHiddenValue',
+  Publish = 'Publish'
 }
 
 export enum AuthorisationCaseEventKeys {
@@ -264,6 +324,36 @@ export enum CaseTypeTabKeys {
   DisplayContextParameter = 'DisplayContextParameter'
 }
 
+export enum RoleToAccessProfileKeys {
+  CaseTypeID = 'CaseTypeID',
+  RoleName = 'RoleName',
+  ReadOnly = 'ReadOnly',
+  AccessProfiles = 'AccessProfiles',
+  Authorisation = 'Authorisation',
+  Disabled = 'Disabled',
+  CaseAccessCategories = 'CaseAccessCategories'
+}
+
+export enum AuthorisationCaseStateKeys {
+  CaseTypeID = 'CaseTypeID',
+  CaseStateID = 'CaseStateID',
+  UserRole = 'UserRole',
+  CRUD = 'CRUD',
+  AccessControl = 'AccessControl'
+}
+
+export enum AuthorisationCaseTypeKeys {
+  CaseTypeId = 'CaseTypeId',
+  UserRole = 'UserRole',
+  UserRoles = 'UserRoles',
+  CRUD = 'CRUD'
+}
+
+export enum FlexExtensionKeys {
+  feature = 'feature',
+  ext = 'ext'
+}
+
 const sheetsObj: CCDTypes = {
   CaseEvent: null,
   CaseEventToFields: null,
@@ -272,9 +362,20 @@ const sheetsObj: CCDTypes = {
   EventToComplexTypes: null,
   AuthorisationCaseEvent: null,
   AuthorisationCaseField: null,
+  AuthorisationComplexType: null,
   Scrubbed: null,
-  CaseTypeTab: null
+  CaseTypeTab: null,
+  RoleToAccessProfiles: null,
+  AuthorisationCaseState: null,
+  AuthorisationCaseType: null
 }
+
+export enum CCDSheetExtension {
+  PROD = 'prod',
+  NONPROD = 'nonprod',
+  BASE = ''
+}
+export const extensions: any[] = ['nonprod', 'prod', '', undefined]
 
 export const sheets = Object.keys(sheetsObj) as Array<keyof (CCDTypes)>
 

@@ -12,7 +12,7 @@ async function journey(answers: Answers = {}) {
 
 function createAuthorisations(created: Partial<ConfigSheets>) {
   return created.CaseField.reduce((acc, o) =>
-    acc.concat(...createCaseFieldAuthorisations(o.CaseTypeID, o.ID)), []
+    acc.concat(...createCaseFieldAuthorisations(o.CaseTypeID, o.ID, undefined, o.ext, o.feature)), []
   )
 }
 
