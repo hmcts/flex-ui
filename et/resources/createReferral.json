@@ -1,0 +1,19 @@
+{
+  "data": {
+    "referCaseTo": "Admin",
+    "referentEmail": "admine@email.com",
+    "isUrgent": "Yes",
+    "referralSubject": "ET1",
+    "referralSubjectSpecify": null,
+    "referralDetails": "idklol",
+    "referralDocument": [],
+    "referralInstruction": null
+  },
+  "event": {
+    "id": "createReferral",
+    "summary": "",
+    "description": ""
+  },
+  "event_token": "",
+  "ignore_warning": false
+}

@@ -1,0 +1,46 @@
+{
+  "data": {
+    "caseRefECC": "{{ethosCaseReference}}",
+    "respondentECC": {
+      "value": {
+        "code": "{{respondentCollection.0.value.respondent_name}}",
+        "label": "{{respondentCollection.0.value.respondent_name}}"
+      },
+      "list_items": [
+        {
+          "code": "{{respondentCollection.0.value.respondent_name}}",
+          "label": "{{respondentCollection.0.value.respondent_name}}"
+        }
+      ]
+    },
+    "positionType": "ET1 Online submission",
+    "conciliationTrack": "Open Track",
+    "clerkResponsible": {
+      "value": {
+        "code": "Scotland Clerk 1",
+        "label": "Scotland Clerk 1"
+      },
+      "list_items": [
+        {
+          "code": "Scotland Clerk 1",
+          "label": "Scotland Clerk 1"
+        },
+        {
+          "code": "Scotland Clerk 2",
+          "label": "Scotland Clerk 2"
+        },
+        {
+          "code": "Scotland Clerk 3",
+          "label": "Scotland Clerk 3"
+        }
+      ]
+    }
+  },
+  "event": {
+    "id": "createCaseECC",
+    "summary": "",
+    "description": ""
+  },
+  "event_token": "",
+  "ignore_warning": false
+}

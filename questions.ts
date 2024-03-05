@@ -1,10 +1,10 @@
 import inquirer, { prompt } from 'inquirer'
-import { COMPOUND_KEYS, CUSTOM, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, isFieldTypeInExclusionList, NO, NONE, NO_DUPLICATE, YES, YES_OR_NO } from 'app/constants'
+import { COMPOUND_KEYS, CUSTOM, FIELD_TYPES_EXCLUDE_MIN_MAX, FIELD_TYPES_EXCLUDE_PARAMETER, isFieldTypeInExclusionList, NO, NONE, NO_DUPLICATE, YES, YES_OR_NO, NONPROD, PROD } from 'app/constants'
 import { session } from 'app/session'
 import fuzzy from 'fuzzy'
-import { AllCCDKeys, CaseEventKeys, CaseEventToField, CaseEventToFieldKeys, CaseFieldKeys, CCDSheets, CCDTypes, ComplexTypeKeys, ConfigSheets, EventToComplexTypeKeys } from 'types/ccd'
+import { AllCCDKeys, CaseEventKeys, CaseEventToField, CaseEventToFieldKeys, CaseFieldKeys, CCDSheetExtension, CCDSheets, CCDTypes, ComplexTypeKeys, ConfigSheets, EventToComplexTypeKeys, FlexExtensionKeys, FlexExtensions } from 'types/ccd'
 import { format, getIdealSizeForInquirer, remove } from 'app/helpers'
-import { findObject, getCaseEventIDOpts, getKnownCaseFieldIDs, getKnownCaseFieldTypeParameters, getKnownCaseFieldTypes, getKnownCaseTypeIDs, getKnownComplexTypeListElementCodes, getLastPageInEvent, getNextPageFieldIDForPage, upsertConfigs } from './configs'
+import { findObject, getCaseEventIDOpts, getKnownCaseFieldIDs, getKnownCaseFieldTypeParameters, getKnownCaseFieldTypes, getKnownCaseTypeIDs, getKnownComplexTypeListElementCodes, getKnownFeatures, getLastPageInEvent, getNextPageFieldIDForPage, rebuildKnownFeaturesFromConfigSheets, upsertConfigs } from './configs'
 import { createEvent } from './journeys/base/createEvent'
 import { createScrubbedList } from './journeys/base/createScrubbed'
 import { createSingleField } from './journeys/base/createSingleField'
@@ -49,14 +49,6 @@ export const createJourneys: {
   createEvent: createEvent,
   createScrubbed: createScrubbedList,
   createField: createSingleField
-}
-
-/**
- * Asks whether to continue
- * @returns boolean whether should continue
- */
-export async function shouldContinue(message: string): Promise<boolean> {
-  return (await prompt([{ name: 'continue', message, type: 'confirm' }])).continue
 }
 
 /**
@@ -264,7 +256,6 @@ export async function createTemplate<T, P>(answers: Answers = {}, keys: T, obj: 
   const fields = Object.keys(keys)
   const compoundKeys = COMPOUND_KEYS[sheet]
 
-  const tasks: Array<() => Promise<void>> = []
   let existing: T | undefined
 
   for (const field of fields) {
@@ -289,9 +280,7 @@ export async function createTemplate<T, P>(answers: Answers = {}, keys: T, obj: 
     }
   }
 
-  for (const task of tasks) {
-    await task()
-  }
+  answers = await prompt(addNonProdFeatureQuestions(sheet), answers)
 
   return answers
 }
@@ -556,4 +545,56 @@ export function spliceCustomQuestionIndex(obj: Question, arr: Question[]) {
 
   const iAfter = arr.findIndex(o => o.name === obj.after)
   return iAfter + 1
+}
+
+export function addNonProdFeatureQuestions(sheetName: keyof CCDSheets<CCDTypes>) {
+  const opts = rebuildKnownFeaturesFromConfigSheets()
+
+  const shouldAskToCopyToProd = (answers: Answers) => {
+    const found = findObject(answers, sheetName)
+    if (!found) return false
+
+    return found.ext !== answers.ext && answers.ext === NONPROD
+  }
+
+  return [
+    ...addAutoCompleteQuestion({
+      name: 'ext',
+      message: 'What prod suffix should this have?',
+      choices: [NONE, NONPROD, PROD],
+      default: NONPROD,
+      filter: filterNone,
+    }),
+    ...addAutoCompleteQuestion({
+      name: 'feature',
+      message: 'What feature should this be under?',
+      choices: [NONE, CUSTOM, ...opts],
+      filter: filterNone
+    }),
+    {
+      when: shouldAskToCopyToProd,
+      name: 'copyToProd',
+      message: (answers: Answers) => `${sheetName} already exists in a prod context - would you like to leave a shadow in the prod only context? (ie, ${sheetName}-${answers.feature}-prod.json) (TODO)`,
+      type: 'list',
+      choices: YES_OR_NO,
+      default: YES,
+      filter: (input: string, answers: Answers) => {
+        if (input === YES) {
+          const prodShadow: FlexExtensions & { _sheet: string, _freeze: boolean } = findObject(answers, sheetName)
+          answers.prodShadow = prodShadow
+          if (answers.prodShadow) {
+            prodShadow.ext = CCDSheetExtension.PROD;
+            prodShadow._sheet = sheetName
+            prodShadow._freeze = true
+          }
+        }
+
+        return input
+      }
+    }
+  ]
+}
+
+function filterNone(input: string) {
+  return input === NONE ? '' : input
 }

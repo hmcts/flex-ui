@@ -24,12 +24,12 @@ function getFieldOptions(caseTypeID: string, caseEventID: string) {
   return getKnownETCaseFieldIDsByEvent(caseEventID)
 }
 
-async function extractFieldsAndDependants(region: Region, fieldIDs: string[]) {
+async function extractFieldsAndDependants(region: Region, fieldIDs: string[], eventId: string) {
   const relatedConfig = createNewConfigSheets()
 
   fieldIDs.forEach(o => {
     const configs = region === Region.EnglandWales ? getEnglandWales() : getScotland()
-    const related = getObjectsReferencedByCaseFields(configs, [configs.CaseField.find(x => x.ID === o)])
+    const related = getObjectsReferencedByCaseFields(configs, [configs.CaseField.find(x => x.ID === o)], eventId)
 
     addToConfig(relatedConfig, related)
   })
@@ -71,7 +71,7 @@ async function askFields() {
     return
   }
 
-  return await extractFieldsAndDependants(region, selectedIDs)
+  return await extractFieldsAndDependants(region, selectedIDs, answers[CaseEventToFieldKeys.CaseEventID])
 }
 
 export default {

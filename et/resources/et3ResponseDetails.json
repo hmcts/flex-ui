@@ -1,0 +1,71 @@
+{
+  "data": {
+    "et3RepresentingRespondent": [
+      {
+        "value": {
+          "dynamicList": {
+            "value": {
+              "code": "R: {{respondentCollection.0.value.respondent_name}}",
+              "label": "{{respondentCollection.0.value.respondent_name}}"
+            },
+            "selectedLabel": "{{respondentCollection.0.value.respondent_name}}",
+            "selectedCode": "R: {{respondentCollection.0.value.respondent_name}}",
+            "list_items": [
+              {
+                "code": "R: {{respondentCollection.0.value.respondent_name}}",
+                "label": "{{respondentCollection.0.value.respondent_name}}"
+              }
+            ]
+          }
+        },
+        "id": "95954b1d-9e5c-444b-85f1-c9dc805eccf2"
+      }
+    ],
+    "et3ResponseAcasAgree": "Yes",
+    "et3ResponseAcasAgreeReason": null,
+    "et3ResponseRespondentContestClaim": "Yes",
+    "et3ResponseContestClaimDetails": null,
+    "et3ResponseEmployerClaim": "Yes",
+    "et3ResponseContestClaimDocument": [
+      {
+        "value": {
+          "topLevelDocuments": null,
+          "startingClaimDocuments": null,
+          "responseClaimDocuments": null,
+          "initialConsiderationDocuments": null,
+          "caseManagementDocuments": null,
+          "withdrawalSettledDocuments": null,
+          "hearingsDocuments": null,
+          "judgmentAndReasonsDocuments": null,
+          "reconsiderationDocuments": null,
+          "miscDocuments": null,
+          "typeOfDocument": null,
+          "shortDescription": null,
+          "documentType": null,
+          "dateOfCorrespondence": null,
+          "docNumber": null,
+          "uploadedDocument": {
+            "document_url": "<FLEX_DOC_UUID>",
+            "document_binary_url": "<FLEX_DOC_UUID>/binary",
+            "document_filename": "evidence.txt"
+          },
+          "excludeFromDcf": []
+        },
+        "id": null
+      }
+    ],
+    "et3ResponseEmployerClaimDetails": "idklol",
+    "et3ResponseEmployerClaimDocument": {
+      "document_url": "<FLEX_DOC_UUID>",
+      "document_binary_url": "<FLEX_DOC_UUID>/binary",
+      "document_filename": "evidence.txt"
+    }
+  },
+  "event": {
+    "id": "et3ResponseDetails",
+    "summary": "",
+    "description": ""
+  },
+  "event_token": "",
+  "ignore_warning": false
+}

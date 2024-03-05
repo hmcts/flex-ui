@@ -219,7 +219,7 @@ export async function ccdComposePull() {
 
     temporaryLog(`Running ${command}`)
 
-    const child = exec(command, { cwd: process.env.ECM_DOCKER_DIR, env: { ...process.env, ...getEnvVarsFromFile() } }, err => {
+    const child = exec(command, { maxBuffer: 1024 * 1024 * 5, cwd: process.env.ECM_DOCKER_DIR, env: { ...process.env, ...getEnvVarsFromFile() } }, err => {
       if (err) {
         return cleanupAndExit(() => reject(err))
       }
@@ -303,4 +303,19 @@ export async function doAllContainersExist(exclude: string[] = []) {
 export async function isContainerRunning(name: string) {
   const { stdout } = await execCommand(`docker container inspect --format='{{.State.Status}}' ${name}`, undefined, false)
   return stdout.replace(EOL, '') === 'running'
+}
+
+export async function getRunningContainers(names?: string[]) {
+  const { stdout } = await execCommand('docker ps --format \'{{.Names}}\'', undefined, false)
+  const running = stdout.split(EOL)
+
+  if (!names) {
+    return running
+  }
+  
+  return names.filter(o => running.includes(o))
+}
+
+export async function stopContainers(names: string[]) {
+  await Promise.allSettled(names.map(async o => await execCommand(`docker stop ${o}`, undefined, false)))
 }

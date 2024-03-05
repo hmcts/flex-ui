@@ -1,0 +1,26 @@
+{
+  "data": {
+    "bfActions": [
+      {
+        "value": {
+          "allActions": null,
+          "cwActions": "Case papers prepared",
+          "bfDate": "2000-05-16",
+          "cleared": "2022-05-16",
+          "notes": "Comments",
+          "dateEntered": "2023-05-11",
+          "imported": null,
+          "letters": null
+        },
+        "id": "20e7c753-a09d-45de-a8b1-941b426c06db"
+      }
+    ]
+  },
+  "event": {
+    "id": "broughtForward",
+    "summary": "",
+    "description": ""
+  },
+  "event_token": "",
+  "ignore_warning": false
+}

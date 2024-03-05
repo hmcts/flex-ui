@@ -1,7 +1,7 @@
 import { prompt } from 'inquirer'
 import { CaseEventToFieldKeys, CaseFieldKeys } from 'types/ccd'
 import { Journey } from 'types/journey'
-import { addCaseEvent, addCaseTypeIDQuestion, addDuplicateToCaseTypeID, addPageFieldDisplayOrderQuestion, addPageIDQuestion, Answers, createJourneys, Question, QUESTION_CALLBACK_URL_MID_EVENT, QUESTION_PAGE_LABEL, QUESTION_PAGE_SHOW_CONDITION, spliceCustomQuestionIndex } from 'app/questions'
+import { addCaseEvent, addCaseTypeIDQuestion, addDuplicateToCaseTypeID, addNonProdFeatureQuestions, addPageFieldDisplayOrderQuestion, addPageIDQuestion, Answers, createJourneys, Question, QUESTION_CALLBACK_URL_MID_EVENT, QUESTION_PAGE_LABEL, QUESTION_PAGE_SHOW_CONDITION, spliceCustomQuestionIndex } from 'app/questions'
 import { createNewCaseEventToField, createNewCaseField, trimCaseEventToField, trimCaseField } from 'app/ccd'
 import { QUESTION_FIELD_SHOW_CONDITION, QUESTION_ID } from './createSingleField'
 import { addToLastAnswers, addToSession } from 'app/session'
@@ -29,6 +29,7 @@ function addCallbackPopulatedQuestions() {
     { name: CaseEventToFieldKeys.PageLabel, message: QUESTION_PAGE_LABEL, when: whenFirstOnPage },
     { name: CaseEventToFieldKeys.PageShowCondition, message: QUESTION_PAGE_SHOW_CONDITION, when: whenFirstOnPage },
     { name: CaseEventToFieldKeys.CallBackURLMidEvent, message: QUESTION_CALLBACK_URL_MID_EVENT, when: whenFirstOnPage },
+    ...addNonProdFeatureQuestions('CaseField'),
     ...addDuplicateToCaseTypeID()
   ] as Question[]
 }

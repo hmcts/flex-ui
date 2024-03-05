@@ -3,33 +3,41 @@
     "tseAdminSelectApplication": {
       "value": {
         "code": "1",
-        "label": "1 Change personal details"
+        "label": "1 - Change personal details"
       },
-      "selectedLabel": "1 Change personal details",
       "selectedCode": "1",
+      "selectedLabel": "1 - Change personal details",
       "list_items": [
         {
           "code": "1",
-          "label": "1 Change personal details"
+          "label": "1 - Change personal details"
         }
       ]
     },
-    "tseAdminTableMarkUp": "| | |\r\n|--|--|\r\n|Respondent application | Change personal details|\r\n|Application date | 4 January 2023|\r\n|Give details | look ma, flexUI populated|\r\n|Supporting material | |\r\n\r\n|Response 1 | |\r\n|--|--|\r\n|Response from | Respondent|\r\n|Response date | 4 January 2023|\r\n|Details | This is my response to the claimant's application|\r\n|Supporting material | <a href=\"/documents/06f73a75-c0de-4b6a-ad6c-ecd75aa42d9b/binary\" target=\"_blank\">HMCTS (PNG, 4 KB)</a><br>|",
-    "tseAdminEnterNotificationTitle": "Notification title",
+    "tseAdminTableMarkUp": "|Application||\r\n|--|--|\r\n|Applicant|Respondent|\r\n|Type of application|Change personal details|\r\n|Application date|3 August 2023|\r\n|What do you want to tell or ask the tribunal?|look ma, flexUI populated|\r\n\r\n|Response 1||\r\n|--|--|\r\n|Response from|Respondent|\r\n|Response date|3 August 2023|\r\n|What's your response to the respondent's application|This is my response to the claimant's application - as populated by flexui|\r\n|Document|<a href=\"/documents/b5f1ae3b-88df-40df-9c95-78164ec0cbff/binary\" target=\"_blank\">evidence (TXT, 79 bytes)</a>|\r\n|Do you want to copy this correspondence to the other party to satisfy the Rules of Procedure?|I confirm I want to copy|",
+    "tseAdminEnterNotificationTitle": "[text entered]",
     "tseAdminDecision": "Granted",
     "tseAdminDecisionDetails": null,
     "tseAdminTypeOfDecision": "Judgment",
     "tseAdminIsResponseRequired": null,
     "tseAdminSelectPartyRespond": null,
-    "tseAdminAdditionalInformation": "Extra information",
-    "tseAdminResponseRequiredYesDoc": null,
-    "tseAdminResponseRequiredNoDoc": {
-      "document_url": "http://dm-store:8080/documents/<FLEX_DOC_UUID>",
-      "document_binary_url": "http://dm-store:8080/documents/<FLEX_DOC_UUID>/binary",
-      "document_filename": "evidence.txt"
-    },
+    "tseAdminResponseRequiredNoDoc": [
+      {
+        "value": {
+          "shortDescription": "file 1",
+          "typeOfDocument": null,
+          "uploadedDocument": {
+            "document_url": "<FLEX_DOC_UUID>",
+            "document_binary_url": "<FLEX_DOC_UUID>/binary",
+            "document_filename": "et-englandwales-ccd-config-preview.xlsx"
+          }
+        },
+        "id": null
+      }
+    ],
+    "tseAdminAdditionalInformation": "additional information is optional",
     "tseAdminDecisionMadeBy": "Legal officer",
-    "tseAdminDecisionMadeByFullName": "Flex UI",
+    "tseAdminDecisionMadeByFullName": "[Text entered]",
     "tseAdminSelectPartyNotify": "Both parties"
   },
   "event": {

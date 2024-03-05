@@ -1,0 +1,82 @@
+{
+  "data": {
+    "judgementCollection": [
+      {
+        "value": {
+          "non_hearing_judgment": "Yes",
+          "dynamicJudgementHearing": "1",
+          "judgement_type": "Judgment",
+          "liability_optional": "Remedy",
+          "date_judgment_made": "2022-05-16",
+          "date_judgment_sent": "2022-05-16",
+          "judgment_notes": "Judgment Notes (Optional)",
+          "judgmentHearingDate": null,
+          "jurisdictionCodes": [
+            {
+              "value": {
+                "juridictionCodesList": "ADT",
+                "judgmentOutcome": null,
+                "dateNotified": null,
+                "disposalDate": null
+              },
+              "id": "329a5ac0-4819-453e-bfe3-db24bb537807"
+            }
+          ],
+          "judgement_outcome_doc": {
+            "document_url": "<FLEX_DOC_UUID>",
+            "document_binary_url": "<FLEX_DOC_UUID>/binary",
+            "document_filename": "evidence.txt"
+          },
+          "judgement_details": {
+            "reasons_given": "Yes",
+            "date_reasons_issued": null,
+            "awardMade": "Yes",
+            "financialAwardMade": null,
+            "total_award": null,
+            "adjustment": null,
+            "adjustmentPercentage": null,
+            "non-financial_award": "Yes",
+            "remedy_left_to_parties": null,
+            "reinstate_reengage_order": null,
+            "reinstated_reengaged": null,
+            "certificateOfCorrection": "Yes",
+            "cert_of_correction_date": null,
+            "cert_of_correction_sent": null,
+            "folio_number": null
+          },
+          "Judgement_costs": {
+            "costs_question": "Yes",
+            "costs_expenses_awarded_to": "Claimant",
+            "costs_expenses_awarded_against": "Respondent",
+            "costs_expenses_awarded_amount": "42000",
+            "preparation_of_time_awarded_to": "Claimant",
+            "preparation_of_time_awarded_against": "Claimant",
+            "preparation_of_time_amount_awarded": "133700",
+            "wasted_cost_awarded_to": "Claimant",
+            "wasted_cost_awarded_against": "Claimant",
+            "wasted_cost_amount_awarded": "6900",
+            "pro_bono_costs_awarded_to": "Access to Justice Foundation",
+            "pro_bono_costs_awarded_against": "Claimant's Representative",
+            "pro_bono_costs_amount_awarded": "61700"
+          },
+          "reconsiderations": {
+            "reconsideration": "Yes",
+            "reconsiderationDate": "2000-01-11",
+            "reconsiderationOwnInitiative": "Yes",
+            "reconsiderationPartyInitiative": null,
+            "reconsiderationDirection": "Application to be considered on the written submissions",
+            "reconsiderationDecision": "Judgment Varied"
+          }
+        },
+        "id": "acd7a154-856c-4c4e-9b1a-e791203a9d25"
+      }
+    ]
+  },
+  "event": {
+    "id": "addAmendJudgment",
+    "summary": "",
+    "description": ""
+  },
+  "event_token": "",
+  "ignore_warning": false
+}

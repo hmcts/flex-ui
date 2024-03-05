@@ -1,7 +1,7 @@
 import { execCommand, getIdealSizeForInquirer } from 'app/helpers'
 import { prompt } from 'inquirer'
 import { Journey } from 'types/journey'
-import { getRepo, getRepos as getRepoOpts } from './gitCommon'
+import { getRepoDir, getRepos as getRepoOpts } from './gitCommon'
 
 const QUESTION_REPOS = 'Which repos shall we open a PR under?'
 const QUESTION_TICKET_NUMBER = 'What\'s the ticket number? (RET-XXXX)'
@@ -43,7 +43,7 @@ export async function openPRJourney(answers: any = {}) {
     return
   }
 
-  const branchName = await getCurrentBranchName(getRepo(REPOS, answers.repos[0]))
+  const branchName = await getCurrentBranchName(getRepoDir(REPOS, answers.repos[0]))
 
   answers = await prompt([
     { name: 'ticket', message: QUESTION_TICKET_NUMBER, default: /\d+/g.exec(branchName)?.[0] || branchName },
@@ -62,7 +62,7 @@ export async function openPRJourney(answers: any = {}) {
     .replace('%NO%', answers.breaking === 'No' ? 'x' : '')
 
   await Promise.allSettled(answers.repos.map(async o => {
-    const repoDir = getRepo(REPOS, o)
+    const repoDir = getRepoDir(REPOS, o)
     const currentBranchName = await getCurrentBranchName(repoDir)
     const command = `gh pr create --title "RET-${answers.ticket}: ${answers.title}" --head ${currentBranchName} --base ${answers.base} --body '${content}'`
     console.log(command)

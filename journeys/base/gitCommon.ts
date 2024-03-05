@@ -4,6 +4,10 @@ import { askAutoComplete, askBasicFreeEntry } from 'app/questions'
 import { prompt } from 'inquirer'
 import { Journey } from 'types/journey'
 import { openPRJourney } from './gitPR'
+import { existsSync } from 'node:fs'
+import { sep } from 'node:path'
+import { readFile } from 'node:fs/promises'
+import { format } from 'app/helpers'
 
 const QUESTION_REPOS = 'Select the repos to perform the action in'
 const QUESTION_TASK = 'What task do you want to perform?'
@@ -12,6 +16,8 @@ const QUESTION_ADD = 'What to add? (specify files or a matcher just like you wou
 const QUESTION_MESSAGE_COMMIT = 'What message shall we commit with?'
 const QUESTION_MESSAGE_STASH = 'What message shall we stash with?'
 const QUESTION_ABITRARY_COMMAND = 'Enter the command to be run in selected repos below (include "git" at the start)'
+const QUESTION_DRAFT_RELEASE = 'What are we calling this {0} release?'
+const QUESTION_DRAFT_RELEASE_OPTION = 'Select an option for {0}'
 
 const TASK_CHOICES = {
   BACK: '<< back to main menu',
@@ -27,17 +33,19 @@ const TASK_CHOICES = {
   FORCE_PUSH: 'Push (force)',
   PR: 'Open a PR for active branches',
   STASH: 'Stash / Discard Changes',
-  STATUS: 'Status'
+  STATUS: 'Status',
+  DRAFT_RELEASE: 'Draft a new Release'
 }
 
 interface KnownRepos { [alias: string]: string }
+type RepoOptions = Record<keyof KnownRepos, { dir: string, alias: string }>
 
 export const knownRepos: KnownRepos = {
 
 }
 
 export async function getRepos() {
-  const repos: Record<keyof KnownRepos, { dir: string, alias: string }> = {}
+  const repos: RepoOptions = {}
   for (const key in knownRepos) {
     const path = knownRepos[key]
     const status = await getBranchStatus(path)
@@ -46,9 +54,13 @@ export async function getRepos() {
   return repos
 }
 
-export function getRepo(opts: Record<keyof KnownRepos, { dir: string, alias: string }>, choice: string) {
-  const repoName = /(.+) - .+/.exec(choice)?.[1]
+export function getRepoDir(opts: Record<keyof KnownRepos, { dir: string, alias: string }>, choice: string) {
+  const repoName = getRepoName(choice)
   return Object.values(opts).find(o => o.alias.startsWith(repoName))?.dir
+}
+
+export function getRepoName(choice: string) {
+  return /(.+) - .+/.exec(choice)?.[1]
 }
 
 export async function gitJourney() {
@@ -68,7 +80,7 @@ export async function gitJourney() {
 
   while (true) {
     let followup: Record<string, any> = { repos: answers.repos }
-    const branchOpts = await getBranchOpts(getRepo(REPOS, followup.repos[0]))
+    const branchOpts = await getBranchOpts(getRepoDir(REPOS, followup.repos[0]))
 
     followup = await askAutoComplete(followup, { name: 'task', message: QUESTION_TASK, default: TASK_CHOICES.PULL, choices: Object.values(TASK_CHOICES), askAnswered: true, sort: false })
     const repos = followup.repos as string[]
@@ -76,7 +88,7 @@ export async function gitJourney() {
     switch (followup.task) {
       case TASK_CHOICES.ADD:
         followup = await prompt([{ name: 'command', message: QUESTION_ADD, askAnswered: true, default: '.' }], followup)
-        await Promise.allSettled(repos.map(async o => await add(getRepo(REPOS, o), followup.command)))
+        await Promise.allSettled(repos.map(async o => await add(getRepoDir(REPOS, o), followup.command)))
         break
       case TASK_CHOICES.BACK:
         return
@@ -86,11 +98,11 @@ export async function gitJourney() {
           followup = await prompt([{ name: 'branch', message: QUESTION_BRANCH, askAnswered: true }], followup)
         }
 
-        await Promise.allSettled(repos.map(async o => await switchBranch(getRepo(REPOS, o), followup.branch, /(.+) - /.exec(o)?.[1])))
+        await Promise.allSettled(repos.map(async o => await switchBranch(getRepoDir(REPOS, o), followup.branch, /(.+) - /.exec(o)?.[1])))
         break
       case TASK_CHOICES.COMMIT:
         followup = await askBasicFreeEntry(followup, { name: 'message', message: QUESTION_MESSAGE_COMMIT })
-        await Promise.allSettled(repos.map(async o => await commit(getRepo(REPOS, o), followup.message)))
+        await Promise.allSettled(repos.map(async o => await commit(getRepoDir(REPOS, o), followup.message)))
         break
       case TASK_CHOICES.DELETE:
         followup = await askAutoComplete(followup, { name: 'branch', message: QUESTION_BRANCH, default: 'master', choices: [CUSTOM, ...branchOpts], askAnswered: true, sort: true })
@@ -98,38 +110,78 @@ export async function gitJourney() {
           followup = await prompt([{ name: 'branch', message: QUESTION_BRANCH, askAnswered: true }], followup)
         }
 
-        await Promise.allSettled(repos.map(async o => await deleteBranch(getRepo(REPOS, o), followup.branch)))
+        await Promise.allSettled(repos.map(async o => await deleteBranch(getRepoDir(REPOS, o), followup.branch)))
         break
       case TASK_CHOICES.FETCH:
-        await Promise.allSettled(repos.map(async o => await fetch(getRepo(REPOS, o))))
+        await Promise.allSettled(repos.map(async o => await fetch(getRepoDir(REPOS, o))))
         break
       case TASK_CHOICES.FORCE_PUSH:
-        await Promise.allSettled(repos.map(async o => await push(getRepo(REPOS, o), true)))
+        await Promise.allSettled(repos.map(async o => await push(getRepoDir(REPOS, o), true)))
         break
       case TASK_CHOICES.PR:
         await openPRJourney(followup)
         break
       case TASK_CHOICES.PULL:
-        await Promise.allSettled(repos.map(async o => await pull(getRepo(REPOS, o), false)))
+        await Promise.allSettled(repos.map(async o => await pull(getRepoDir(REPOS, o), false)))
         break
       case TASK_CHOICES.FORCE_PULL:
-        await Promise.allSettled(repos.map(async o => await pull(getRepo(REPOS, o), true)))
+        await Promise.allSettled(repos.map(async o => await pull(getRepoDir(REPOS, o), true)))
         break
       case TASK_CHOICES.PUSH:
-        await Promise.allSettled(repos.map(async o => await push(getRepo(REPOS, o))))
+        await Promise.allSettled(repos.map(async o => await push(getRepoDir(REPOS, o))))
         break
       case TASK_CHOICES.STATUS:
-        await Promise.allSettled(repos.map(async o => await status(getRepo(REPOS, o))))
+        await Promise.allSettled(repos.map(async o => await status(getRepoDir(REPOS, o))))
         break
       case TASK_CHOICES.STASH:
         followup = await askBasicFreeEntry(followup, { name: 'message', message: QUESTION_MESSAGE_STASH })
-        await Promise.allSettled(repos.map(async o => await stash(getRepo(REPOS, o), followup.message)))
+        await Promise.allSettled(repos.map(async o => await stash(getRepoDir(REPOS, o), followup.message)))
         break
       case TASK_CHOICES.ABITRARY:
         followup = await askBasicFreeEntry(followup, { name: 'message', message: QUESTION_ABITRARY_COMMAND })
-        await Promise.allSettled(repos.map(async o => await runCommand(getRepo(REPOS, o), followup.message)))
+        await Promise.allSettled(repos.map(async o => await runCommand(getRepoDir(REPOS, o), followup.message)))
         break
+      case TASK_CHOICES.DRAFT_RELEASE:
+        await handleDraftReleases(REPOS, repos)
     }
+  }
+}
+
+async function handleDraftReleases(repoOptions: RepoOptions, selectedRepos: string[]) {
+  for (const key of selectedRepos) {
+    const repo = getRepoDir(repoOptions, key)
+    const name = getRepoName(key)
+    const version = await attemptToFindBuildGradleVersion(repo)
+    if (version === -1) {
+      console.warn(`Skipping ${name} as it does not appear to be a Java project (could not find a build.gradle)`)
+      continue
+    }
+
+    const choices = [`Draft a new release as ${version}`, `Enter a custom title for the new release`, `Skip - don't release`]
+
+    const answers = await askAutoComplete({}, { name: 'opt', message: format(QUESTION_DRAFT_RELEASE_OPTION, name), choices })
+    const followup = await askBasicFreeEntry({}, { name: 'version', message: format(QUESTION_DRAFT_RELEASE, name), default: version, when: () => answers.opt === choices[1] })
+
+    if (answers.opt === choices[2]) {
+      continue
+    }
+
+    await draftRelease(repo, followup.version || version)
+  }
+}
+
+async function attemptToFindBuildGradleVersion(path: string) {
+  const buildGradleLocation = `${path}${sep}build.gradle`
+
+  if (!existsSync(buildGradleLocation)) {
+    return -1
+  }
+
+  try {
+    const buildGradle = await readFile(buildGradleLocation, { encoding: 'utf-8' })
+    return /version '([\d.]+)'/g.exec(buildGradle)?.[1]
+  } catch (e) {
+    console.error(e.message)
   }
 }
 
@@ -197,7 +249,7 @@ async function deleteBranch(path: string, branch: string) {
   console.log(stderr || stdout)
 }
 
-async function getBranchOpts(path: string) {
+export async function getBranchOpts(path: string) {
   const { stdout } = await execCommand('git branch -a', path, false)
   const opts = stdout.split(/\r\n|\n/).filter(o => !o.includes('->') && o.length > 2).map(o => o.replace('remotes/origin/', '').substring(2))
   return Object.keys(groupBy(opts))
@@ -251,6 +303,11 @@ async function stash(path: string, message?: string) {
 async function status(path: string) {
   const { stdout, stderr } = await execCommand('git status', path, false)
   console.log(`Status in ${path}`)
+  console.log(stderr || stdout)
+}
+
+async function draftRelease(path: string, version: string) {
+  const { stdout, stderr } = await execCommand(`gh release create v${version} --generate-notes`, path, false)
   console.log(stderr || stdout)
 }
 

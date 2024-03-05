@@ -1,0 +1,34 @@
+{
+  "data": {
+    "claimantRepresentedQuestion": "Yes",
+    "representativeClaimantType": {
+      "name_of_representative": "Claimant Rep",
+      "name_of_organisation": "idklol",
+      "representative_occupation": null,
+      "representative_reference": null,
+      "representative_occupation_other": null,
+      "representative_phone_number": null,
+      "representative_mobile_number": null,
+      "representative_email_address": null,
+      "representative_preference": null,
+      "representative_id": null,
+      "organisationId": null,
+      "representative_address": {
+        "AddressLine1": "51 Bridge Road",
+        "AddressLine2": "",
+        "AddressLine3": "",
+        "PostTown": "Erith",
+        "County": "",
+        "Country": "United Kingdom",
+        "PostCode": "DA8 2DE"
+      }
+    }
+  },
+  "event": {
+    "id": "addAmendClaimantRepresentative",
+    "summary": "",
+    "description": ""
+  },
+  "event_token": "",
+  "ignore_warning": false
+}

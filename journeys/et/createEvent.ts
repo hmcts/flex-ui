@@ -33,7 +33,7 @@ async function createAuthorisations(created: Partial<ConfigSheets>) {
     }
 
     if (answers.authorisations === YES) {
-      authorisations = authorisations.concat(...createCaseEventAuthorisations(event.CaseTypeID, event.ID))
+      authorisations = authorisations.concat(...createCaseEventAuthorisations(event.CaseTypeID, event.ID, undefined, event.ext, event.feature))
     }
   }
   return authorisations

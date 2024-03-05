@@ -3,3 +3,5 @@ dist
 .env
 sessions
 .idea
+logs
+tmp

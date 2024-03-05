@@ -22,17 +22,17 @@
       {
         "value": {
           "typeOfDocument": null,
-          "shortDescription": null,
+          "shortDescription": "FlexUI sample document",
           "uploadedDocument": {
-            "document_url": "http://dm-store:8080/documents/<FLEX_DOC_UUID>",
-            "document_binary_url": "http://dm-store:8080/documents/<FLEX_DOC_UUID>/binary",
+            "document_url": "<FLEX_DOC_UUID>",
+            "document_binary_url": "<FLEX_DOC_UUID>/binary",
             "document_filename": "evidence.txt"
           }
         },
         "id": null
       }
     ],
-    "tseResponseCopyToOtherParty": "I confirm I want to copy",
+    "tseResponseCopyToOtherParty": "Yes",
     "tseResponseCopyNoGiveDetails": null
   },
   "event": {

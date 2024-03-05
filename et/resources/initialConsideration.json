@@ -1,0 +1,24 @@
+{
+  "data": {
+    "etInitialConsiderationRespondent": "| Respondent  name given | |\r\n|-------------|:------------|\r\n|In ET1 by claimant | Another Person|\r\n|In ET3 by respondent | |",
+    "etInitialConsiderationHearing": "|Hearing details | |\r\n|-------------|:------------|\r\n|Date | 16 May 2069|\r\n|Type | Hearing|\r\n|Duration | 60 Days|",
+    "etInitialConsiderationJurisdictionCodes": "<h2>Jurisdiction codes</h2><a target=\"_blank\" href=\"https://judiciary.sharepoint.com/:b:/s/empjudgesew/EZowDqUAYpBEl9NkTirLUdYBjXdpi3-7b18HlsDqZNV3xA?e=tR7Wof\">View all jurisdiction codes and descriptors (opens in new tab)</a><br><br><strong>ADT</strong> - Discriminatory terms or rules<br><br><hr>",
+    "icReceiptET3FormIssues": "flexui",
+    "icRespondentsNameIdentityIssues": "flexui",
+    "icJurisdictionCodeIssues": "flexui",
+    "icApplicationIssues": "flexui",
+    "icEmployersContractClaimIssues": "flexui",
+    "icClaimProspectIssues": "flexui",
+    "icListingIssues": "flexui",
+    "icDdaDisabilityIssues": "flexui",
+    "icOrderForFurtherInformation": "flexui",
+    "icOtherIssuesOrFinalOrders": "flexui"
+  },
+  "event": {
+    "id": "initialConsideration",
+    "summary": "",
+    "description": ""
+  },
+  "event_token": "",
+  "ignore_warning": false
+}

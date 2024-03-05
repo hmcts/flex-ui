@@ -7,6 +7,7 @@ import { addFlexRegionAndClone } from 'app/et/questions'
 async function restoreETSession() {
   await restoreSession()
   migrateAddFlexRegionString()
+  tempMigrateAddNonProdAndCaseFlags()
   loadCurrentSessionIntoMemory()
 }
 
@@ -29,6 +30,15 @@ function migrateAddFlexRegionString() {
   session.added.ComplexTypes = session.added.ComplexTypes.reduce(reducer, [])
   session.added.EventToComplexTypes = session.added.EventToComplexTypes.reduce(reducer, [])
   session.added.Scrubbed = session.added.Scrubbed.reduce(reducer, [])
+}
+
+function tempMigrateAddNonProdAndCaseFlags() {
+  for (const sheet in session.added) {
+    session.added[sheet].forEach(o => {
+      o.ext ||= ''
+      o.feature ||= ''
+    })
+  }
 }
 
 export default {

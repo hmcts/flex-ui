@@ -1,5 +1,5 @@
 import { Journey } from 'types/journey'
-import { CaseEventToField, CaseEventToFieldKeys } from 'app/types/ccd'
+import { CaseEventToField, CaseEventToFieldKeys, FlexExtensionKeys } from 'app/types/ccd'
 import { createNewCaseEventToField, trimCaseEventToField } from 'app/ccd'
 import { createTemplate, Answers, addonDuplicateQuestion } from 'app/questions'
 import { addToSession } from 'app/session'
@@ -12,7 +12,7 @@ async function journey(answers: Answers = {}) {
 }
 
 export async function createCaseEventToFieldJourney(answers: Answers = {}) {
-  answers = await createTemplate<unknown, CaseEventToField>({}, CaseEventToFieldKeys, createNewCaseEventToField(), 'CaseEventToFields')
+  answers = await createTemplate<unknown, CaseEventToField>({}, { ...CaseEventToFieldKeys, ...FlexExtensionKeys }, createNewCaseEventToField(), 'CaseEventToFields')
 
   return await addonDuplicateQuestion(answers, undefined, (answers: Answers) => {
     const caseEventToField = createNewCaseEventToField(answers)

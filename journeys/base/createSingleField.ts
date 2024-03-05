@@ -1,7 +1,7 @@
 import { prompt } from 'inquirer'
 import { addToLastAnswers, addToSession, session } from 'app/session'
 import { CaseEventToField, CaseEventToFieldKeys, CaseField, CaseFieldKeys, ScrubbedKeys } from 'types/ccd'
-import { addAutoCompleteQuestion, addCaseEvent, addCaseTypeIDQuestion, addDuplicateToCaseTypeID, addFieldTypeParameterQuestion, addFieldTypeQuestion, addMaxQuestion, addMinQuestion, addPageFieldDisplayOrderQuestion, addPageIDQuestion, addRegularExpressionQuestion, addRetainHiddenValueQuestion, Answers, createJourneys, FIELD_TYPE_PARAMETERS_CUSTOM_OPTS, Question, QUESTION_CALLBACK_URL_MID_EVENT, QUESTION_PAGE_LABEL, QUESTION_PAGE_SHOW_CONDITION, spliceCustomQuestionIndex } from 'app/questions'
+import { addAutoCompleteQuestion, addCaseEvent, addCaseTypeIDQuestion, addDuplicateToCaseTypeID, addFieldTypeParameterQuestion, addFieldTypeQuestion, addMaxQuestion, addMinQuestion, addNonProdFeatureQuestions, addPageFieldDisplayOrderQuestion, addPageIDQuestion, addRegularExpressionQuestion, addRetainHiddenValueQuestion, Answers, createJourneys, FIELD_TYPE_PARAMETERS_CUSTOM_OPTS, Question, QUESTION_CALLBACK_URL_MID_EVENT, QUESTION_PAGE_LABEL, QUESTION_PAGE_SHOW_CONDITION, spliceCustomQuestionIndex } from 'app/questions'
 import { CUSTOM, DISPLAY_CONTEXT_OPTIONS, NONE, YES, Y_OR_N } from 'app/constants'
 import { createNewCaseEventToField, createNewCaseField, trimCaseEventToField, trimCaseField } from 'app/ccd'
 import { Journey } from 'types/journey'
@@ -69,6 +69,7 @@ function addSingleFieldQuestions(existingFn: (answers: Answers) => CaseField & C
     ...addMinQuestion({ default: defaultFn('Min') }),
     ...addMaxQuestion({ default: defaultFn('Max') }),
     ...addRetainHiddenValueQuestion({ default: defaultFn('RetainHiddenValue') }),
+    ...addNonProdFeatureQuestions('CaseField'),
     ...addDuplicateToCaseTypeID()
   ]
 }
@@ -86,11 +87,11 @@ export async function createSingleField(answers: Answers = {}, questions: Questi
   const configs = constructFromAnswers(answers)
 
   if (answers.createEvent === YES) {
-    await createJourneys.createEvent({ ID: answers.CaseEventID, CaseTypeID: answers.CaseTypeID, duplicate: answers.duplicate })
+    await createJourneys.createEvent({ ID: answers.CaseEventID, CaseTypeID: answers.CaseTypeID, duplicate: answers.duplicate, ext: answers.ext, feature: answers.feature })
   }
 
   if (answers.fieldTypeParameterJourney === FIELD_TYPE_PARAMETERS_CUSTOM_OPTS.ScrubbedList) {
-    await createJourneys.createScrubbed({ [ScrubbedKeys.ID]: answers.FieldTypeParameter })
+    await createJourneys.createScrubbed({ [ScrubbedKeys.ID]: answers.FieldTypeParameter, ext: answers.ext, feature: answers.feature })
   }
 
   addToLastAnswers(answers)

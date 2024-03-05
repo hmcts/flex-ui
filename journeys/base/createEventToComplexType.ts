@@ -2,12 +2,12 @@ import { prompt } from 'inquirer'
 import { CaseField, EventToComplexType, EventToComplexTypeKeys } from 'types/ccd'
 import { QUESTION_HINT_TEXT } from './createSingleField'
 import { createNewEventToComplexType, trimCcdObject } from 'app/ccd'
-import { addAutoCompleteQuestion, addCaseEvent, addCaseFieldID, addRetainHiddenValueQuestion, Answers, createJourneys, Question, spliceCustomQuestionIndex } from 'app/questions'
+import { addAutoCompleteQuestion, addCaseEvent, addCaseFieldID, addNonProdFeatureQuestions, addRetainHiddenValueQuestion, Answers, createJourneys, Question, spliceCustomQuestionIndex } from 'app/questions'
 import { addToLastAnswers, addToSession, session } from 'app/session'
 import { Journey } from 'types/journey'
 import { findObject, getKnownComplexTypeListElementCodes, upsertConfigs } from 'app/configs'
 import { upsertFields } from 'app/helpers'
-import { CUSTOM, YES } from 'app/constants'
+import { CUSTOM, YES, Y_OR_N } from 'app/constants'
 
 const QUESTION_CASE_EVENT_ID = 'What event does this belong to?'
 const QUESTION_ID = "What's the ID of this EventToComplexType?"
@@ -17,6 +17,7 @@ const QUESTION_DISPLAY_CONTEXT = 'Should this field be READONLY, OPTIONAL or MAN
 const QUESTION_FIELD_SHOW_CONDITION = 'Enter a FieldShowCondition (optional)'
 const DISPLAY_CONTEXT_OPTIONS = ['READONLY', 'OPTIONAL', 'MANDATORY']
 const QUESTION_LIST_ELEMENT_CODE = 'What\'s the ListElementCode that this references?'
+const QUESTION_WA_PUBLISH = 'Do you want to publish this (for WA)?'
 
 async function journey(answers: Answers = {}) {
   const created = await createEventToComplexType(answers)
@@ -46,7 +47,9 @@ export function addEventToComplexTypesQuestions(existingFn: (answers: Answers) =
     { name: EventToComplexTypeKeys.DisplayContext, message: QUESTION_DISPLAY_CONTEXT, type: 'list', choices: DISPLAY_CONTEXT_OPTIONS, default: defaultFn('DisplayContext', session.lastAnswers.DisplayContext) },
     { name: EventToComplexTypeKeys.FieldShowCondition, message: QUESTION_FIELD_SHOW_CONDITION, default: defaultFn('FieldShowCondition') },
     { name: EventToComplexTypeKeys.EventHintText, message: QUESTION_HINT_TEXT, default: defaultFn('EventHintText') },
-    ...addRetainHiddenValueQuestion({ default: defaultFn('RetainHiddenValue') })
+    ...addRetainHiddenValueQuestion({ default: defaultFn('RetainHiddenValue') }),
+    { name: EventToComplexTypeKeys.Publish, message: QUESTION_WA_PUBLISH, type: 'list', choices: Y_OR_N, default: defaultFn('Publish', 'N') },
+    ...addNonProdFeatureQuestions('EventToComplexTypes')
   ] as Question[]
 }
 

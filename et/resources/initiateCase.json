@@ -66,7 +66,7 @@
           "responseStruckOutChairman": null,
           "responseStruckOutReason": null,
           "respondent_phone2": null,
-          "respondent_email": null,
+          "respondent_email": "respondent@email.com",
           "respondent_contact_preference": null,
           "responseRespondentPhone1": null,
           "responseRespondentPhone2": null,
@@ -196,7 +196,8 @@
         "Video",
         "Phone"
       ]
-    }
+    },
+    "et1OnlineSubmission": "Yes"
   },
   "event": {
     "id": "initiateCase",

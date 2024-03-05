@@ -3,7 +3,7 @@ import { createNewSession, getFieldCount, getFieldsPerPage, getPageCount, saveSe
 import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, ConfigSheets, Scrubbed } from 'types/ccd'
 import { getObjectsReferencedByCaseFields } from 'app/et/duplicateCaseField'
 import { format, upsertFields } from 'app/helpers'
-import { COMPOUND_KEYS } from 'app/constants'
+import { COMPOUND_KEYS, NONE } from 'app/constants'
 import { Journey } from 'types/journey'
 
 const QUESTION_PAGE_ID = 'Export fields from what page?'
@@ -102,7 +102,7 @@ function createSessionFromPage(pageID: number, sessionName: string) {
   const fieldsOnPage = full.CaseEventToFields.filter(o => o.PageID === pageID)
   const newSession = createNewSession(sessionName)
 
-  newSession.added = getObjectsReferencedByCaseFields(full, full.CaseField.filter(o => fieldsOnPage.find(x => x.CaseFieldID === o.ID)))
+  newSession.added = getObjectsReferencedByCaseFields(full, full.CaseField.filter(o => fieldsOnPage.find(x => x.CaseFieldID === o.ID)), NONE)
   newSession.date = new Date()
 
   saveSession(newSession)
