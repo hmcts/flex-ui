@@ -182,5 +182,12 @@ export function duplicateForCaseTypeIDs(answers: Answers, createFn: (answers: An
     return upsertConfigs(createFn({ ...answers, CaseTypeID: obj }), acc)
   }, createNewConfigSheets())
 
-  return upsertConfigs(createFn(answers), dupes)
+  const upserted = upsertConfigs(createFn(answers), dupes)
+
+  // Remove undefineds and nulls
+  for (const sheet in upserted) {
+    upserted[sheet] = upserted[sheet].filter(o => o)
+  }
+
+  return upserted
 }

@@ -9,7 +9,7 @@ import { createCallbackPopulatedLabel } from './createCallbackPopulatedLabel'
 import { createSingleScrubbedEntry } from './createScrubbed'
 import { createCaseEventToFieldJourney } from './createCaseEventToField'
 import { isCurrentSessionEmpty, saveSession, session } from 'app/session'
-import { setSessionName } from '../base/sessionSetName'
+import { setSessionName } from './sessionSetName'
 import { prompt } from 'inquirer'
 import { YES, YES_OR_NO } from 'app/constants'
 

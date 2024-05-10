@@ -167,6 +167,7 @@ export async function askCreateCaseQuestions(answers: Answers = {}) {
     { name: 'region', message: 'What regions are we creating for?', type: 'checkbox', choices: REGION_OPTS, default: REGION_OPTS, pageSize: getIdealSizeForInquirer() },
     { name: 'events', message: QUESTION_STEPS, type: 'checkbox', choices: EVENT_OPTS, default: EVENT_OPTS.slice(0, 2), pageSize: getIdealSizeForInquirer() },
     { name: 'share', message: QUESTION_SHARE, type: 'list', choices: YES_OR_NO, default: YES },
+    { name: 'multiple', message: 'Would you like to add this to a new Multiple case?', type: 'list', choices: YES_OR_NO, default: NO, when: whenLocalEnv },
     { name: 'callbacks', message: QUESTION_CALLBACKS, type: 'list', choices: YES_OR_NO, default: answers.callbacks || NO, askAnswered: true, when: whenLocalEnv },
     { name: 'kill', message: 'Do you want to kill callbacks after?', type: 'list', choices: YES_OR_NO, default: YES, when: (ans) => ans.callbacks === YES }
   ], answers)

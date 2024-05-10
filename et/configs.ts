@@ -673,6 +673,19 @@ function splitGlobalIntoRegional(region: Region, configs = globalConfigs) {
   }, createNewConfigSheets())
 }
 
+function getJsonNameForSheet(sheetName: string, feature?: string, env?: string): string {
+  const isEmpty = (x: any) => x === 'undefined' || x === null || x === '' || x === ' '
+  if (isEmpty(feature)) {
+    feature = undefined
+  }
+
+  if (isEmpty(env)) {
+    env = undefined
+  }
+
+  return `${sheetName}${feature ? `-${feature}` : ''}${env ? `-${env}` : ''}.json`
+}
+
 /**
  * Save the in-memory configs back to their JSON files
  */
@@ -706,7 +719,7 @@ export async function saveBackToProject(configs = globalConfigs, ewPath = proces
           const json = JSON.stringify(byExt[ext].map(o => removeFlexKeys(o)), null, 2)
           const repo = region === Region.EnglandWales ? ewPath : scPath
           const sheetName = getSheetName(sheet, region.substring(3))
-          const fileName = `${sheetName}${feature ? `-${feature}` : ''}${ext ? `-${ext}` : ''}.json`
+          const fileName = getJsonNameForSheet(sheetName, feature, ext)
           const path = `${repo}${sep}definitions${sep}json${sep}${sheetName}${sep}${fileName}`
 
           ensurePathExists(path.substring(0, path.lastIndexOf(sep)))

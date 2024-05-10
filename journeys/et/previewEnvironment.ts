@@ -40,7 +40,8 @@ async function journey() {
     'Repair Preview Environment',
     'View existing Preview Environments',
     'Run post setup tasks (create roles, upload configs, db migrations)',
-    'Get IP address for postgresql pod'
+    'Get IP address for postgresql pod',
+    '[WIP] Create flexidb dbs'
   ]
   let answers = await prompt([{ name: 'task', message: 'What do you want to do?', type: 'list', choices: opts, default: opts[1] }])
 
@@ -60,7 +61,57 @@ async function journey() {
       const ip = await getPostgresIPFromPod(answers.pr)
       console.log(ip)
       break
+    case opts[5]:
+      answers = await prompt([{ name: 'pr', message: `What PR number are we interested in?`, validate: (o => Number(o) > 0) }], answers)
+      return await createDbsForPR(answers.pr)
   }
+}
+
+export async function createDbsForPR(prNumber: string) {
+  const db = {
+    pass: process.env.PREVIEW_DB_DATA_STORE_PASS,
+    user: process.env.PREVIEW_DB_DATA_STORE_USER,
+    host: process.env.PREVIEW_DB_DATA_STORE_HOST,
+    port: process.env.PREVIEW_DB_DATA_STORE_PORT,
+  }
+
+  if (!db.pass || !db.user || !db.host || !db.port) {
+    throw new Error('Missing env vars. Please make sure you have the following set:PREVIEW_DB_DATA_STORE_USER\nPREVIEW_DB_DATA_STORE_PASS\nPREVIEW_DB_DATA_STORE_HOST\nPREVIEW_DB_DATA_STORE_PORT')
+  }
+
+  const dbs = [
+    "pr-${CHANGE_ID}-data-store",
+    "pr-${CHANGE_ID}-definition-store",
+    "pr-${CHANGE_ID}-user-profile",
+    "pr-${CHANGE_ID}-draftstore",
+    "pr-${CHANGE_ID}-evidence",
+    "pr-${CHANGE_ID}-annotation",
+    "pr-${CHANGE_ID}-role-assignment",
+    "pr-${CHANGE_ID}-hmc-cft-hearing-serv",
+    "pr-${CHANGE_ID}-cft_task_db",
+    "pr-${CHANGE_ID}-wa-case-event-handle",
+    "pr-${CHANGE_ID}-wa_workflow_api",
+    "pr-${CHANGE_ID}-camunda",
+    "pr-${CHANGE_ID}-org_role_mapping",
+    "pr-${CHANGE_ID}-emstitch",
+    "pr-${CHANGE_ID}-payment",
+    "pr-${CHANGE_ID}-dbrdcaseworker",
+    "pr-${CHANGE_ID}-et_cos",
+    "pr-${CHANGE_ID}-dbrefdata",
+    "pr-${CHANGE_ID}-dbuserprofile",
+    "pr-${CHANGE_ID}-dbjuddata"
+  ]
+
+  for (let name of dbs) {
+    const { stdout, stderr } = await execCommand(`PGPASSWORD="${db.pass}" PGHOST="${db.host}" psql -U ${db.user} -d postgres -c "CREATE DATABASE \\"${name.replace("${CHANGE_ID}", prNumber)}\\""`, null, false)
+    if (stdout.includes("CREATE DATABASE")) {
+      console.log(`Database "${name.replace("${CHANGE_ID}", prNumber)}" created`)
+    } else {
+      console.warn(`Unexpected output from command. Got ${stderr || stdout}`)
+    }
+  }
+
+
 }
 
 export async function getPostgresIPFromPod(prNumber: string) {
@@ -100,13 +151,24 @@ async function generateAndUploadConfigs(prNumber: string) {
 }
 
 async function insertDBData(prNumber: string) {
-  const ip = await getPostgresIPFromPod(prNumber)
-  if (!ip) {
-    throw new Error(`Failed to get IP for postgresql pod`)
+  // const ip = await getPostgresIPFromPod(prNumber)
+  // if (!ip) {
+  //   throw new Error(`Failed to get IP for postgresql pod`)
+  // }
+
+  const db = {
+    pass: process.env.PREVIEW_DB_DATA_STORE_PASS,
+    user: process.env.PREVIEW_DB_DATA_STORE_USER,
+    host: process.env.PREVIEW_DB_DATA_STORE_HOST,
+    port: process.env.PREVIEW_DB_DATA_STORE_PORT,
+  }
+
+  if (!db.pass || !db.user || !db.host || !db.port) {
+    throw new Error('Missing env vars. Please make sure you have the following set:PREVIEW_DB_DATA_STORE_USER\nPREVIEW_DB_DATA_STORE_PASS\nPREVIEW_DB_DATA_STORE_HOST\nPREVIEW_DB_DATA_STORE_PORT')
   }
 
   // Check if we need to do a DB INSERT
-  const { stdout } = await execCommand(`PGPASSWORD="hmcts" PGHOST="${ip}" psql -U hmcts -d et_cos -c "SELECT * FROM venue LIMIT 100"`, null, false)
+  const { stdout } = await execCommand(`PGPASSWORD="${db.pass}" PGHOST="${db.host}" psql -U ${db.user} -d pr-${prNumber}-et_cos -c "SELECT * FROM venue LIMIT 100"`, null, false)
   const isEmpty = stdout.split(EOL).find(o => o === '(0 rows)')
 
   if (!isEmpty) {
@@ -119,7 +181,7 @@ async function insertDBData(prNumber: string) {
   const dbRes = await retryFetch(`https://raw.githubusercontent.com/hmcts/et-ccd-callbacks/master/src/main/resources/db/dev/V003.1__DevReferenceData.sql`)
   const dbText = await dbRes.text()
 
-  const out = await execCommand(`PGPASSWORD="hmcts" PGHOST="${ip}" psql -U hmcts -d et_cos -c "${dbText}"`, null, false)
+  const out = await execCommand(`PGPASSWORD="${db.pass}" PGHOST="${db.host}" psql -U ${db.user} -d pr-${prNumber}-et_cos -c "${dbText}"`, null, false)
 }
 
 async function viewPreviewEnvs() {
@@ -297,10 +359,15 @@ async function createPreviewEnv() {
   await execCommand(`git push --set-upstream origin ${answers.branch}`, path)
 
   // Open PR
-  await execCommand(`gh pr create --title '${(answers.title as string).replace(/'/g, '`')}' --body '${(answers.message as string).replace(/'/g, '`')}' --base master`, path)
+  const cmdPR = await execCommand(`gh pr create --title '${(answers.title as string).replace(/'/g, '`')}' --body '${(answers.message as string).replace(/'/g, '`')}' --base master`, path)
+  const prNumber = /\/pull\/(\d+)/.exec(cmdPR.stdout)[1]
+  console.log(`Created PR: ${prNumber}`)
 
   // Add the enable_keep_helm flag to the PR
   await execCommand(`gh pr edit --add-label enable_keep_helm`, path)
+  await execCommand(`gh pr edit --add-label no_cleanup`, path)
+
+  await createDbsForPR(prNumber)
 
   // TODO: Report back the newly opened PR number (and link)
   // TDOO: Ask if user wants flex to monitor it's progress (watch for checks to pass or pods to come online and be healthy - whichever happens first)
@@ -344,7 +411,7 @@ async function readGitModules(fileContents: string): Promise<GitSubModule[]> {
 }
 
 async function getPodsGroupedByPreviewEnv() {
-  await execCommand('kubectl config use-context cft-preview-01-aks', null, false)
+  await execCommand('kubectl config use-context cft-preview-00-aks', null, false)
   const out = await execCommand(`kubectl -n et get pods --output json`, null, false)
   const pods: { items: Pod[] } = JSON.parse(out.stdout)
 
@@ -686,10 +753,14 @@ async function getGhStatus(prNumber: string | number, repoName: string) {
 }
 
 async function isTagOnAcr(tag: string, acrName: string, repositoryName: string): Promise<boolean> {
-  const { stdout } = await execCommand(`az acr repository show-tags --name ${acrName} --repository ${repositoryName} --output json`, null, false)
-  const tags = JSON.parse(stdout)
+  try {
+    const { stdout } = await execCommand(`az acr repository show-tags --name ${acrName} --repository ${repositoryName} --output json`, null, false)
+    const tags = JSON.parse(stdout)
 
-  return tags.includes(tag)
+    return tags.includes(tag)
+  } catch (e) {
+    console.log(`Error checking tag ${tag} on ACR ${acrName}/${repositoryName}: ${e}`)
+  }
 }
 
 function findTagForService(values: Props) {

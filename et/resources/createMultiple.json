@@ -1,0 +1,16 @@
+{
+  "data": {
+    "multipleName": "8000002/2024",
+    "managingOffice": "Glasgow",
+    "leadCase": "8000002/2024",
+    "caseIdCollection": []
+  },
+  "event": {
+    "id": "createMultiple",
+    "summary": "",
+    "description": ""
+  },
+  "event_token": "",
+  "ignore_warning": false,
+  "draft_id": null
+}

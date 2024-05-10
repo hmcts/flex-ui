@@ -376,7 +376,7 @@ async function setGlobalEnvVars() {
 }
 
 async function replaceXuiManageCases() {
-  await execCommand('docker rm cftlib-xui-manage-cases-1 --force', null, false)
+  await execCommand('docker rm cftlib-xui-manage-cases-1 cftlib-xui-manage-org-1 --force', null, false)
   const { stdout, stderr } = await execCommand('docker-compose up -d', './cftlib', false)
   console.log(stdout)
   console.error(stderr)
