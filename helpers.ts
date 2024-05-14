@@ -162,7 +162,7 @@ export async function execCommand(command: string, cwd?: string, rejectOnNonZero
   }
   return await new Promise((resolve, reject) => {
     const env = process.env.CFTLIB ? {} : getEnvVarsFromFile() // Hack here to avoid loading ecm-ccd-docker vars when using cftlib
-    const child: ChildProcess = exec(command, { maxBuffer: 1024 * 1024 * 5, cwd, env: { ...process.env, ...env } }, (err, stdout, stderr) => {
+    const child: ChildProcess = exec(command, { maxBuffer: 1024 * 1024 * 50, cwd, env: { ...process.env, ...env } }, (err, stdout, stderr) => {
       const out = { err, stdout, stderr, code: child.exitCode || 0, cwd: cwd || process.cwd() }
       if (rejectOnNonZeroExitCode && child.exitCode && child.exitCode > 0) {
         return reject(out)

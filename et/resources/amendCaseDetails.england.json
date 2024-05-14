@@ -1,0 +1,71 @@
+{
+  "data": {
+    "receiptDate": "2024-05-14",
+    "preAcceptCase": {
+      "dateAccepted": "2024-05-14",
+      "dateRejected": null,
+      "caseAccepted": "Yes",
+      "rejectReason": []
+    },
+    "claimServedDate": "2024-05-14",
+    "et3DueDate": "2024-05-14",
+    "feeGroupReference": "{{feeGroupReference}}",
+    "clerkResponsible": null,
+    "positionType": "ET1 Online submission",
+    "fileLocation": null,
+    "conciliationTrack": "Open Track",
+    "multipleFlag": "No",
+    "caseType": "Single",
+    "multipleReference": null,
+    "leadClaimant": null,
+    "subMultipleName": null,
+    "suggestedHearingVenues": {
+      "list_items": [
+        {
+          "code": "Harrogate CJC",
+          "label": "Harrogate CJC"
+        },
+        {
+          "code": "Hull",
+          "label": "Hull"
+        },
+        {
+          "code": "Hull Combined Court Centre",
+          "label": "Hull Combined Court Centre"
+        },
+        {
+          "code": "IAC",
+          "label": "IAC"
+        },
+        {
+          "code": "Leeds",
+          "label": "Leeds"
+        },
+        {
+          "code": "Scarborough",
+          "label": "Scarborough"
+        },
+        {
+          "code": "Sheffield Combi",
+          "label": "Sheffield Combined Court"
+        },
+        {
+          "code": "Teesside ET",
+          "label": "Teesside ET"
+        },
+        {
+          "code": "Wakefield Count",
+          "label": "Wakefield Civil and Family Justice Centre"
+        }
+      ]
+    },
+    "caseNotes": null
+  },
+  "event": {
+    "id": "amendCaseDetails",
+    "summary": "",
+    "description": ""
+  },
+  "event_token": "",
+  "ignore_warning": false
+}

@@ -4,7 +4,9 @@
       "caseAccepted": "Yes",
       "dateAccepted": "2022-09-06",
       "dateRejected": null,
-      "rejectReason": []
+      "rejectReason": [],
+      "claimServedDate": "2024-05-14",
+      "et3DueDate": "2024-05-14"
     }
   },
   "event": {

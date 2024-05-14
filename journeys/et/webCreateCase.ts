@@ -39,7 +39,9 @@ const QUESTION_SHARE = 'Would you like to share this case with solicitor1@etorga
 const EVENT_OPTS = [
   'et1Vetting',
   'preAcceptanceCase',
+  'amendCaseDetails',
   'et3Response',
+  'et3Processing',
   'createCaseECC',
   'addAmendHearing',
   'addAmendJudgment',
@@ -167,7 +169,7 @@ export async function askCreateCaseQuestions(answers: Answers = {}) {
     { name: 'region', message: 'What regions are we creating for?', type: 'checkbox', choices: REGION_OPTS, default: REGION_OPTS, pageSize: getIdealSizeForInquirer() },
     { name: 'events', message: QUESTION_STEPS, type: 'checkbox', choices: EVENT_OPTS, default: EVENT_OPTS.slice(0, 2), pageSize: getIdealSizeForInquirer() },
     { name: 'share', message: QUESTION_SHARE, type: 'list', choices: YES_OR_NO, default: YES },
-    { name: 'multiple', message: 'Would you like to add this to a new Multiple case?', type: 'list', choices: YES_OR_NO, default: NO, when: whenLocalEnv },
+    { name: 'multiple', message: 'Would you like to add this to a new Multiple case?', type: 'list', choices: YES_OR_NO, default: YES, when: whenLocalEnv },
     { name: 'callbacks', message: QUESTION_CALLBACKS, type: 'list', choices: YES_OR_NO, default: answers.callbacks || NO, askAnswered: true, when: whenLocalEnv },
     { name: 'kill', message: 'Do you want to kill callbacks after?', type: 'list', choices: YES_OR_NO, default: YES, when: (ans) => ans.callbacks === YES }
   ], answers)
@@ -385,12 +387,20 @@ async function executeEventsOnCase(cookieJar: CookieJar, caseId: string, region:
     return acc
   }, {})
 
+  if (events.includes('et3Processing')) {
+    const indexOf = events.indexOf('et3Processing')
+    events.splice(indexOf, 0, 'et3Response')
+    events.splice(indexOf, 0, 'amendCaseDetails')
+  }
+
   if (events.includes('et3Response')) {
     const indexOf = events.indexOf('et3Response')
     events.splice(indexOf + 1, 0, 'submitEt3')
     events.splice(indexOf + 1, 0, 'et3ResponseDetails')
     events.splice(indexOf + 1, 0, 'et3ResponseEmploymentDetails')
   }
+
+  console.log(`Chosen events: ${events.join(', ')}`)
 
   for (const event of events) {
     temporaryLog(`${event}... `)

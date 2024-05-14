@@ -207,9 +207,8 @@ async function getPreviewEnvSummary() {
     const prPods = pods[o].filter(o => o.metadata.ownerReferences[0].kind !== "Job")
     const prTitle = openPRs.find(p => p.value === prNumber)?.title
     // Check if any pods are not ready
-
-    const readyPods = prPods?.filter(o => o.status.containerStatuses.some(o => o.ready)).map(o => o.serviceName)
-    const notReadyPods = prPods?.filter(o => o.status.containerStatuses.some(o => !o.ready))
+    const readyPods = prPods?.filter(o => o.status.containerStatuses?.some(o => o.ready)).map(o => o.serviceName)
+    const notReadyPods = prPods?.filter(o => o.status.containerStatuses?.some(o => !o.ready))
       .map(o => {
         let reason = o.status.containerStatuses[0].state.waiting?.reason || JSON.stringify(o.status.containerStatuses[0].state)
 
