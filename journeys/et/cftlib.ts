@@ -21,7 +21,6 @@ const CFTLIB_CONTAINERS = [
   'wiremock',
   'compose-dm-store-1',
   'compose-azure-storage-emulator-azurite-1',
-  'cftlib-ccd-logstash-1',
   'cftlib-ccd-elasticsearch-1',
   'cftlib-rse-idam-simulator-1',
   'cftlib-shared-database-pg12-1',
