@@ -111,6 +111,7 @@ async function askBootCftTasks() {
     AZURE: 'Azure Login (az login)',
     IDAM: 'Pull IdAM image (docker pull hmctspublic.azurecr.io/hmcts/rse/rse-idam-simulator:latest)',
     CFTLIB: 'Start CFTLib (./gradlew bootWithCCD)',
+    MAX_CONNECTIONS: 'Increase postgres max to 1000',
     WIREMOCK: 'Ensure wiremock starts up (often struggles in WSL)',
     DMSTORE: 'Restart DM Store if it gets stuck doing migrations',
     RESTART: 'Restart xui-manage-org container (often fails to start the first time)',
@@ -152,6 +153,12 @@ async function askBootCftTasks() {
 
     temporaryLog('Starting and waiting for CFTLib to boot (./gradlew bootWithCCD)')
     await startCFTLib(answers.tasks.includes(OPTS.WIREMOCK))
+  }
+  if (answers.tasks.includes(OPTS.MAX_CONNECTIONS)) {
+    const out = await execCommand(`PGPASSWORD="postgres" PGHOST="localhost" PGPORT=6432 psql -U postgres -d postgres -c "ALTER SYSTEM SET max_connections TO '1000'"`, null, false)
+    console.log(out.stderr)
+    console.log(out.stdout)
+    await execCommand('docker restart cftlib-shared-database-pg12-1', null, false)
   }
   if (answers.tasks.includes(OPTS.DMSTORE)) {
     // dm-store can still crash, so make sure it's loaded correctly or reboot if not
@@ -375,7 +382,7 @@ async function setGlobalEnvVars() {
 }
 
 async function replaceXuiManageCases() {
-  await execCommand('docker rm cftlib-xui-manage-cases-1 cftlib-xui-manage-org-1 cftlib-shared-database-pg12-1 --force', null, false)
+  await execCommand('docker rm cftlib-xui-manage-cases-1 cftlib-xui-manage-org-1 --force', null, false)
   const { stdout, stderr } = await execCommand('docker-compose up -d', './cftlib', false)
   console.log(stdout)
   console.error(stderr)
