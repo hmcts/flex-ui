@@ -77,7 +77,8 @@ export const ENV_OPTS = [
   'Preview',
   'Demo',
   'ITHC',
-  'AAT'
+  'AAT',
+  'PERFTEST'
 ]
 
 async function journey() {

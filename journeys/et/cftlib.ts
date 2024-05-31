@@ -199,7 +199,7 @@ async function startMessageHandler() {
 }
 
 async function importCamundaTasks() {
-  const { stdout, stderr } = await execCommand('./scripts/camunda-deployment.sh', process.env.ET_WA_TASK_CONFIGURATION, false)
+  const { stdout, stderr } = await execCommand(`./scripts/camunda-deployment.sh`, process.env.ET_WA_TASK_CONFIGURATION_DIR, false)
   console.log('log ' + stdout)
   console.error('error ' + stderr)
   if (stderr.includes('Empty reply from server') || stdout.includes('Empty reply from server')) {
@@ -375,7 +375,7 @@ async function setGlobalEnvVars() {
 }
 
 async function replaceXuiManageCases() {
-  await execCommand('docker rm cftlib-xui-manage-cases-1 cftlib-xui-manage-org-1 --force', null, false)
+  await execCommand('docker rm cftlib-xui-manage-cases-1 cftlib-xui-manage-org-1 cftlib-shared-database-pg12-1 --force', null, false)
   const { stdout, stderr } = await execCommand('docker-compose up -d', './cftlib', false)
   console.log(stdout)
   console.error(stderr)
