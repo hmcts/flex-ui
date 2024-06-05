@@ -286,7 +286,7 @@ async function stopCFTLib() {
   }
 
   temporaryLog(`Stopping related CFTLib containers`)
-  await stopContainers(ALL_CFTLIB_CONTAINERS)
+  await stopContainers([...ALL_CFTLIB_CONTAINERS, 'cftlib-ccd-logstash-1'])
 
   temporaryLog(`Terminating processes listening on CFTLib related ports`)
   CFTLIB_PORTS.forEach(port => execCommand(`kill -9 $(lsof -i:${port} -t)`, null, false))
