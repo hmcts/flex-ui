@@ -9,6 +9,7 @@ async function journey() {
 
   const OPTS = {
     MULTIPLES_XLSX: 'Get Multiples XLSX Link (local environment only)',
+    NOTIFICATIONS_EXTRACT: 'Get the notifications extract (local environment only)',
     JSON: 'Open Case Data JSON in VSCode',
   }
 
@@ -20,6 +21,10 @@ async function journey() {
 
   if (answers.task === OPTS.MULTIPLES_XLSX) {
     await getMultiplesXlsx()
+  }
+
+  if (answers.task === OPTS.NOTIFICATIONS_EXTRACT) {
+    await getMultiplesNotificationExtract()
   }
 }
 
@@ -37,6 +42,23 @@ async function getMultiplesXlsx() {
     console.log(`Multiples XLSX: ${process.env.LOCAL_EXUI_URL}/documents/${excelUuid}/binary (CTRL+Click to open)`)
   } catch (e) {
     console.error(`Error parsing JSON, does the case exist?`)
+  }
+}
+
+async function getMultiplesNotificationExtract() {
+  const answers = await prompt([{ name: 'id', message: 'Enter a case reference', default: '1700471689475915' }])
+
+  // Default credentials are only for local environments and will not work anywhere else - secops
+  const out = await execCommand(`PGPASSWORD="postgres" PGHOST="localhost" PGPORT=6432 psql -U postgres -d datastore -c "SELECT row_to_json(t) FROM (SELECT * from case_data WHERE reference = ${answers.id}) t"`, null, false)
+  const contents = out.stdout.split('\n')?.[2]?.trim()
+
+  try {
+    const json = JSON.parse(contents)
+    const excelUuid = json.data.notificationsExtract.notificationsExtractFile.document_url.split('/').pop()
+
+    console.log(`Notifications Extract XLSX: ${process.env.LOCAL_EXUI_URL}/documents/${excelUuid}/binary (CTRL+Click to open)`)
+  } catch (e) {
+    console.error(`Error parsing JSON, does the case exist or is the extract genertated?`)
   }
 }
 
