@@ -1,0 +1,48 @@
+{
+  "data": {
+    "caseRefECC": "{{ethosCaseReference}}",
+    "respondentECC": {
+      "value": {
+        "code": "{{respondentCollection.0.value.respondent_name}}",
+        "label": "{{respondentCollection.0.value.respondent_name}}"
+      },
+      "list_items": [
+        {
+          "code": "{{respondentCollection.0.value.respondent_name}}",
+          "label": "{{respondentCollection.0.value.respondent_name}}"
+        }
+      ]
+    },
+    "managingOffice": "Leeds",
+    "positionType": "ET1 Online submission",
+    "conciliationTrack": "Open Track",
+    "clerkResponsible": {
+      "value": {
+        "code": "Leeds Clerk 1",
+        "label": "Leeds Clerk 1"
+      },
+      "list_items": [
+        {
+          "code": "Leeds Clerk 1",
+          "label": "Leeds Clerk 1"
+        },
+        {
+          "code": "Leeds Clerk 2",
+          "label": "Leeds Clerk 2"
+        },
+        {
+          "code": "Leeds Clerk 3",
+          "label": "Leeds Clerk 3"
+        }
+      ]
+    }
+  },
+  "event": {
+    "id": "createCaseECC",
+    "summary": "",
+    "description": ""
+  },
+  "draft_id": null,
+  "event_token": "",
+  "ignore_warning": false
+}

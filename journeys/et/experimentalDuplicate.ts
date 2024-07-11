@@ -1,8 +1,8 @@
 import { prompt } from 'inquirer'
 import { Journey } from 'types/journey'
 import { getKnownETCaseFieldIDsByEvent, getRegionFromCaseTypeId, Region, getEnglandWales, getScotland, addToConfig, addToInMemoryConfig, getETCaseEventIDOpts } from 'app/et/configs'
-import { Answers, askAutoComplete, askCaseEvent, askCaseTypeID, sayWarning } from 'app/questions'
-import { CaseEventToFieldKeys, CaseFieldKeys, createNewConfigSheets } from 'app/types/ccd'
+import { Answers, addNonProdFeatureQuestions, askAutoComplete, askCaseEvent, askCaseTypeID, sayWarning } from 'app/questions'
+import { CCDSheetExtension, CaseEventToFieldKeys, CaseFieldKeys, FlexExtensions, createNewConfigSheets } from 'app/types/ccd'
 import { MULTI, NONE } from 'app/constants'
 import { duplicateAuthorisationInCaseType, duplicateInCaseType, getObjectsReferencedByCaseFields } from 'app/et/duplicateCaseField'
 import { saveSession, session } from 'app/session'
@@ -25,12 +25,12 @@ function getFieldOptions(caseTypeID: string, caseEventID: string) {
   return getKnownETCaseFieldIDsByEvent(caseEventID)
 }
 
-async function extractFieldsAndDependants(fromRegion: Region, toCaseTypeID: string, fieldIDs: string[]) {
+async function extractFieldsAndDependants(fromRegion: Region, toCaseTypeID: string, fieldIDs: string[], eventId: string, feature?: string, ext?: CCDSheetExtension) {
   const relatedConfig = createNewConfigSheets()
 
   fieldIDs.forEach(o => {
     const configs = fromRegion === Region.EnglandWales ? getEnglandWales() : getScotland()
-    const related = getObjectsReferencedByCaseFields(configs, [configs.CaseField.find(x => x.ID === o)])
+    const related = getObjectsReferencedByCaseFields(configs, [configs.CaseField.find(x => x.ID === o)], eventId)
 
     addToConfig(relatedConfig, related)
   })
@@ -40,12 +40,21 @@ async function extractFieldsAndDependants(fromRegion: Region, toCaseTypeID: stri
   relatedConfig.CaseField = relatedConfig.CaseField.map(o => duplicateInCaseType(toCaseTypeID, o))
   relatedConfig.CaseTypeTab = relatedConfig.CaseTypeTab.map(o => duplicateInCaseType(toCaseTypeID, o))
 
-  relatedConfig.ComplexTypes = relatedConfig.ComplexTypes.map(o => duplicateInCaseType(toCaseTypeID, o))
-  relatedConfig.Scrubbed = relatedConfig.Scrubbed.map(o => duplicateInCaseType(toCaseTypeID, o))
-  relatedConfig.EventToComplexTypes = relatedConfig.EventToComplexTypes.map(o => duplicateInCaseType(toCaseTypeID, o))
-
   relatedConfig.AuthorisationCaseEvent = relatedConfig.AuthorisationCaseEvent.map(o => duplicateAuthorisationInCaseType(toCaseTypeID, o))
   relatedConfig.AuthorisationCaseField = relatedConfig.AuthorisationCaseField.map(o => duplicateAuthorisationInCaseType(toCaseTypeID, o))
+
+  relatedConfig.ComplexTypes = []
+  relatedConfig.Scrubbed = []
+  relatedConfig.EventToComplexTypes = []
+
+  if (feature || ext) {
+    for (const sheet of Object.keys(relatedConfig)) {
+      relatedConfig[sheet].forEach((o: FlexExtensions) => {
+        o.feature = feature
+        o.ext = ext
+      })
+    }
+  }
 
   addToInMemoryConfig(relatedConfig)
   saveSession(session)
@@ -85,8 +94,8 @@ async function askFields() {
   }
 
   const toCaseTypeID = (await askCaseTypeID({}, { message: QUESTION_DUPLICATE_TO })).CaseTypeID
-
-  return await extractFieldsAndDependants(region, toCaseTypeID, selectedIDs)
+  answers = await prompt(addNonProdFeatureQuestions('CaseField'), answers)
+  return await extractFieldsAndDependants(region, toCaseTypeID, selectedIDs, answers[CaseEventToFieldKeys.CaseEventID], answers['feature'], answers['ext'])
 }
 
 export default {

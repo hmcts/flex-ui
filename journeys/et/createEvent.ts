@@ -17,6 +17,8 @@ async function journey(answers: Answers = {}) {
 async function createAuthorisations(created: Partial<ConfigSheets>) {
   let authorisations = []
   for (const event of created.CaseEvent) {
+    if (!event) continue
+    
     const authsExist = sheets.AuthorisationCaseEvent.find(o => o.CaseEventID === event.ID && o.CaseTypeId === event.CaseTypeID)
 
     let answers: Answers = { authorisations: YES }
@@ -33,7 +35,7 @@ async function createAuthorisations(created: Partial<ConfigSheets>) {
     }
 
     if (answers.authorisations === YES) {
-      authorisations = authorisations.concat(...createCaseEventAuthorisations(event.CaseTypeID, event.ID))
+      authorisations = authorisations.concat(...createCaseEventAuthorisations(event.CaseTypeID, event.ID, undefined, event.ext, event.feature))
     }
   }
   return authorisations

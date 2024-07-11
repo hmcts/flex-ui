@@ -5,31 +5,28 @@
         "value": {
           "dynamic_resp_rep_name": {
             "value": {
-              "code": "R: Another Person",
-              "label": "Another Person"
+              "code": "R: {{respondent}}",
+              "label": "{{respondent}}"
             },
             "list_items": [
               {
-                "code": "R: Another Person",
-                "label": "Another Person"
+                "code": "R: {{respondent}}",
+                "label": "{{respondent}}"
               }
             ]
           },
           "name_of_representative": "Sally Solicitor",
           "representative_phone_number": null,
           "representative_mobile_number": null,
-          "representative_email_address": "rep@email.com",
+          "representative_email_address": "solicitor@email.com",
           "representative_preference": null,
-          "myHmctsYesNo": "Yes",
+          "myHmctsYesNo": "No",
           "name_of_organisation": null,
           "representative_reference": null,
           "representative_occupation": null,
           "representative_occupation_other": null,
           "resp_rep_name": null,
-          "respondentOrganisation": {
-            "OrganisationID": "79ZRSOU",
-            "OrganisationName": "ET - Organisation 1"
-          },
+          "respondentOrganisation": null,
           "representative_address": {
             "AddressLine1": "25 Beverley Road",
             "AddressLine2": "",
@@ -55,31 +52,28 @@
         "value": {
           "dynamic_resp_rep_name": {
             "value": {
-              "code": "R: Another Person",
-              "label": "Another Person"
+              "code": "R: {{respondent}}",
+              "label": "{{respondent}}"
             },
             "list_items": [
               {
-                "code": "R: Another Person",
-                "label": "Another Person"
+                "code": "R: {{respondent}}",
+                "label": "{{respondent}}"
               }
             ]
           },
           "name_of_representative": "Sally Solicitor",
           "representative_phone_number": null,
           "representative_mobile_number": null,
-          "representative_email_address": "rep@email.com",
+          "representative_email_address": "solicitor@email.com",
           "representative_preference": null,
-          "myHmctsYesNo": "Yes",
+          "myHmctsYesNo": "No",
           "name_of_organisation": null,
           "representative_reference": null,
           "representative_occupation": null,
           "representative_occupation_other": null,
           "resp_rep_name": null,
-          "respondentOrganisation": {
-            "OrganisationID": "79ZRSOU",
-            "OrganisationName": "ET - Organisation 1"
-          },
+          "respondentOrganisation": null,
           "representative_address": {
             "AddressLine1": "25 Beverley Road",
             "AddressLine2": "",

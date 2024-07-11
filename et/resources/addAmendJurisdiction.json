@@ -1,0 +1,22 @@
+{
+  "data": {
+    "jurCodesCollection": [
+      {
+        "value": {
+          "juridictionCodesList": "ADT",
+          "judgmentOutcome": "Not allocated",
+          "dateNotified": null,
+          "disposalDate": null
+        },
+        "id": "9c6e880d-ac3d-4694-8a50-3a2019b6dd39"
+      }
+    ]
+  },
+  "event": {
+    "id": "addAmendJurisdiction",
+    "summary": "",
+    "description": ""
+  },
+  "event_token": "",
+  "ignore_warning": false
+}

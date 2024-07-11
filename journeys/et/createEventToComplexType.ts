@@ -26,7 +26,7 @@ async function journey(answers: Answers = {}) {
 
   const existing: CCDTypeWithRegion = await findExisting(answers)
 
-  const created = await createEventToComplexType({ ...answers, flexRegion: existing.flexRegion })
+  const created = await createEventToComplexType({ ...answers, flexRegion: existing?.flexRegion })
   created.EventToComplexTypes = addFlexRegionAndClone(answers[FLEX_REGION_ANSWERS_KEY] as Region[], created.EventToComplexTypes[0])
   addToInMemoryConfig(created)
 }

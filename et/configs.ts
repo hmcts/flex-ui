@@ -1,10 +1,10 @@
-import { readFileSync, writeFileSync } from 'fs'
+import { copyFileSync, existsSync, readFileSync, readdirSync, writeFileSync } from 'fs'
 import { sep } from 'path'
-import { findLastIndex, format, removeFields, upsertFields } from 'app/helpers'
+import { ensurePathExists, findLastIndex, format, getFiles, getUniqueByKey, groupBy, removeFields, upsertFields } from 'app/helpers'
 import { addToSession, session } from 'app/session'
-import { AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventKeys, CaseEventToField, CaseEventToFieldKeys, CaseTypeTab, CaseTypeTabKeys, CCDTypes, ComplexType, ConfigSheets, createNewConfigSheets, EventToComplexType, EventToComplexTypeKeys, FlexExtensions, Scrubbed, ScrubbedKeys, sheets } from 'types/ccd'
+import { AuthorisationCaseEvent, AuthorisationCaseField, AuthorisationCaseState, AuthorisationCaseType, CaseEvent, CaseEventKeys, CaseEventToField, CaseEventToFieldKeys, CaseTypeTab, CaseTypeTabKeys, CCDSheetExtension, CCDTypes, ComplexType, ConfigSheets, createNewConfigSheets, EventToComplexType, EventToComplexTypeKeys, extensions, FlexExtensions, RoleToAccessProfile, Scrubbed, ScrubbedKeys, sheets } from 'types/ccd'
 import { COMPOUND_KEYS } from 'app/constants'
-import { clearConfigs, findObject, getCaseEventIDOpts, getKnownCaseFieldIDsByEvent, sheets as globalConfigs } from 'app/configs'
+import { addKnownFeature, clearConfigs, findObject, getCaseEventIDOpts, getKnownCaseFieldIDsByEvent, sheets as globalConfigs } from 'app/configs'
 
 let readTime = 0
 
@@ -115,7 +115,7 @@ export function getConfigSheetsFromFlexRegion(flexRegion: Region[]) {
   return createNewConfigSheets()
 }
 
-export function findETObject<T>(keys: Record<string, any>, sheetName: keyof CCDTypes, region?: Region): T | undefined {
+export function findETObject<T extends FlexExtensions>(keys: Record<string, any>, sheetName: keyof CCDTypes, region?: Region): T | FlexExtensions | undefined {
   const ccd = region === Region.EnglandWales
     ? getEnglandWales()
     : region === Region.Scotland
@@ -162,30 +162,176 @@ export function getConfigSheetName(region: Region, configSheet: keyof (ConfigShe
   return configSheet
 }
 
-/**
- * Replace in-memory configs by reading in both englandwales and scotland configs from their repo folders.
- */
-export function readInCurrentConfig() {
-  const builder = (envVar: string, region: Region) => {
-    const configSheets = sheets.reduce<Partial<ConfigSheets>>((acc, sheetName) => {
-      acc[sheetName] = getJson(envVar, getConfigSheetName(region, sheetName))
-      return acc
-    }, {}) as ConfigSheets
+export function getSheetNameTwo(fileName: string) {
+  fileName = fileName.substring(fileName.lastIndexOf('/') + 1)
+  const regex = /([A-Za-z0-9-]+?)(?:\-(.+?))?(?:-((?:non)?prod))?\.json$/gi.exec(fileName)
+  if (!regex) return
 
-    const needRegions = [...configSheets.ComplexTypes, ...configSheets.EventToComplexTypes, ...configSheets.Scrubbed]
-    needRegions.forEach((o: CCDTypeWithRegion) => { o.flexRegion = region })
+  let [_, sheet, feature, ext] = regex
 
-    // TODO: Upserting is the better option as it sanitizes input - but theres a known duplicate issue that needs raising with the ET team
-    // upsertConfigs(configSheets)
-    Object.keys(configSheets).forEach(key => {
-      globalConfigs[key] = globalConfigs[key].concat(...configSheets[key])
+  let internalSheet = sheet.includes('Scrubbed') ? 'Scrubbed' : sheet
+
+  // If we don't know what the sheet is - ignore it as theres no guarentee we can save it back
+  if (globalConfigs[internalSheet] === undefined) return
+  if (!extensions.includes(ext)) return // Ignore unknown extensions
+
+  if (!ext && feature === 'nonprod' || feature === 'prod') {
+    ext = feature
+    feature = ''
+  }
+
+  return {
+    sheet: internalSheet,
+    feature: feature || '',
+    ext: (ext || '') as CCDSheetExtension
+  }
+}
+
+function compressAuthorisationCaseState(json: AuthorisationCaseState[]) {
+  const compressed = []
+  for (const obj of json) {
+    // if (!obj.compress) {
+    //   compressed.push(obj)
+    //   continue
+    // }
+
+    let targetAccessControl = compressed.find(o => o.CaseTypeID === obj.CaseTypeID && obj.CaseStateID === o.CaseStateID && o.AccessControl?.length && o.feature === obj.feature && o.ext === obj.ext)
+    if (!targetAccessControl) {
+      targetAccessControl = { CaseTypeID: obj.CaseTypeID, CaseStateID: obj.CaseStateID, AccessControl: [], feature: obj.feature, ext: obj.ext }
+      compressed.push(targetAccessControl)
+    }
+
+    const targetCrud = targetAccessControl.AccessControl.find(o => o.CRUD === obj.CRUD)
+    if (targetCrud) {
+      targetCrud.UserRoles.push(obj.UserRole)
+      targetCrud.singles.push(obj)
+    } else {
+      targetAccessControl.AccessControl.push({ CRUD: obj.CRUD, UserRoles: [obj.UserRole], singles: [obj] })
+    }
+  }
+
+  // Undo the compression if we only have one user role inside a CRUD
+
+  return compressed
+}
+
+function decompressAuthorisationCaseState(json: AuthorisationCaseState[]) {
+  const flattened = []
+  for (const obj of json) {
+    if (!obj.AccessControl?.length) {
+      flattened.push(obj)
+      continue
+    }
+
+    for (const ac of obj.AccessControl) {
+      for (const role of ac.UserRoles) {
+        flattened.push({ ...obj, AccessControl: undefined, UserRole: role, CRUD: ac.CRUD, compress: true })
+      }
+    }
+  }
+
+  return flattened
+}
+
+function compressAuthorisationCaseType(json: AuthorisationCaseType[]) {
+  const compressed = []
+  for (const obj of json) {
+    // if (!obj.compress) {
+    //   compressed.push(obj)
+    //   continue
+    // }
+
+    const find = compressed.find(o => o.CaseTypeId === obj.CaseTypeId && obj.CRUD === o.CRUD && o.UserRoles?.length && o.feature === obj.feature && o.ext === obj.ext)
+    if (find) {
+      find.UserRoles.push(obj.UserRole)
+      find.singles.push(obj)
+    } else {
+      compressed.push({ CaseTypeId: obj.CaseTypeId, UserRoles: [obj.UserRole], CRUD: obj.CRUD, feature: obj.feature, ext: obj.ext, singles: [obj] })
+    }
+  }
+
+  for (const obj of compressed) {
+    if (obj.UserRoles.length === 1) {
+      obj.UserRole = obj.UserRoles[0]
+      delete obj.UserRoles
+    }
+  }
+
+  return compressed
+}
+
+function decompressAuthorisationCaseType(json: AuthorisationCaseType[]) {
+  const flattened = []
+  for (const obj of json) {
+    if (!obj.UserRoles?.length) {
+      flattened.push(obj)
+      continue
+    }
+
+    for (const role of obj.UserRoles) {
+      flattened.push({ ...obj, UserRole: role, UserRoles: undefined, compress: true })
+    }
+  }
+
+  return flattened
+}
+
+export async function readInCurrentConfig(configs = globalConfigs, ewPath: string, scPath: string) {
+  const needRegions = ['ComplexTypes', 'EventToComplexTypes', 'Scrubbed']
+
+  const builder = async (dir: string, region: Region) => {
+    // Discover files in the directory
+    const files = (await getFiles(dir)).filter(o => o.endsWith('.json'))
+
+    files.forEach(o => {
+      // Try detect sheet name
+      const { sheet, feature, ext: prod } = getSheetNameTwo(o) || {}
+      if (!sheet) return
+
+      // Read in the file
+      let json = JSON.parse(readFileSync(o).toString())
+
+      // A few sheets support collapsing similar objects into an array
+      // This makes things difficult for flex in terms of defining unique objects
+      // Having a choice in how to format objects is nice, but adds a ton of complexity
+      // For now, lets unravel these and copy them as objects
+      // We can either re-compress on save or just leave them as objects (ccd is fine with either)
+
+      const compressableSheets: (keyof (CCDTypes))[] = ['AuthorisationCaseState', 'AuthorisationCaseType']
+
+      if (sheet === 'AuthorisationCaseState') {
+        json = decompressAuthorisationCaseState(json)
+      }
+
+      if (sheet === 'AuthorisationCaseType') {
+        json = decompressAuthorisationCaseType(json)
+      }
+
+      if (needRegions.includes(sheet)) {
+        json.forEach((o: CCDTypeWithRegion) => o.flexRegion = region)
+      }
+
+      json.forEach((o: CCDTypeWithRegion) => {
+        o.feature = feature
+        o.ext = prod
+      })
+
+      // TODO: Upserting is the better option as it sanitizes input - but theres a known duplicate issue that needs raising with the ET team
+      // upsertConfigs(json)
+      configs[sheet] = (configs[sheet] || []).concat(...json)
+      //console.log(`Added ${json.length} objects from ${o} in ${region} (detected: ${sheet}, ${feature}, ${prod})`)
+      addKnownFeature(feature)
     })
   }
 
   clearConfigs()
+  if (ewPath) {
+    await builder(`${ewPath}${sep}definitions${sep}json`, Region.EnglandWales)
+  }
 
-  builder(process.env.ENGWALES_DEF_DIR, Region.EnglandWales)
-  builder(process.env.SCOTLAND_DEF_DIR, Region.Scotland)
+  if (scPath) {
+    await builder(`${scPath}${sep}definitions${sep}json`, Region.Scotland)
+  }
 
   readTime = Date.now()
 }
@@ -381,6 +527,10 @@ function spliceIndexComplexType(x: ComplexType & CCDTypeWithRegion, arr: Array<C
   return firstInComplexTypeIndex
 }
 
+function spliceIndexRoleToAccessProfile(x: RoleToAccessProfile & CCDTypeWithRegion, arr: Array<RoleToAccessProfile & CCDTypeWithRegion>) {
+  return findLastIndex(arr, o => o.flexRegion === x.flexRegion && o.RoleName === x.RoleName) + 1
+}
+
 export function deleteFromInMemoryConfig(fields: Partial<ConfigSheets>) {
   for (const key of sheets) {
     if (!fields[key]) {
@@ -428,34 +578,40 @@ export function addToInMemoryConfig(fields: Partial<ConfigSheets>) {
 }
 
 export function deleteFromConfig(main: Partial<ConfigSheets>, toDelete: Partial<ConfigSheets>) {
-  removeFields(main.AuthorisationCaseEvent, toDelete.AuthorisationCaseEvent, COMPOUND_KEYS.AuthorisationCaseEvent)
+  const andExtFeature = (keys) => [...keys, 'ext', 'feature']
 
-  removeFields(main.AuthorisationCaseField, toDelete.AuthorisationCaseField, COMPOUND_KEYS.AuthorisationCaseField)
+  removeFields(main.AuthorisationCaseEvent, toDelete.AuthorisationCaseEvent, andExtFeature(COMPOUND_KEYS.AuthorisationCaseEvent))
 
-  removeFields(main.CaseField, toDelete.CaseField, COMPOUND_KEYS.CaseField)
+  removeFields(main.AuthorisationCaseField, toDelete.AuthorisationCaseField, andExtFeature(COMPOUND_KEYS.AuthorisationCaseField))
 
-  removeFields(main.CaseEventToFields, toDelete.CaseEventToFields, COMPOUND_KEYS.CaseEventToFields)
+  removeFields(main.CaseField, toDelete.CaseField, andExtFeature(COMPOUND_KEYS.CaseField))
+
+  removeFields(main.CaseEventToFields, toDelete.CaseEventToFields, andExtFeature(COMPOUND_KEYS.CaseEventToFields))
   // TODO: Handle other types
 }
 
 export function addToConfig(to: Partial<ConfigSheets>, from: Partial<ConfigSheets>) {
-  upsertFields(to.CaseField, from.CaseField, COMPOUND_KEYS.CaseField, spliceIndexCaseTypeID)
+  const andExtFeature = (keys) => [...keys, 'ext', 'feature']
 
-  upsertFields(to.CaseEventToFields, from.CaseEventToFields, COMPOUND_KEYS.CaseEventToFields, spliceIndexCaseEventToField)
+  upsertFields(to.CaseField, from.CaseField, andExtFeature(COMPOUND_KEYS.CaseField), spliceIndexCaseTypeID)
 
-  upsertFields(to.AuthorisationCaseEvent, from.AuthorisationCaseEvent, COMPOUND_KEYS.AuthorisationCaseEvent, spliceIndexCaseTypeId)
+  upsertFields(to.CaseEventToFields, from.CaseEventToFields, andExtFeature(COMPOUND_KEYS.CaseEventToFields), spliceIndexCaseEventToField)
 
-  upsertFields(to.AuthorisationCaseField, from.AuthorisationCaseField, COMPOUND_KEYS.AuthorisationCaseField, spliceIndexCaseTypeId)
+  upsertFields(to.AuthorisationCaseEvent, from.AuthorisationCaseEvent, andExtFeature(COMPOUND_KEYS.AuthorisationCaseEvent), spliceIndexCaseTypeId)
 
-  upsertFields(to.CaseTypeTab, from.CaseTypeTab, COMPOUND_KEYS.CaseTypeTab, spliceIndexCaseTypeTab)
+  upsertFields(to.AuthorisationCaseField, from.AuthorisationCaseField, andExtFeature(COMPOUND_KEYS.AuthorisationCaseField), spliceIndexCaseTypeId)
 
-  upsertFields(to.EventToComplexTypes, from.EventToComplexTypes, COMPOUND_KEYS.EventToComplexTypes, spliceIndexEventToComplexType)
+  upsertFields(to.CaseTypeTab, from.CaseTypeTab, andExtFeature(COMPOUND_KEYS.CaseTypeTab), spliceIndexCaseTypeTab)
 
-  upsertFields(to.ComplexTypes, from.ComplexTypes, COMPOUND_KEYS.ComplexTypes, spliceIndexComplexType)
+  upsertFields(to.EventToComplexTypes, from.EventToComplexTypes, andExtFeature(COMPOUND_KEYS.EventToComplexTypes), spliceIndexEventToComplexType)
 
-  upsertFields(to.Scrubbed, from.Scrubbed, COMPOUND_KEYS.Scrubbed, spliceIndexScrubbed)
+  upsertFields(to.ComplexTypes, from.ComplexTypes, andExtFeature(COMPOUND_KEYS.ComplexTypes), spliceIndexComplexType)
 
-  upsertFields(to.CaseEvent, from.CaseEvent, COMPOUND_KEYS.CaseEvent, spliceIndexCaseEvent)
+  upsertFields(to.Scrubbed, from.Scrubbed, andExtFeature(COMPOUND_KEYS.Scrubbed), spliceIndexScrubbed)
+
+  upsertFields(to.CaseEvent, from.CaseEvent, andExtFeature(COMPOUND_KEYS.CaseEvent), spliceIndexCaseEvent)
+
+  upsertFields(to.RoleToAccessProfiles, from.RoleToAccessProfiles, andExtFeature(COMPOUND_KEYS.RoleToAccessProfiles), spliceIndexRoleToAccessProfile)
 }
 
 export function pushEventToComplexTypeFieldDisplayOrders(arr: Array<EventToComplexType & CCDTypeWithRegion>, region: Region, eventID: string, fieldID: string, start: number) {
@@ -489,7 +645,7 @@ function pushByDisplayOrderField(arr: any[], start: number, displayOrderKey: str
     changesMade = false
     let num = start
     for (const field of arr) {
-      if (field[displayOrderKey] === num) {
+      if (field[displayOrderKey] === num && !field.freeze && field.ext === CCDSheetExtension.NONPROD) {
         field[displayOrderKey]++
         num++
         changesMade = true
@@ -502,43 +658,81 @@ function pushByDisplayOrderField(arr: any[], start: number, displayOrderKey: str
 function removeFlexKeys(ccd: CCDTypeWithRegion) {
   const clone = JSON.parse(JSON.stringify(ccd))
   Object.keys(clone).forEach(key => {
-    if (!key.startsWith("flex")) return
+    if (key[0] === key[0].toUpperCase() && key[0] !== '_') return // Only want to remove keys that start with a lowercase character or _ (CCD keys are all WordCase)
     clone[key] = undefined
   })
   return clone
 }
 
-function splitGlobalIntoRegional(region: Region) {
+function splitGlobalIntoRegional(region: Region, configs = globalConfigs) {
   const getRegionFilter = (region: Region) => (o: CCDTypeWithRegion) => (o.CaseTypeID || o.CaseTypeId || o.flexRegion).startsWith(region)
 
-  return Object.keys(globalConfigs).reduce((acc, key) => {
-    acc[key] = globalConfigs[key].filter(getRegionFilter(region))
+  return Object.keys(configs).reduce((acc, key) => {
+    acc[key] = configs[key].filter(getRegionFilter(region))
     return acc
   }, createNewConfigSheets())
+}
+
+function getJsonNameForSheet(sheetName: string, feature?: string, env?: string): string {
+  const isEmpty = (x: any) => x === 'undefined' || x === null || x === '' || x === ' '
+  if (isEmpty(feature)) {
+    feature = undefined
+  }
+
+  if (isEmpty(env)) {
+    env = undefined
+  }
+
+  return `${sheetName}${feature ? `-${feature}` : ''}${env ? `-${env}` : ''}.json`
 }
 
 /**
  * Save the in-memory configs back to their JSON files
  */
-export async function saveBackToProject() {
-  const templatePath = `{0}${sep}definitions${sep}json${sep}{1}.json`
+export async function saveBackToProject(configs = globalConfigs, ewPath = process.env.ENGWALES_DEF_DIR, scPath = process.env.SCOTLAND_DEF_DIR) {
+  const ewConfigs = splitGlobalIntoRegional(Region.EnglandWales, configs)
+  const scConfigs = splitGlobalIntoRegional(Region.Scotland, configs)
+  const byRegion = { [Region.EnglandWales]: ewConfigs, [Region.Scotland]: scConfigs }
 
-  const ewConfigs = splitGlobalIntoRegional(Region.EnglandWales)
-  const scConfigs = splitGlobalIntoRegional(Region.Scotland)
+  const getSheetName = (sheet: string, region: string) => {
+    if (sheet === 'Scrubbed') return `${region} Scrubbed`
+    return sheet
+  }
 
-  for (const sheet of sheets) {
-    const eng = format(templatePath, process.env.ENGWALES_DEF_DIR, getConfigSheetName(Region.EnglandWales, sheet))
-    const jsonEng = JSON.stringify(ewConfigs[sheet].map(o => removeFlexKeys(o)), null, 2)
-    writeFileSync(eng, `${jsonEng}${getFileTerminatingCharacter(eng)}`)
+  for (const region in byRegion) {
+    for (const sheet in byRegion[region]) {
+      let json = byRegion[region][sheet] as CCDTypeWithRegion[]
 
-    const scot = format(templatePath, process.env.SCOTLAND_DEF_DIR, getConfigSheetName(Region.Scotland, sheet))
-    const jsonScot = JSON.stringify(scConfigs[sheet].map(o => removeFlexKeys(o)), null, 2)
-    writeFileSync(scot, `${jsonScot}${getFileTerminatingCharacter(scot)}`)
+      // if (sheet === 'AuthorisationCaseState') {
+      //   json = compressAuthorisationCaseState(json as AuthorisationCaseState[])
+      // }
+
+      // if (sheet === 'AuthorisationCaseType') {
+      //   json = compressAuthorisationCaseType(json as AuthorisationCaseType[])
+      // }
+
+      const byFeature = groupBy(json, 'feature')
+      for (const feature in byFeature) {
+        const byExt = groupBy(byFeature[feature], 'ext')
+
+        for (const ext in byExt) {
+          const json = JSON.stringify(byExt[ext].map(o => removeFlexKeys(o)), null, 2)
+          const repo = region === Region.EnglandWales ? ewPath : scPath
+          const sheetName = getSheetName(sheet, region.substring(3))
+          const fileName = getJsonNameForSheet(sheetName, feature, ext)
+          const path = `${repo}${sep}definitions${sep}json${sep}${sheetName}${sep}${fileName}`
+
+          ensurePathExists(path.substring(0, path.lastIndexOf(sep)))
+          writeFileSync(path, `${json}${getFileTerminatingCharacter(path)}`)
+        }
+      }
+    }
   }
 }
 
 function getFileTerminatingCharacter(file: string) {
-  const contents = readFileSync(file).toString()
+  if (!existsSync(file)) return '\n'
+  const contents = readFileSync(file).toString() || '\n'
   return contents.endsWith('\n') ? '\n' : ''
 }
 
@@ -565,18 +759,18 @@ function createAuthorisations<T>(mappings: RoleMappings, caseTypeID: string, fn:
 /**
  * Creates an array of AuthorisationCaseEvent objects
  */
-export function createCaseEventAuthorisations(caseTypeID: string = Region.EnglandWales, eventID: string, roleMappings: RoleMappings = defaultRoleMappings) {
+export function createCaseEventAuthorisations(caseTypeID: string = Region.EnglandWales, eventID: string, roleMappings: RoleMappings = defaultRoleMappings, ext: CCDSheetExtension = CCDSheetExtension.BASE, feature: string = '') {
   return createAuthorisations<AuthorisationCaseEvent>(roleMappings, caseTypeID, (role, crud) => {
-    return { CaseTypeId: caseTypeID, CaseEventID: eventID, UserRole: role, CRUD: crud }
+    return { CaseTypeId: caseTypeID, CaseEventID: eventID, UserRole: role, CRUD: crud, ext, feature }
   })
 }
 
 /**
  * Creates an array of AuthorisationCaseEvent objects
  */
-export function createCaseFieldAuthorisations(caseTypeID: string = Region.EnglandWales, fieldID: string, roleMappings: RoleMappings = defaultRoleMappings) {
+export function createCaseFieldAuthorisations(caseTypeID: string = Region.EnglandWales, fieldID: string, roleMappings: RoleMappings = defaultRoleMappings, ext: CCDSheetExtension = CCDSheetExtension.BASE, feature: string = '') {
   return createAuthorisations<AuthorisationCaseField>(roleMappings, caseTypeID, (role, crud) => {
-    return { CaseTypeId: caseTypeID, CaseFieldID: fieldID, UserRole: role, CRUD: crud }
+    return { CaseTypeId: caseTypeID, CaseFieldID: fieldID, UserRole: role, CRUD: crud, ext, feature }
   })
 }
 

@@ -1,0 +1,18 @@
+{
+  "data": {
+    "multipleName": "6000001/2024",
+    "managingOffice": "Leeds",
+    "leadCase": "6000001/2024",
+    "caseIdCollection": [
+
+    ]
+  },
+  "event": {
+    "id": "createMultiple",
+    "summary": "",
+    "description": ""
+  },
+  "event_token": "",
+  "ignore_warning": false,
+  "draft_id": null
+}

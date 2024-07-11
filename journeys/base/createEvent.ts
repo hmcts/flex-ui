@@ -1,6 +1,6 @@
 import { prompt } from 'inquirer'
 import { Journey } from 'types/journey'
-import { addCaseEvent, addCaseTypeIDQuestion, addDuplicateToCaseTypeID, Answers, Question, spliceCustomQuestionIndex } from 'app/questions'
+import { addCaseEvent, addCaseTypeIDQuestion, addDuplicateToCaseTypeID, addNonProdFeatureQuestions, Answers, Question, spliceCustomQuestionIndex } from 'app/questions'
 import { createNewCaseEvent } from 'app/ccd'
 import { Y_OR_N, YES, YES_OR_NO } from 'app/constants'
 import { CaseEvent, CaseEventKeys } from 'app/types/ccd'
@@ -21,6 +21,7 @@ export const QUESTION_SHOW_SUMMARY = 'Should there be a Check Your Answers page 
 export const QUESTION_CALLBACK_URL_ABOUT_TO_START_EVENT = 'Do we need a callback before we start? (optional)'
 export const QUESTION_CALLBACK_URL_ABOUT_TO_SUBMIT_EVENT = 'Do we need a callback before we submit? (optional)'
 export const QUESTION_CALLBACK_URL_SUBMITTED_EVENT = 'Do we need a callback after we submit? (optional)'
+export const QUESTION_WA_PUBLISH = 'Do you want to publish this event (for WA)?'
 
 async function journey(answers: Answers = {}) {
   const created = await createEvent(answers)
@@ -55,6 +56,8 @@ export function addEventQuestions(existingFn: (answers: Answers) => CaseEvent = 
     { name: 'CallBackURLAboutToStartEvent', message: QUESTION_CALLBACK_URL_ABOUT_TO_START_EVENT, default: defaultFn('CallBackURLAboutToStartEvent') },
     { name: 'CallBackURLAboutToSubmitEvent', message: QUESTION_CALLBACK_URL_ABOUT_TO_SUBMIT_EVENT, default: defaultFn('CallBackURLAboutToSubmitEvent') },
     { name: 'CallBackURLSubmittedEvent', message: QUESTION_CALLBACK_URL_SUBMITTED_EVENT, default: defaultFn('CallBackURLSubmittedEvent') },
+    { name: 'Publish', message: QUESTION_WA_PUBLISH, type: 'list', choices: Y_OR_N, default: defaultFn('Publish', 'N') },
+    ...addNonProdFeatureQuestions('CaseEvent'),
     ...addDuplicateToCaseTypeID()
   ] as Question[]
 }
@@ -72,7 +75,7 @@ export function construcFromAnswers(answers: Answers) {
   const createFn = (answers: Answers) => {
     const caseEvent = createNewCaseEvent(answers)
     return {
-      CaseEvent: [caseEvent]
+      CaseEvent: [caseEvent, answers.prodShadow as CaseEvent]
     }
   }
 

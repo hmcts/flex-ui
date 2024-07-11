@@ -1,9 +1,35 @@
 import { CCD_FIELD_TYPES, COMPOUND_KEYS, NONE } from "./constants"
 import { getUniqueByKey, getUniqueByKeyAsArray, groupBy, upsertFields } from "./helpers"
 import { Answers } from "./questions"
-import { CaseEventToField, CaseField, CCDTypes, ConfigSheets, createNewConfigSheets } from "./types/ccd"
+import { CaseEventToField, CaseField, CCDTypes, ConfigSheets, createNewConfigSheets, FlexExtensions } from "./types/ccd"
 
 export const sheets: ConfigSheets = createNewConfigSheets()
+export const knownFeatures: Record<string, null> = {}
+
+export function rebuildKnownFeaturesFromConfigSheets(configSheets: ConfigSheets = sheets) {
+  const sheetTypes = Object.values(configSheets)
+  sheetTypes.forEach(sheet => {
+    sheet.forEach(obj => {
+      if (obj.feature) {
+        knownFeatures[obj.feature] = null
+      }
+    })
+  })
+
+  return getKnownFeatures()
+}
+
+export function getKnownFeatures() {
+  return Object.keys(knownFeatures)
+}
+
+export function addKnownFeature(feature: string) {
+  knownFeatures[feature] = null
+}
+
+export function removeKnownFeature(feature: string) {
+  delete knownFeatures[feature]
+}
 
 /** Clear everything on the currently loaded sheets */
 export function clearConfigs() {
@@ -13,21 +39,34 @@ export function clearConfigs() {
 /** Upsert/combine two sets of ConfigSheets together */
 export function upsertConfigs(from: Partial<ConfigSheets>, to: Partial<ConfigSheets> = sheets) {
   Object.keys(from).forEach(key => {
-    upsertFields(to[key], from[key], COMPOUND_KEYS[key])
+    upsertFields<FlexExtensions>(to[key], from[key], [...COMPOUND_KEYS[key], 'ext', 'feature'])
   })
   return to
 }
 
-export function findObject<T>(keys: Record<string, any>, sheetName: keyof CCDTypes, configSheets: ConfigSheets = sheets): T | undefined {
+export function findObject<T extends FlexExtensions>(partial: Record<string, any>, sheetName: keyof CCDTypes, configSheets: ConfigSheets = sheets): T | undefined {
+  if (sheetName) {
+    return findObjectBySheet<T>(partial, sheetName, configSheets)
+  }
+
+  for (const sheet in configSheets) {
+    const found = findObject(partial, sheet as keyof CCDTypes, configSheets)
+    if (found) {
+      return found as T
+    }
+  }
+}
+
+export function findObjectBySheet<T>(partial: Record<string, any>, sheetName: keyof CCDTypes, configSheets: ConfigSheets = sheets): T | undefined {
   const arr = configSheets[sheetName] as Array<Record<string, any>>
   const keysThatMatter = COMPOUND_KEYS[sheetName] as string[]
   const found = arr.find(o => {
-    for (const key in keys) {
+    for (const key in partial) {
       if (!keysThatMatter.includes(key)) {
         continue
       }
 
-      if (keys[key] && !Number.isNaN(keys[key]) && o[key] !== keys[key]) {
+      if (partial[key] && !Number.isNaN(partial[key]) && o[key] !== partial[key]) {
         return false
       }
     }
@@ -100,6 +139,11 @@ export function getKnownCaseFieldIDsByEvent(caseEventId?: string, configSheets: 
   const allCaseEventToFields = configSheets.CaseEventToFields
   const fieldToEvent = allCaseEventToFields.filter(byEventId)
 
+  if (caseEventId === NONE) {
+    const orphanFields = configSheets.CaseField.filter(o => !allCaseEventToFields.find(x => x.CaseFieldID === o.ID))
+    return getUniqueByKeyAsArray(orphanFields, 'ID')
+  }
+
   return getUniqueByKeyAsArray(!caseEventId || caseEventId === NONE ? allCaseEventToFields : fieldToEvent, 'CaseFieldID')
 }
 
@@ -138,5 +182,12 @@ export function duplicateForCaseTypeIDs(answers: Answers, createFn: (answers: An
     return upsertConfigs(createFn({ ...answers, CaseTypeID: obj }), acc)
   }, createNewConfigSheets())
 
-  return upsertConfigs(createFn(answers), dupes)
+  const upserted = upsertConfigs(createFn(answers), dupes)
+
+  // Remove undefineds and nulls
+  for (const sheet in upserted) {
+    upserted[sheet] = upserted[sheet].filter(o => o)
+  }
+
+  return upserted
 }

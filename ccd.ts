@@ -1,4 +1,5 @@
-import { AllCCDKeys, AuthorisationCaseEvent, AuthorisationCaseField, CaseEvent, CaseEventToField, CaseField, CaseTypeTab, ComplexType, EventToComplexType } from 'types/ccd'
+import { AllCCDKeys, AuthorisationCaseEvent, AuthorisationCaseField, AuthorisationComplexType, CaseEvent, CaseEventToField, CaseField, CaseTypeTab, ComplexType, EventToComplexType, FlexExtensions } from 'types/ccd'
+import { Answers } from './questions'
 
 /**
  * Conditionally prepends ${ET_COS_URL} onto url if it starts with '/'
@@ -28,7 +29,10 @@ export function createNewCaseEvent(answers?: AllCCDKeys): CaseEvent {
     EventEnablingCondition: answers?.EventEnablingCondition || '',
     CallBackURLAboutToStartEvent: formatCallbackUrl(answers?.CallBackURLAboutToStartEvent) || '',
     CallBackURLAboutToSubmitEvent: formatCallbackUrl(answers?.CallBackURLAboutToSubmitEvent) || '',
-    CallBackURLSubmittedEvent: formatCallbackUrl(answers?.CallBackURLSubmittedEvent) || ''
+    CallBackURLSubmittedEvent: formatCallbackUrl(answers?.CallBackURLSubmittedEvent) || '',
+    Publish: answers?.Publish || 'N',
+    feature: answers?.feature || '',
+    ext: answers?.ext || '',
   }
 }
 
@@ -46,7 +50,9 @@ export function createNewCaseField(answers?: AllCCDKeys): CaseField {
     RegularExpression: answers?.RegularExpression,
     SecurityClassification: 'Public',
     Min: answers?.Min,
-    Max: answers?.Max
+    Max: answers?.Max,
+    feature: answers?.feature || '',
+    ext: answers?.ext || '',
   }
 }
 
@@ -72,7 +78,10 @@ export function createNewCaseEventToField(answers?: AllCCDKeys): CaseEventToFiel
     ShowSummaryContentOption: answers?.ShowSummaryContentOption,
     RetriesTimeoutURLMidEvent: answers?.RetriesTimeoutURLMidEvent,
     CaseEventFieldLabel: answers?.CaseEventFieldLabel,
-    CaseEventFieldHint: answers?.CaseEventFieldHint
+    CaseEventFieldHint: answers?.CaseEventFieldHint,
+    Publish: answers?.Publish || 'N',
+    feature: answers?.feature || '',
+    ext: answers?.ext || '',
   }
 }
 
@@ -90,7 +99,10 @@ export function createNewEventToComplexType(answers?: AllCCDKeys): EventToComple
     DisplayContext: answers?.DisplayContext || 'OPTIONAL',
     FieldShowCondition: answers?.FieldShowCondition,
     EventHintText: answers?.EventHintText || '',
-    RetainHiddenValue: answers?.RetainHiddenValue || 'No'
+    RetainHiddenValue: answers?.RetainHiddenValue || 'No',
+    Publish: answers?.Publish || 'N',
+    feature: answers?.feature || '',
+    ext: answers?.ext || '',
   }
 }
 
@@ -102,7 +114,9 @@ export function createAuthorisationCaseEvent(answers?: AllCCDKeys): Authorisatio
     CaseTypeId: answers?.CaseTypeId || answers?.CaseTypeID,
     CaseEventID: answers?.CaseEventID,
     UserRole: answers?.UserRole,
-    CRUD: answers?.CRUD || 'R'
+    CRUD: answers?.CRUD || 'R',
+    feature: answers?.feature || '',
+    ext: answers?.ext || '',
   }
 }
 
@@ -114,7 +128,21 @@ export function createAuthorisationCaseField(answers?: AllCCDKeys): Authorisatio
     CaseTypeId: answers?.CaseTypeId || answers?.CaseTypeID,
     CaseFieldID: answers?.CaseFieldID,
     UserRole: answers?.UserRole,
-    CRUD: answers?.CRUD || 'R'
+    CRUD: answers?.CRUD || 'R',
+    feature: answers?.feature || '',
+    ext: answers?.ext || '',
+  }
+}
+
+export function createAuthorisationComplexType(answers?: AllCCDKeys): AuthorisationComplexType {
+  return {
+    CaseTypeID: answers?.CaseTypeId || answers?.CaseTypeID,
+    CaseFieldID: answers?.CaseFieldID,
+    ListElementCode: answers?.ListElementCode,
+    UserRole: answers?.UserRole,
+    CRUD: answers?.CRUD || 'R',
+    feature: answers?.feature || '',
+    ext: answers?.ext || '',
   }
 }
 
@@ -133,7 +161,9 @@ export function createNewComplexType(answers?: AllCCDKeys): ComplexType {
     Max: answers?.Max,
     RegularExpression: answers.RegularExpression,
     DisplayOrder: answers?.DisplayOrder || undefined,
-    HintText: answers?.HintText
+    HintText: answers?.HintText,
+    feature: answers?.feature || '',
+    ext: answers?.ext || '',
   }
 }
 
@@ -148,7 +178,9 @@ export function createNewCaseTypeTab(answers?: AllCCDKeys): CaseTypeTab {
     TabDisplayOrder: answers?.TabDisplayOrder || 1,
     TabID: answers?.TabID || '',
     TabLabel: answers?.TabLabel || '',
-    TabFieldDisplayOrder: answers?.TabFieldDisplayOrder || 1
+    TabFieldDisplayOrder: answers?.TabFieldDisplayOrder || 1,
+    feature: answers?.feature || '',
+    ext: answers?.ext || '',
   }
 }
 

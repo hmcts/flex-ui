@@ -1,7 +1,12 @@
 {
   "data": {
-    "resTseSelectApplication": "Change personal details",
-    "resTseTextBox2": "look ma, flexUI populated",
+    "resTseSelectApplication": "Consider a decision afresh",
+    "resTseDocument4": {
+      "document_url": "<FLEX_DOC_UUID>",
+      "document_binary_url": "<FLEX_DOC_UUID>/binary",
+      "document_filename": "evidence.txt"
+    },
+    "resTseTextBox4": "lol",
     "resTseCopyToOtherPartyYesOrNo": "Yes",
     "resTseCopyToOtherPartyTextArea": null
   },

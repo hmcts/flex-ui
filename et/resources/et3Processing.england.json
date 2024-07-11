@@ -1,0 +1,66 @@
+{
+  "data": {
+    "et3ChooseRespondent": {
+      "value": {
+        "code": "R: {{respondentCollection.0.value.respondent_name}}",
+        "label": "{{respondentCollection.0.value.respondent_name}}"
+      },
+      "selectedLabel": "{{respondentCollection.0.value.respondent_name}}",
+      "selectedCode": "R: {{respondentCollection.0.value.respondent_name}}",
+      "list_items": [
+        {
+          "code": "R: {{respondentCollection.0.value.respondent_name}}",
+          "label": "{{respondentCollection.0.value.respondent_name}}"
+        }
+      ]
+    },
+    "et3Date": "| <h2>Dates</h2>| |\r\n|--|--|\r\n|ET1 served| 14 May 2024|\r\n|ET3 due| 11 June 2024|\r\n|Extension| None|\r\n|ET3 received| 14 May 2024|",
+    "et3IsThereAnEt3Response": "Yes",
+    "et3GeneralNotes": null,
+    "et3ResponseInTime": "Yes",
+    "et3NameAddressRespondent": "<h2>Respondent</h2><pre>Name &#09&#09&#09&#09&#09&#09&nbsp; Badman<br><br>Contact address &#09&#09 31 Bridge Road<br>&#09&#09&#09&#09&#09&#09&#09&#09&#09Erith<br>&#09&#09&#09&#09&#09&#09&#09&#09&#09DA8 2DE</pre><hr>",
+    "et3DoWeHaveRespondentsName": "Yes",
+    "et3GeneralNotesRespondentName": null,
+    "et3DoesRespondentsNameMatch": "Yes",
+    "et3RespondentNameMismatchDetails": null,
+    "et3GeneralNotesRespondentNameMatch": null,
+    "et3DoWeHaveRespondentsAddress": "Yes",
+    "et3GeneralNotesRespondentAddress": null,
+    "et3DoesRespondentsAddressMatch": "Yes",
+    "et3RespondentAddressMismatchDetails": null,
+    "et3GeneralNotesAddressMatch": null,
+    "et3ContestClaim": "No",
+    "et3ContestClaimGiveDetails": null,
+    "et3GeneralNotesContestClaim": null,
+    "et3ContractClaimSection7": "Yes",
+    "et3ContractClaimSection7Details": null,
+    "et3GeneralNotesContractClaimSection7": null,
+    "et3HearingDetails": "<h2>Hearing details</h2>The case has not been listed<hr>",
+    "et3IsCaseListedForHearing": "No",
+    "et3IsCaseListedForHearingDetails": null,
+    "et3GeneralNotesCaseListed": null,
+    "et3TribunalLocation": "| <h2>Tribunal location</h2>| | \r\n|--|--|\r\n|Tribunal| England & Wales|\r\n|Office| Leeds|",
+    "et3IsThisLocationCorrect": "Yes",
+    "et3RegionalOffice": null,
+    "et3WhyWeShouldChangeTheOffice": null,
+    "et3GeneralNotesTransferApplication": null,
+    "et3Rule26": "No",
+    "et3Rule26Details": null,
+    "et3SuggestedIssues": [],
+    "et3SuggestedIssuesStrikeOut": null,
+    "et3SuggestedIssueInterpreters": null,
+    "et3SuggestedIssueJurisdictional": null,
+    "et3SuggestedIssueAdjustments": null,
+    "et3SuggestedIssueRule50": null,
+    "et3SuggestedIssueTimePoints": null,
+    "et3GeneralNotesRule26": null,
+    "et3AdditionalInformation": null
+  },
+  "event": {
+    "id": "et3Vetting",
+    "summary": "",
+    "description": ""
+  },
+  "event_token": "",
+  "ignore_warning": false
+}

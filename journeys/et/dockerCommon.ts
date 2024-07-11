@@ -144,7 +144,7 @@ async function hasWslIPChanged() {
   return containerIP !== actualIP
 }
 
-async function waitForDmStore() {
+export async function waitForDmStore() {
   let timeout = 45
   let left = timeout
 

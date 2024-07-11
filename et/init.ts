@@ -10,7 +10,7 @@ async function init() {
   checkEnvVars()
   updateCompoundKeys()
   updateCreateJourneys()
-  readInCurrentConfig()
+  await readInCurrentConfig(undefined, process.env.ENGWALES_DEF_DIR, process.env.SCOTLAND_DEF_DIR)
 }
 
 /**

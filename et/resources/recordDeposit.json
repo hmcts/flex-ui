@@ -1,0 +1,90 @@
+{
+  "data": {
+    "depositType": [
+      {
+        "value": {
+          "Deposit_amount": "6900",
+          "depositOrderAgainst": "Respondent",
+          "dynamicDepositOrderAgainst": {
+            "value": {
+              "code": "R: Another Person",
+              "label": "Another Person"
+            },
+            "list_items": [
+              {
+                "code": "R: Another Person",
+                "label": "Another Person"
+              },
+              {
+                "code": "C: Jack Reeve",
+                "label": "Jack Reeve"
+              }
+            ]
+          },
+          "deposit_requested_by": "Respondent",
+          "dynamicDepositRequestedBy": {
+            "value": {
+              "code": "R: Another Person",
+              "label": "Another Person"
+            },
+            "list_items": [
+              {
+                "code": "R: Another Person",
+                "label": "Another Person"
+              },
+              {
+                "code": "C: Jack Reeve",
+                "label": "Jack Reeve"
+              },
+              {
+                "code": "Tribunal",
+                "label": "Tribunal"
+              }
+            ]
+          },
+          "deposit_covers": "All",
+          "deposit_order_sent": "1996-05-16",
+          "deposit_due": "1996-05-16",
+          "deposit_time_ext": "Yes",
+          "deposit_time_ext_due": "2000-05-16",
+          "depositReceived": "Yes",
+          "depositReceivedDate": "2022-05-16",
+          "deposit_refund": "Yes",
+          "depositAmountRefunded": "100",
+          "deposit_refund_date": "2000-01-11",
+          "depositRefundedTo": null,
+          "dynamicDepositRefundedTo": {
+            "value": {
+              "code": "R: Another Person",
+              "label": "Another Person"
+            },
+            "list_items": [
+              {
+                "code": "R: Another Person",
+                "label": "Another Person"
+              },
+              {
+                "code": "C: Jack Reeve",
+                "label": "Jack Reeve"
+              }
+            ]
+          },
+          "depositNotes": "Notes",
+          "depositDoc": {
+            "document_url": "<FLEX_DOC_UUID>",
+            "document_binary_url": "<FLEX_DOC_UUID>/binary",
+            "document_filename": "TPS Report.pdf"
+          }
+        },
+        "id": "d4bf464e-6703-4f94-ba9a-a08d36cc5fb6"
+      }
+    ]
+  },
+  "event": {
+    "id": "recordDeposit",
+    "summary": "",
+    "description": ""
+  },
+  "event_token": "",
+  "ignore_warning": false
+}

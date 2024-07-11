@@ -1,0 +1,25 @@
+{
+  "data": {
+    "documentCollection": [
+      {
+        "value": {
+          "typeOfDocument": "ET1",
+          "shortDescription": "lol",
+          "uploadedDocument": {
+            "document_url": "<FLEX_DOC_UUID>",
+            "document_binary_url": "<FLEX_DOC_UUID>/binary",
+            "document_filename": "evidence.txt"
+          }
+        },
+        "id": "cdfabef6-250f-4f36-8a32-b0aa75893e5f"
+      }
+    ]
+  },
+  "event": {
+    "id": "uploadDocument",
+    "summary": "",
+    "description": ""
+  },
+  "event_token": "",
+  "ignore_warning": false
+}

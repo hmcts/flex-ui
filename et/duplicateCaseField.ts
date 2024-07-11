@@ -1,4 +1,4 @@
-import { COMPOUND_KEYS } from 'app/constants'
+import { COMPOUND_KEYS, NONE } from 'app/constants'
 import { CCDTypeWithRegion, getRegionFromCaseTypeId, regionRoles } from 'app/et/configs'
 import { upsertFields } from 'app/helpers'
 import { CaseField, ComplexType, ConfigSheets } from 'app/types/ccd'
@@ -14,7 +14,9 @@ function getEquivalentRole(caseTypeID: string, role: string) {
  */
 export function duplicateInCaseType<T extends CCDTypeWithRegion>(caseTypeID: string, obj: T) {
   const copy = Object.assign({}, obj)
-  copy.CaseTypeID = caseTypeID
+  if (obj.CaseTypeID) {
+    copy.CaseTypeID = caseTypeID
+  }
   if (obj.flexRegion) {
     copy.flexRegion = getRegionFromCaseTypeId(caseTypeID)
   }
@@ -55,10 +57,10 @@ function getComplexTypeReferencedComplexTypes(config: ConfigSheets, complexType:
 /**
  * Gets ALL objects needed to support an array of CaseFields (checks all currently supported JSONs)
  */
-export function getObjectsReferencedByCaseFields(config: ConfigSheets, caseFields: CaseField[]): ConfigSheets {
+export function getObjectsReferencedByCaseFields(config: ConfigSheets, caseFields: CaseField[], caseEvent: string): ConfigSheets {
   const refCaseFields = config.CaseField.filter(o => caseFields.find(x => x.ID === o.ID || isFieldReferencedInField(x, o.ID)))
-  const refCaseEventToField = config.CaseEventToFields.filter(o => refCaseFields.find(x => x.ID === o.CaseFieldID))
-  const refCaseEvents = config.CaseEvent.filter(o => refCaseEventToField.find(x => x.CaseEventID === o.ID))
+  const refCaseEventToField = config.CaseEventToFields.filter(o => refCaseFields.find(x => x.ID === o.CaseFieldID && (caseEvent === NONE || o.CaseEventID === caseEvent)))
+  const refCaseEvents = caseEvent === NONE ? config.CaseEvent.filter(o => refCaseEventToField.find(x => x.CaseEventID === o.ID)) : config.CaseEvent.filter(o => o.ID === caseEvent)
   const refEventToComplexTypes = config.EventToComplexTypes.filter(o => refCaseFields.find(x => x.ID === o.CaseFieldID))
   const refScrubbed = config.Scrubbed.filter(o => refCaseFields.find(x => x.FieldTypeParameter === o.ID))
   const refAuthCaseField = config.AuthorisationCaseField.filter(o => refCaseFields.find(x => x.ID === o.CaseFieldID))
@@ -76,12 +78,16 @@ export function getObjectsReferencedByCaseFields(config: ConfigSheets, caseField
   return {
     AuthorisationCaseEvent: refAuthCaseEvent,
     AuthorisationCaseField: refAuthCaseField,
+    AuthorisationComplexType: [],
     CaseField: refCaseFields,
     CaseEvent: refCaseEvents,
     CaseEventToFields: refCaseEventToField,
     ComplexTypes: refComplexType,
     Scrubbed: refScrubbed,
     EventToComplexTypes: refEventToComplexTypes,
-    CaseTypeTab: refCaseTypeTab
+    CaseTypeTab: refCaseTypeTab,
+    RoleToAccessProfiles: [],
+    AuthorisationCaseState: [],
+    AuthorisationCaseType: []
   }
 }

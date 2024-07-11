@@ -55,7 +55,7 @@ async function journey() {
   selectedIDs.forEach(o => {
     const configs = region === Region.EnglandWales ? getEnglandWales() : getScotland()
     const fields = configs.CaseField.find(x => x.ID === o)
-    const related = getObjectsReferencedByCaseFields(configs, [fields])
+    const related = getObjectsReferencedByCaseFields(configs, [fields], answers[CaseEventToFieldKeys.CaseEventID])
 
     deleteFromConfig(configs, {
       AuthorisationCaseField: related.AuthorisationCaseField,

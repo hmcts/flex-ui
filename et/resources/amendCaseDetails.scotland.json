@@ -1,0 +1,88 @@
+{
+  "data": {
+    "managingOffice": "Glasgow",
+    "allocatedOffice": "Glasgow",
+    "claimServedDate": "2024-05-14",
+    "et3DueDate": "2024-05-14",
+    "receiptDate": "2024-05-14",
+    "feeGroupReference": "{{feeGroupReference}}",
+    "clerkResponsible": null,
+    "positionType": "ET1 Online submission",
+    "fileLocationGlasgow": null,
+    "fileLocationAberdeen": null,
+    "fileLocationDundee": null,
+    "fileLocationEdinburgh": null,
+    "conciliationTrack": "Open Track",
+    "multipleFlag": "No",
+    "caseType": "Single",
+    "multipleReference": null,
+    "leadClaimant": null,
+    "subMultipleName": null,
+    "caseNotes": null,
+    "suggestedHearingVenues": {
+      "list_items": [
+        {
+          "code": "Glasgow COET",
+          "label": "Glasgow COET"
+        },
+        {
+          "code": "GTC",
+          "label": "GTC"
+        },
+        {
+          "code": "Cambeltown HC",
+          "label": "Cambeltown Sheriff Court"
+        },
+        {
+          "code": "Dumfries HC",
+          "label": "Dumfries Sheriff Court"
+        },
+        {
+          "code": "Fort William SC",
+          "label": "Fort William Sheriff Court"
+        },
+        {
+          "code": "Kirkcudbright",
+          "label": "Kirkcudbright Sheriff Court"
+        },
+        {
+          "code": "Lochmaddy HC",
+          "label": "Lochmaddy Sheriff Court"
+        },
+        {
+          "code": "Oban HC",
+          "label": "Oban Sheriff court"
+        },
+        {
+          "code": "Portree HC",
+          "label": "Portree Sheriff Court"
+        },
+        {
+          "code": "Stirling SC",
+          "label": "Stirling Sheriff Court"
+        },
+        {
+          "code": "Stornoway HC",
+          "label": "Stornoway Sheriff Court"
+        },
+        {
+          "code": "Stranraer HC",
+          "label": "Stranraer Sheriff Court"
+        }
+      ]
+    },
+    "preAcceptCase": {
+      "dateAccepted": "2024-05-14",
+      "dateRejected": null,
+      "caseAccepted": "Yes",
+      "rejectReason": []
+    }
+  },
+  "event": {
+    "id": "amendCaseDetails",
+    "summary": "",
+    "description": ""
+  },
+  "event_token": "",
+  "ignore_warning": false
+}
