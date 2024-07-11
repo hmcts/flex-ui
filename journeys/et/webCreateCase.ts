@@ -15,6 +15,7 @@ import FormData from 'form-data'
 import { Answers } from 'app/questions'
 import { Region } from 'app/et/configs'
 import { CookieJar, addToCookieJarFromRawSetCookieHeader, cookieJarToString } from 'app/cookieJar'
+import { randomUUID } from 'crypto'
 
 https.globalAgent.options.rejectUnauthorized = false
 
@@ -451,6 +452,50 @@ async function createCaseECC(cookieJar: CookieJar, region = 'ET_EnglandWales', c
   return json.id as string
 }
 
+export async function doMultiple(name: string, region: string, caseIds: string[]) {
+  const cookieJar = await loginToIdam()
+  const regionMultiple = `${region}_Multiple`
+  const token = await createCaseInit(cookieJar, regionMultiple, 'createMultiple')
+
+  const existingCases = await findExistingCases(region, cookieJar)
+  const caseEthosRefs = caseIds.map(o => existingCases.find(p => p.caseId === o)?.ethos)
+
+  console.log(`Found ${caseEthosRefs.length} cases. ${caseEthosRefs.join(', ')}`)
+
+  const caseData = { ...require(resolve(process.env.APP_ROOT, '../et/resources/createMultiple.json')), event_token: token }
+  const url = `${ENV_CONFIG.EXUI_URL}/data/case-types/${regionMultiple}/cases?ignore-warning=false`
+
+  caseData.data.caseIdCollection = caseEthosRefs.map(o => ({ value: { ethos_CaseReference: o }, id: randomUUID() }))
+  caseData.data.leadCase = caseEthosRefs[0]
+  caseData.data.multipleName = name
+
+  if (region.startsWith(Region.Scotland)) {
+    caseData.data.managingOffice = 'Aberdeen'
+  }
+
+  const body = JSON.stringify(caseData)
+
+  console.log(body)
+
+  temporaryLog(`Creating new ${regionMultiple} case... `)
+
+  const res = await makeAuthorisedRequest(url, cookieJar, {
+    method: 'POST',
+    body,
+    headers: { 'Content-Type': 'application/json' }
+  })
+
+  const json = await res.json()
+
+  if (res.status === 201) {
+    console.log(`${json.id} ✓`)
+  } else {
+    console.log(`✕ (returned ${res.status} - ${JSON.stringify(json)})`)
+  }
+
+  return json.id as string
+}
+
 async function createCaseInit(cookieJar: CookieJar, region = 'ET_EnglandWales', event: string = 'initiateCase') {
   const url = `${ENV_CONFIG.EXUI_URL}/data/internal/case-types/${region}/event-triggers/${event}?ignore-warning=false`
 
@@ -586,7 +631,7 @@ async function uploadTestFile(cookieJar: CookieJar) {
   return json.documents[0]?._links.self.href || "http://localhost:5005/documents/08fb1f10-43a7-4cc8-8fc1-37f9c4d823ee"
 }
 
-async function findExistingCases(region: string, cookieJar: CookieJar): Promise<Array<Record<string, any> & { caseId: string, alias: string }>> {
+export async function findExistingCases(region: string, cookieJar: CookieJar): Promise<Array<Record<string, any> & { caseId: string, ethos: string, alias: string }>> {
   const url = `${ENV_CONFIG.EXUI_URL}/data/internal/searchCases?ctid=${region}&use_case=WORKBASKET&view=WORKBASKET&page=1`
   const res = await makeAuthorisedRequest(url, cookieJar, {
     method: 'post',
@@ -604,9 +649,10 @@ async function findExistingCases(region: string, cookieJar: CookieJar): Promise<
     return {
       ...o,
       caseId: o.case_id,
+      ethos: o.case_fields.ethosCaseReference,
       alias: `${o.case_fields['[CASE_TYPE]']} - ${o.case_fields.ethosCaseReference} - ${o.case_id} (${o.case_fields.claimant} vs ${o.case_fields.respondent})`
     }
-  }) || [] as Array<Record<string, any> & { caseId: string, alias: string }>
+  }) || [] as Array<Record<string, any> & { ethos: string, caseId: string, alias: string }>
 }
 
 export async function createCaseOnCitizenUI(answers: Answers) {

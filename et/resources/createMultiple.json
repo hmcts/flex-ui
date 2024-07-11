@@ -1,9 +1,11 @@
 {
   "data": {
-    "multipleName": "8000002/2024",
-    "managingOffice": "Glasgow",
-    "leadCase": "8000002/2024",
-    "caseIdCollection": []
+    "multipleName": "6000001/2024",
+    "managingOffice": "Leeds",
+    "leadCase": "6000001/2024",
+    "caseIdCollection": [
+
+    ]
   },
   "event": {
     "id": "createMultiple",
